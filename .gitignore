@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# Log files and temporary files
+*.log
+.debug/
+
+# Backup files
+*.backup
+
+# Node.js dependencies
+# node_modules/

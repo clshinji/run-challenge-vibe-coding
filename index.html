@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>キッズアドベンチャー - 横スクロールゲーム</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- ゲームコンテナ -->
+    <div id="gameContainer">
+        <!-- タイトル画面 -->
+        <div id="titleScreen" class="screen active">
+            <h1>キッズアドベンチャー</h1>
+            <div class="character-preview"></div>
+            <div class="menu-buttons">
+                <button id="startButton" class="game-button">ゲームスタート</button>
+                <button id="settingsButton" class="game-button">せってい</button>
+            </div>
+        </div>
+
+        <!-- ユーザー名入力画面 -->
+        <div id="nameInputScreen" class="screen">
+            <h2>なまえをいれてね</h2>
+            <input type="text" id="playerNameInput" placeholder="なまえ" maxlength="10">
+            <div class="menu-buttons">
+                <button id="nameConfirmButton" class="game-button">OK</button>
+                <button id="nameBackButton" class="game-button secondary">もどる</button>
+            </div>
+        </div>
+
+        <!-- ステージ選択画面 -->
+        <div id="stageSelectScreen" class="screen">
+            <h2>ステージをえらんでね</h2>
+            <div id="stageButtons" class="stage-grid">
+                <!-- ステージボタンは動的に生成 -->
+            </div>
+            <button id="stageBackButton" class="game-button secondary">もどる</button>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="gameScreen" class="screen">
+            <!-- ゲーム情報表示 -->
+            <div id="gameUI">
+                <div class="ui-top">
+                    <div id="scoreDisplay">スコア: <span id="score">0</span></div>
+                    <div id="itemDisplay">アイテム: <span id="itemCount">0</span></div>
+                    <div id="timeDisplay">じかん: <span id="time">0</span></div>
+                    <div id="livesDisplay">
+                        <span class="lives-label">ライフ:</span>
+                        <span id="hearts" class="hearts-container"></span>
+                    </div>
+                </div>
+                <button id="backToStageButton" class="ui-button">🏠 もどる</button>
+            </div>
+
+            <!-- ゲームキャンバス -->
+            <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+            <!-- タッチ操作用ボタン（モバイル） -->
+            <div id="touchControls" class="touch-controls">
+                <div class="control-left">
+                    <button id="leftButton" class="control-button">←</button>
+                    <button id="rightButton" class="control-button">→</button>
+                </div>
+                <div class="control-right">
+                    <button id="jumpButton" class="control-button jump">ジャンプ</button>
+                    <button id="crouchButton" class="control-button">しゃがむ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 一時停止画面 -->
+        <div id="pauseScreen" class="screen overlay">
+            <div class="pause-menu">
+                <h2>いちじていし</h2>
+                <div class="menu-buttons">
+                    <button id="resumeButton" class="game-button">つづける</button>
+                    <button id="restartButton" class="game-button">さいスタート</button>
+                    <button id="pauseBackButton" class="game-button secondary">メニューへ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゲームクリア画面 -->
+        <div id="clearScreen" class="screen overlay">
+            <div class="result-menu">
+                <h2>ステージクリア！</h2>
+                <div class="result-stats">
+                    <p>スコア: <span id="clearScore">0</span></p>
+                    <p>タイム: <span id="clearTime">0</span>秒</p>
+                    <p>アイテム: <span id="clearItems">0</span>個</p>
+                </div>
+                <div class="menu-buttons">
+                    <button id="nextStageButton" class="game-button">つぎのステージへ</button>
+                    <button id="clearBackButton" class="game-button secondary">もどる</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゲームオーバー画面 -->
+        <div id="gameOverScreen" class="screen overlay">
+            <div class="result-menu">
+                <h2>ざんねん...</h2>
+                <p>もういちど ちょうせんしてみよう！</p>
+                <div class="menu-buttons">
+                    <button id="retryButton" class="game-button">もういちど</button>
+                    <button id="gameOverBackButton" class="game-button secondary">ステージせんたく</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 設定画面 -->
+        <div id="settingsScreen" class="screen">
+            <h2>せってい</h2>
+            <div class="settings-options">
+                <div class="setting-item">
+                    <label>おんがく</label>
+                    <button id="musicToggle" class="toggle-button">ON</button>
+                </div>
+                <div class="setting-item">
+                    <label>こうかおん</label>
+                    <button id="soundToggle" class="toggle-button">ON</button>
+                </div>
+            </div>
+            <button id="settingsBackButton" class="game-button secondary">もどる</button>
+        </div>
+    </div>
+
+    <!-- JavaScript読み込み（同期・順序保証） -->
+    <script src="js/storage.js?v=28"></script>
+    <script src="js/player.js?v=28"></script>
+    <script src="js/stage.js?v=28"></script>
+    <script src="js/goal-animation.js?v=28"></script>
+    <script src="js/game-simple.js?v=28"></script>
+    <script src="js/ui.js?v=28"></script>
+    
+    <!-- UIManager初期化 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof UIManager !== 'undefined') {
+                window.uiManager = new UIManager();
+            }
+        });
+    </script>
+</body>
+</html>

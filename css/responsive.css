@@ -1,0 +1,432 @@
+/* タブレット・モバイル対応 */
+
+/* タブレット（横向き） */
+@media screen and (max-width: 1024px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+    
+    h2 {
+        font-size: 1.8rem;
+    }
+    
+    .game-button {
+        padding: 12px 25px;
+        font-size: 1.1rem;
+        min-width: 130px;
+    }
+    
+    #gameCanvas {
+        max-height: calc(100vh - 140px);
+    }
+    
+    .touch-controls {
+        display: flex;
+    }
+    
+    .control-button {
+        width: 55px;
+        height: 55px;
+        font-size: 1.1rem;
+    }
+}
+
+/* タブレット（縦向き）・大きめのスマホ */
+@media screen and (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .game-button {
+        padding: 10px 20px;
+        font-size: 1rem;
+        min-width: 120px;
+        margin: 8px;
+    }
+    
+    .character-preview {
+        width: 100px;
+        height: 100px;
+        margin: 1.5rem auto;
+        font-size: 2.5rem;
+    }
+    
+    input[type="text"] {
+        width: 200px;
+        padding: 12px;
+        font-size: 1.1rem;
+    }
+    
+    .stage-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        max-width: 300px;
+    }
+    
+    .stage-button {
+        width: 80px;
+        height: 80px;
+        font-size: 1.2rem;
+    }
+    
+    #gameUI {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .ui-top {
+        gap: 15px;
+    }
+    
+    #gameCanvas {
+        max-height: calc(100vh - 160px);
+        border-width: 2px;
+    }
+    
+    .touch-controls {
+        bottom: 15px;
+        padding: 0 15px;
+    }
+    
+    .control-button {
+        width: 50px;
+        height: 50px;
+        font-size: 1rem;
+    }
+    
+    .result-menu, .pause-menu {
+        padding: 1.5rem;
+        margin: 0 10px;
+    }
+    
+    .setting-item {
+        min-width: 250px;
+        padding: 0.8rem;
+    }
+    
+    .setting-item label {
+        font-size: 1.1rem;
+    }
+}
+
+/* スマートフォン */
+@media screen and (max-width: 480px) {
+    body {
+        font-size: 14px;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    h2 {
+        font-size: 1.3rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .game-button {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        min-width: 100px;
+        margin: 6px;
+    }
+    
+    .menu-buttons {
+        gap: 8px;
+        margin-top: 1.5rem;
+    }
+    
+    .character-preview {
+        width: 80px;
+        height: 80px;
+        margin: 1rem auto;
+        font-size: 2rem;
+        border-width: 3px;
+    }
+    
+    input[type="text"] {
+        width: 180px;
+        padding: 10px;
+        font-size: 1rem;
+        border-width: 2px;
+    }
+    
+    .stage-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        max-width: 250px;
+        margin: 1.5rem 0;
+    }
+    
+    .stage-button {
+        width: 70px;
+        height: 70px;
+        font-size: 1rem;
+        border-radius: 15px;
+    }
+    
+    #gameUI {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .ui-top {
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .ui-button {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    #gameCanvas {
+        max-height: calc(100vh - 180px);
+        border-width: 2px;
+        border-radius: 8px;
+    }
+    
+    .touch-controls {
+        bottom: 10px;
+        padding: 0 10px;
+    }
+    
+    .control-left, .control-right {
+        gap: 8px;
+    }
+    
+    .control-button {
+        width: 45px;
+        height: 45px;
+        font-size: 0.9rem;
+    }
+    
+    .result-menu, .pause-menu {
+        padding: 1.2rem;
+        margin: 0 5px;
+        border-radius: 15px;
+    }
+    
+    .result-stats p {
+        font-size: 1rem;
+        margin: 0.3rem 0;
+    }
+    
+    .setting-item {
+        min-width: 200px;
+        padding: 0.6rem;
+        margin: 0.8rem 0;
+    }
+    
+    .setting-item label {
+        font-size: 1rem;
+    }
+    
+    .toggle-button {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+/* 極小スマートフォン */
+@media screen and (max-width: 320px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.2rem;
+    }
+    
+    .game-button {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        min-width: 90px;
+    }
+    
+    .character-preview {
+        width: 70px;
+        height: 70px;
+        font-size: 1.8rem;
+    }
+    
+    input[type="text"] {
+        width: 160px;
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .stage-grid {
+        max-width: 200px;
+    }
+    
+    .stage-button {
+        width: 60px;
+        height: 60px;
+        font-size: 0.9rem;
+    }
+    
+    .control-button {
+        width: 40px;
+        height: 40px;
+        font-size: 0.8rem;
+    }
+    
+    .result-menu, .pause-menu {
+        padding: 1rem;
+    }
+    
+    .setting-item {
+        min-width: 180px;
+    }
+}
+
+/* 横向き表示の調整 */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+    .screen {
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    h2 {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .character-preview {
+        width: 60px;
+        height: 60px;
+        margin: 0.5rem auto;
+        font-size: 1.5rem;
+    }
+    
+    .menu-buttons {
+        margin-top: 1rem;
+        gap: 5px;
+    }
+    
+    .game-button {
+        padding: 6px 12px;
+        margin: 3px;
+    }
+    
+    .stage-grid {
+        margin: 1rem 0;
+    }
+    
+    #gameCanvas {
+        max-height: calc(100vh - 100px);
+    }
+    
+    .result-menu, .pause-menu {
+        padding: 1rem;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+}
+
+/* タッチデバイス用の調整 */
+@media (hover: none) and (pointer: coarse) {
+    .game-button:hover {
+        transform: none;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .stage-button:hover:not(.locked) {
+        transform: none;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* タッチ時のフィードバック */
+    .game-button:active {
+        transform: scale(0.95);
+    }
+    
+    .stage-button:active:not(.locked) {
+        transform: scale(0.95);
+    }
+    
+    .control-button:active {
+        transform: scale(0.9);
+    }
+}
+/* タブレット・スマートフォン対応 */
+@media (max-width: 768px) {
+    /* ステージ選択画面のタイトル */
+    #stageSelectScreen h2 {
+        font-size: 1.8rem;
+        padding: 12px 24px;
+        margin-bottom: 1rem;
+    }
+    
+    /* 他のタイトル */
+    h2 {
+        font-size: 1.6rem;
+    }
+    
+    #titleScreen h1 {
+        font-size: 2.5rem;
+    }
+    
+    /* UIボタン（ゲーム画面の「もどる」ボタン） */
+    .ui-button {
+        padding: 14px 20px; /* タッチしやすいサイズに */
+        font-size: 1.1rem;
+        border-radius: 15px;
+    }
+    
+    /* ゲームUI */
+    .ui-top {
+        gap: 15px;
+        font-size: 0.9rem;
+    }
+    
+    /* ライフ表示 */
+    .heart {
+        font-size: 1.3rem;
+    }
+    
+    .lives-label {
+        font-size: 0.9rem;
+    }
+}
+
+/* スマートフォン対応 */
+@media (max-width: 480px) {
+    .ui-button {
+        padding: 16px 24px; /* さらに大きく */
+        font-size: 1.2rem;
+        border-radius: 18px;
+    }
+    
+    /* ゲームUI */
+    .ui-top {
+        gap: 10px;
+        font-size: 0.8rem;
+        justify-content: space-between;
+    }
+    
+    /* ライフ表示 */
+    .heart {
+        font-size: 1.2rem;
+    }
+    
+    .hearts-container {
+        gap: 2px;
+    }
+    
+    .lives-label {
+        font-size: 0.8rem;
+    }
+}

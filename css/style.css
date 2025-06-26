@@ -1,0 +1,550 @@
+/* リセットCSS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* ゲームコンテナ */
+#gameContainer {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 画面共通スタイル */
+.screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+}
+
+.screen.active {
+    display: flex;
+}
+
+.screen.overlay {
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 100;
+}
+
+/* タイトル */
+h1 {
+    font-size: 3rem;
+    color: #FF6B6B;
+    text-shadow: 3px 3px 0px #FFF, 6px 6px 0px #FFB6C1;
+    margin-bottom: 2rem;
+    animation: bounce 2s infinite;
+}
+
+h2 {
+    font-size: 2rem;
+    color: #2C3E50; /* 濃い青灰色に変更 */
+    text-shadow: 
+        2px 2px 0px #FFF,
+        -1px -1px 0px #FFF,
+        1px -1px 0px #FFF,
+        -1px 1px 0px #FFF; /* 白い縁取りを強化 */
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+}
+
+/* ステージ選択画面のタイトル専用スタイル */
+#stageSelectScreen h2 {
+    color: #1A252F; /* さらに濃い色 */
+    font-size: 2.2rem;
+    text-shadow: 
+        3px 3px 0px #FFF,
+        -2px -2px 0px #FFF,
+        2px -2px 0px #FFF,
+        -2px 2px 0px #FFF,
+        0px 0px 10px rgba(255, 255, 255, 0.8); /* 光る効果を追加 */
+    background: rgba(255, 255, 255, 0.2); /* 半透明の背景 */
+    padding: 15px 30px;
+    border-radius: 20px;
+    border: 3px solid #FFF;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: inline-block;
+}
+
+/* タイトル画面のタイトル */
+#titleScreen h1 {
+    color: #1A252F;
+    text-shadow: 
+        3px 3px 0px #FFF,
+        -2px -2px 0px #FFF,
+        2px -2px 0px #FFF,
+        -2px 2px 0px #FFF,
+        0px 0px 15px rgba(255, 255, 255, 0.9);
+}
+
+/* その他の画面のタイトル */
+.screen h2 {
+    color: #1A252F;
+    text-shadow: 
+        2px 2px 0px #FFF,
+        -1px -1px 0px #FFF,
+        1px -1px 0px #FFF,
+        -1px 1px 0px #FFF,
+        0px 0px 8px rgba(255, 255, 255, 0.6);
+}
+
+/* アニメーション */
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+/* ボタンスタイル */
+.game-button {
+    background: linear-gradient(45deg, #FF6B6B, #FFB6C1);
+    border: none;
+    border-radius: 25px;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    margin: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+
+.game-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.game-button:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.game-button.secondary {
+    background: linear-gradient(45deg, #7F8C8D, #95A5A6); /* より濃いグレーに */
+    color: #FFF; /* 白いテキスト */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6); /* テキストに影を追加 */
+    border: 2px solid rgba(255, 255, 255, 0.3); /* 薄い白い枠線 */
+}
+
+.game-button.secondary:hover {
+    background: linear-gradient(45deg, #95A5A6, #BDC3C7);
+    color: #2C3E50; /* ホバー時に濃いテキスト */
+    text-shadow: none;
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* メニューボタンコンテナ */
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 2rem;
+}
+
+/* キャラクタープレビュー */
+.character-preview {
+    width: 120px;
+    height: 120px;
+    background: #FFE4E1;
+    border-radius: 50%;
+    margin: 2rem auto;
+    border: 5px solid #FF6B6B;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+}
+
+.character-preview::before {
+    content: "🐱";
+}
+
+/* 入力フィールド */
+input[type="text"] {
+    padding: 15px;
+    font-size: 1.2rem;
+    border: 3px solid #4ECDC4;
+    border-radius: 15px;
+    text-align: center;
+    margin: 1rem 0;
+    width: 250px;
+    background: white;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #FF6B6B;
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+}
+
+/* ステージ選択グリッド */
+.stage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 15px;
+    margin: 2rem 0;
+    max-width: 500px;
+}
+
+.stage-button {
+    width: 100px;
+    height: 100px;
+    border-radius: 20px;
+    border: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.stage-button.unlocked {
+    background: linear-gradient(45deg, #4ECDC4, #45B7B8);
+    color: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.stage-button.locked {
+    background: #BDC3C7;
+    color: #7F8C8D;
+    cursor: not-allowed;
+}
+
+.stage-button.completed {
+    background: linear-gradient(45deg, #F39C12, #F1C40F);
+    color: white;
+}
+
+.stage-button:hover:not(.locked) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ゲーム画面 */
+#gameScreen {
+    padding: 0;
+    background: #87CEEB;
+}
+
+/* ゲームUI */
+#gameUI {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ui-top {
+    display: flex;
+    gap: 20px;
+    font-weight: bold;
+    color: #2C3E50;
+    flex-wrap: wrap; /* 小さい画面で折り返し */
+}
+
+/* ライフ表示 */
+#livesDisplay {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lives-label {
+    font-size: 1rem;
+    color: #2C3E50;
+}
+
+.hearts-container {
+    display: flex;
+    gap: 4px;
+}
+
+.heart {
+    font-size: 1.5rem;
+    color: #FF1493; /* 鮮やかなピンク */
+    text-shadow: 
+        1px 1px 0px #FFF,
+        -1px -1px 0px #FFF,
+        1px -1px 0px #FFF,
+        -1px 1px 0px #FFF,
+        0px 0px 3px rgba(255, 20, 147, 0.5); /* ピンクの光る効果 */
+    animation: heartbeat 1.5s ease-in-out infinite;
+    transition: all 0.3s ease;
+}
+
+.heart.lost {
+    color: #999; /* グレーアウト */
+    text-shadow: 1px 1px 0px #FFF;
+    animation: heartLoss 0.5s ease-out;
+    opacity: 0.5;
+    transform: scale(0.8);
+}
+
+.heart.damage {
+    animation: heartDamage 0.6s ease-out;
+}
+
+/* ハートの鼓動アニメーション */
+@keyframes heartbeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* ハート失失時のアニメーション */
+@keyframes heartLoss {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.3);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+}
+
+/* ダメージ時のアニメーション */
+@keyframes heartDamage {
+    0%, 100% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.2) rotate(-5deg);
+    }
+    75% {
+        transform: scale(1.2) rotate(5deg);
+    }
+}
+
+.ui-button {
+    background: rgba(255, 255, 255, 0.9); /* 半透明の白い背景 */
+    border: 2px solid #2C3E50; /* 濃い色の枠線 */
+    border-radius: 12px;
+    padding: 12px 18px;
+    color: #2C3E50; /* 黒っぽいテキスト */
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8); /* 白い影でテキストを際立たせる */
+    box-shadow: 
+        0 3px 6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5); /* 内側にハイライト */
+    transition: all 0.3s ease; /* スムーズな変化 */
+    backdrop-filter: blur(5px); /* 背景をぼかす効果 */
+}
+
+.ui-button:hover {
+    background: rgba(52, 73, 94, 0.95); /* ホバー時に濃い背景 */
+    border-color: #FFD700; /* ホバー時に金色の枠線 */
+    color: #FFD700; /* ホバー時に金色のテキスト */
+    text-shadow: 
+        1px 1px 2px rgba(0, 0, 0, 0.8),
+        0 0 8px rgba(255, 215, 0, 0.5); /* 金色の光る効果 */
+    transform: translateY(-2px); /* 少し浮き上がる効果 */
+    box-shadow: 
+        0 5px 10px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.ui-button:active {
+    background: rgba(26, 37, 47, 0.95); /* クリック時にさらに濃く */
+    color: #FFF; /* アクティブ時は白いテキスト */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    transform: translateY(0px); /* 押し込まれる効果 */
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ゲームキャンバス */
+#gameCanvas {
+    display: block;
+    margin: 0 auto;
+    background: #87CEEB;
+    border: 3px solid #4ECDC4;
+    border-radius: 10px;
+    max-width: 100%;
+    max-height: calc(100vh - 120px);
+}
+
+/* タッチコントロール */
+.touch-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    display: none;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 10;
+}
+
+.control-left, .control-right {
+    display: flex;
+    gap: 10px;
+}
+
+.control-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.8);
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2C3E50;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.control-button:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 1);
+}
+
+.control-button.jump {
+    background: rgba(255, 107, 107, 0.8);
+    color: white;
+}
+
+/* 結果画面 */
+.result-menu, .pause-menu {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.result-stats {
+    margin: 1.5rem 0;
+    text-align: left;
+}
+
+.result-stats p {
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+    color: #2C3E50;
+}
+
+/* 設定画面 */
+.settings-options {
+    margin: 2rem 0;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    min-width: 300px;
+}
+
+.setting-item label {
+    font-size: 1.2rem;
+    color: #2C3E50;
+    font-weight: bold;
+}
+
+.toggle-button {
+    background: #27AE60;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.toggle-button.off {
+    background: #E74C3C;
+}
+
+/* ローディング表示 */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #4ECDC4;
+}
+
+.loading::after {
+    content: "...";
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: "."; }
+    40% { content: ".."; }
+    60%, 100% { content: "..."; }
+}
+/* ゲーム画面のもどるボタン */
+#backToStageButton {
+    padding: 8px 12px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 20;
+}
+
+#backToStageButton:hover {
+    background: #4CAF50;
+    color: white;
+    transform: scale(1.05);
+}
+
+#backToStageButton:active {
+    transform: scale(0.95);
+}
