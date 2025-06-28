@@ -75,7 +75,7 @@ class GameStorage {
         }
 
         const allData = this.loadAllPlayersData();
-        
+
         if (!allData[this.currentPlayer]) {
             console.log(`新しいプレイヤー "${this.currentPlayer}" のデータを作成`);
             const newData = { ...this.defaultData };
@@ -100,7 +100,7 @@ class GameStorage {
 
         const allData = this.loadAllPlayersData();
         allData[this.currentPlayer] = data;
-        
+
         return this.saveAllPlayersData(allData);
     }
 
@@ -109,12 +109,12 @@ class GameStorage {
      */
     mergeWithDefault(savedData) {
         const merged = { ...this.defaultData };
-        
+
         if (savedData.playerName) merged.playerName = savedData.playerName;
         if (savedData.settings) merged.settings = { ...merged.settings, ...savedData.settings };
         if (savedData.progress) merged.progress = { ...merged.progress, ...savedData.progress };
         if (savedData.totalStats) merged.totalStats = { ...merged.totalStats, ...savedData.totalStats };
-        
+
         return merged;
     }
 
@@ -125,10 +125,10 @@ class GameStorage {
         this.setCurrentPlayer(name);
         const data = this.loadGameData();
         data.playerName = name;
-        
+
         // 最後にプレイしたプレイヤーとして記録
         this.saveLastPlayer(name);
-        
+
         return this.saveGameData(data);
     }
 
@@ -189,20 +189,20 @@ class GameStorage {
     saveStageCompletion(stageNumber, stats) {
         console.log(`ステージ${stageNumber}クリア情報保存開始:`, stats);
         const data = this.loadGameData();
-        
+
         // ステージクリア記録
         if (!data.progress.completedStages.includes(stageNumber)) {
             data.progress.completedStages.push(stageNumber);
             console.log(`ステージ${stageNumber}をクリア済みに追加`);
         }
-        
+
         // 次のステージを解放
         const nextStage = stageNumber + 1;
-        if (nextStage <= 5 && !data.progress.unlockedStages.includes(nextStage)) {
+        if (nextStage <= 20 && !data.progress.unlockedStages.includes(nextStage)) {
             data.progress.unlockedStages.push(nextStage);
             console.log(`ステージ${nextStage}を解放`);
         }
-        
+
         // ステージ統計を更新
         const currentStats = data.progress.stageStats[stageNumber] || {
             bestTime: Infinity,
@@ -210,21 +210,21 @@ class GameStorage {
             maxItemsCollected: 0,
             playCount: 0
         };
-        
+
         currentStats.playCount++;
         if (stats.time < currentStats.bestTime) currentStats.bestTime = stats.time;
         if (stats.score > currentStats.bestScore) currentStats.bestScore = stats.score;
         if (stats.itemsCollected > currentStats.maxItemsCollected) {
             currentStats.maxItemsCollected = stats.itemsCollected;
         }
-        
+
         data.progress.stageStats[stageNumber] = currentStats;
-        
+
         // 総合統計を更新
         data.totalStats.totalPlayTime += stats.time;
         data.totalStats.totalScore += stats.score;
         data.totalStats.totalItemsCollected += stats.itemsCollected;
-        
+
         return this.saveGameData(data);
     }
 

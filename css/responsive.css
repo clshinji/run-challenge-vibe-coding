@@ -1,4 +1,79 @@
-/* タブレット・モバイル対応 */
+/* タブレット・モバイル対応 - シンプルで確実なレイアウト */
+
+/* 超大画面（1400px以上）- 最大5列 */
+@media screen and (min-width: 1400px) {
+    .stage-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+        gap: 16px !important;
+        max-width: 100% !important;
+        margin: 1rem 0 !important;
+        padding: 0 !important;
+    }
+    
+    .stage-button {
+        font-size: 1.4rem;
+    }
+}
+
+/* デスクトップ（1200px-1399px）- 最大4列 */
+@media screen and (max-width: 1399px) and (min-width: 1200px) {
+    .stage-grid {
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+        gap: 16px !important;
+        max-width: 100% !important;
+        margin: 1rem 0 !important;
+        padding: 0 !important;
+    }
+    
+    .stage-button {
+        font-size: 1.3rem;
+    }
+}
+
+/* 大画面タブレット（900px-1199px）- 最大3列 */
+@media screen and (max-width: 1199px) and (min-width: 900px) {
+    .stage-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+        gap: 14px !important;
+        max-width: 100% !important;
+        margin: 1rem 0 !important;
+        padding: 0 !important;
+    }
+    
+    .stage-button {
+        font-size: 1.2rem;
+    }
+}
+
+/* 中画面タブレット（700px-899px）- 最大3列 */
+@media screen and (max-width: 899px) and (min-width: 700px) {
+    .stage-grid {
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
+        gap: 12px !important;
+        max-width: 100% !important;
+        margin: 1rem 0 !important;
+        padding: 0 !important;
+    }
+    
+    .stage-button {
+        font-size: 1.1rem;
+    }
+}
+
+/* 小画面タブレット（500px-699px）- 最大2列 */
+@media screen and (max-width: 699px) and (min-width: 500px) {
+    .stage-grid {
+        grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)) !important;
+        gap: 10px !important;
+        max-width: 100% !important;
+        margin: 1rem 0 !important;
+        padding: 0 !important;
+    }
+    
+    .stage-button {
+        font-size: 1rem;
+    }
+}
 
 /* タブレット（横向き） */
 @media screen and (max-width: 1024px) {
@@ -31,7 +106,7 @@
     }
 }
 
-/* タブレット（縦向き）・大きめのスマホ */
+/* タブレット（縦向き）768px以下 */
 @media screen and (max-width: 768px) {
     h1 {
         font-size: 2rem;
@@ -63,16 +138,19 @@
         font-size: 1.1rem;
     }
     
+    /* タブレット用：レスポンシブグリッド（最大2列） */
     .stage-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        max-width: 300px;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
+        gap: 8px !important;
+        max-width: 100% !important;
+        margin: 1rem 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
     }
     
     .stage-button {
-        width: 80px;
-        height: 80px;
-        font-size: 1.2rem;
+        font-size: 1rem;
+        padding: 10px 5px;
     }
     
     #gameUI {
@@ -115,7 +193,7 @@
     }
 }
 
-/* スマートフォン */
+/* スマートフォン（480px以下） */
 @media screen and (max-width: 480px) {
     body {
         font-size: 14px;
@@ -139,6 +217,7 @@
     }
     
     .menu-buttons {
+        flex-direction: column;
         gap: 8px;
         margin-top: 1.5rem;
     }
@@ -158,18 +237,20 @@
         border-width: 2px;
     }
     
+    /* スマートフォン用：レスポンシブグリッド（最大2列） */
     .stage-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        max-width: 250px;
-        margin: 1.5rem 0;
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)) !important;
+        gap: 8px !important;
+        max-width: 100% !important;
+        margin: 1rem 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
     }
     
     .stage-button {
-        width: 70px;
-        height: 70px;
-        font-size: 1rem;
-        border-radius: 15px;
+        font-size: 0.9rem;
+        padding: 8px 4px;
+        border-radius: 12px;
     }
     
     #gameUI {
@@ -197,46 +278,45 @@
         bottom: 10px;
         padding: 0 10px;
     }
-    
+
     .control-left, .control-right {
-        gap: 8px;
+        width: 45px;
+        height: 45px;
     }
-    
+
     .control-button {
         width: 45px;
         height: 45px;
         font-size: 0.9rem;
     }
-    
+
     .result-menu, .pause-menu {
         padding: 1.2rem;
-        margin: 0 5px;
-        border-radius: 15px;
+        margin: 0 8px;
     }
-    
+
     .result-stats p {
-        font-size: 1rem;
-        margin: 0.3rem 0;
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
     }
-    
+
     .setting-item {
         min-width: 200px;
         padding: 0.6rem;
-        margin: 0.8rem 0;
     }
-    
+
     .setting-item label {
         font-size: 1rem;
     }
-    
+
     .toggle-button {
-        padding: 6px 12px;
-        font-size: 0.9rem;
+        width: 45px;
+        height: 24px;
     }
 }
 
-/* 極小スマートフォン */
-@media screen and (max-width: 320px) {
+/* 小型スマートフォン（250px-320px） */
+@media screen and (max-width: 320px) and (min-width: 250px) {
     h1 {
         font-size: 1.5rem;
     }
@@ -263,14 +343,20 @@
         font-size: 0.9rem;
     }
     
+    /* 小型画面：1-2列レイアウト */
     .stage-grid {
-        max-width: 200px;
+        grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)) !important;
+        gap: 6px !important;
+        max-width: 100% !important;
+        margin: 1rem 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
     }
     
     .stage-button {
-        width: 60px;
-        height: 60px;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+        padding: 8px;
+        border-radius: 10px;
     }
     
     .control-button {
@@ -285,6 +371,25 @@
     
     .setting-item {
         min-width: 180px;
+    }
+}
+
+/* 極小スマートフォン（250px以下） */
+@media screen and (max-width: 249px) {
+    /* 極小画面：1列のみ */
+    .stage-grid {
+        grid-template-columns: 1fr !important;
+        gap: 4px !important;
+        max-width: 100% !important;
+        margin: 0.5rem 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    .stage-button {
+        font-size: 0.7rem;
+        padding: 6px;
+        border-radius: 8px;
     }
 }
 
@@ -312,6 +417,7 @@
     }
     
     .menu-buttons {
+        flex-direction: column;
         margin-top: 1rem;
         gap: 5px;
     }
@@ -322,7 +428,36 @@
     }
     
     .stage-grid {
-        margin: 1rem 0;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+        gap: 6px !important;
+        max-width: 100% !important;
+        margin: 0.5rem 0 !important;
+        padding: 0 !important;
+        max-height: 40vh;
+        overflow-y: auto;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(5px);
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    }
+    
+    .stage-grid::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .stage-grid::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .stage-grid::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+    }
+    
+    .stage-button {
+        font-size: 0.8rem;
+        padding: 6px 4px;
     }
     
     #gameCanvas {
@@ -348,7 +483,6 @@
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
     
-    /* タッチ時のフィードバック */
     .game-button:active {
         transform: scale(0.95);
     }
@@ -361,16 +495,15 @@
         transform: scale(0.9);
     }
 }
-/* タブレット・スマートフォン対応 */
+
+/* ゲームUI専用のレスポンシブ調整 */
 @media (max-width: 768px) {
-    /* ステージ選択画面のタイトル */
     #stageSelectScreen h2 {
         font-size: 1.8rem;
         padding: 12px 24px;
         margin-bottom: 1rem;
     }
     
-    /* 他のタイトル */
     h2 {
         font-size: 1.6rem;
     }
@@ -379,20 +512,17 @@
         font-size: 2.5rem;
     }
     
-    /* UIボタン（ゲーム画面の「もどる」ボタン） */
     .ui-button {
-        padding: 14px 20px; /* タッチしやすいサイズに */
+        padding: 14px 20px;
         font-size: 1.1rem;
         border-radius: 15px;
     }
     
-    /* ゲームUI */
     .ui-top {
         gap: 15px;
         font-size: 0.9rem;
     }
     
-    /* ライフ表示 */
     .heart {
         font-size: 1.3rem;
     }
@@ -402,22 +532,19 @@
     }
 }
 
-/* スマートフォン対応 */
 @media (max-width: 480px) {
     .ui-button {
-        padding: 16px 24px; /* さらに大きく */
+        padding: 16px 24px;
         font-size: 1.2rem;
         border-radius: 18px;
     }
     
-    /* ゲームUI */
     .ui-top {
         gap: 10px;
         font-size: 0.8rem;
         justify-content: space-between;
     }
     
-    /* ライフ表示 */
     .heart {
         font-size: 1.2rem;
     }
@@ -430,3 +557,6 @@
         font-size: 0.8rem;
     }
 }
+
+/* 完全レスポンシブグリッド対応完了 - 2024年12月27日 */
+/* 画面幅に応じて5列〜1列まで自動調整されます */

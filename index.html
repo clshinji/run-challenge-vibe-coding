@@ -1,211 +1,258 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>キッズアドベンチャー - 横スクロールゲーム</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/responsive.css">
-</head>
-<body>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+  </head>
+  <body>
     <!-- ゲームコンテナ -->
     <div id="gameContainer">
-        <!-- タイトル画面 -->
-        <div id="titleScreen" class="screen active">
-            <h1>キッズアドベンチャー</h1>
-            <div class="character-preview"></div>
-            
-            <!-- プレイヤー名表示エリア -->
-            <div id="playerNameDisplay" class="player-name-display">
-                <div class="player-name-label">なまえ:</div>
-                <div id="currentPlayerName" class="current-player-name">なまえがないよ</div>
-                <button id="editPlayerNameButton" class="game-button secondary">なまえをかえる</button>
-            </div>
-            
-            <div class="menu-buttons">
-                <button id="startButton" class="game-button">ゲームスタート</button>
-                <button id="statsButton" class="game-button">せいせき</button>
-                <button id="settingsButton" class="game-button">せってい</button>
-            </div>
+      <!-- タイトル画面 -->
+      <div id="titleScreen" class="screen active">
+        <h1>キッズアドベンチャー</h1>
+        <div class="character-preview"></div>
+
+        <!-- プレイヤー名表示エリア -->
+        <div id="playerNameDisplay" class="player-name-display">
+          <div class="player-name-label">なまえ:</div>
+          <div id="currentPlayerName" class="current-player-name">
+            なまえがないよ
+          </div>
+          <button id="editPlayerNameButton" class="game-button secondary">
+            なまえをかえる
+          </button>
         </div>
 
-        <!-- ユーザー名入力画面 -->
-        <div id="nameInputScreen" class="screen">
-            <h2>なまえをいれてね</h2>
-            <input type="text" id="playerNameInput" placeholder="なまえ" maxlength="10">
-            <div class="menu-buttons">
-                <button id="nameConfirmButton" class="game-button">OK</button>
-                <button id="nameBackButton" class="game-button secondary">もどる</button>
+        <div class="menu-buttons">
+          <button id="startButton" class="game-button">ゲームスタート</button>
+          <button id="statsButton" class="game-button">せいせき</button>
+          <button id="settingsButton" class="game-button">せってい</button>
+        </div>
+      </div>
+
+      <!-- ユーザー名入力画面 -->
+      <div id="nameInputScreen" class="screen">
+        <h2>なまえをいれてね</h2>
+        <input
+          type="text"
+          id="playerNameInput"
+          placeholder="なまえ"
+          maxlength="10"
+        />
+        <div class="menu-buttons">
+          <button id="nameConfirmButton" class="game-button">OK</button>
+          <button id="nameBackButton" class="game-button secondary">
+            もどる
+          </button>
+        </div>
+      </div>
+
+      <!-- プレイヤー名編集画面 -->
+      <div id="editNameScreen" class="screen">
+        <h2>なまえをかえる</h2>
+        <div class="current-name-info">
+          <span>いまのなまえ: </span>
+          <span id="currentNameInEdit" class="current-name-text">未設定</span>
+        </div>
+        <input
+          type="text"
+          id="editPlayerNameInput"
+          placeholder="あたらしいなまえ"
+          maxlength="10"
+        />
+        <div class="menu-buttons">
+          <button id="confirmEditNameButton" class="game-button">かえる</button>
+          <button id="cancelEditNameButton" class="game-button secondary">
+            もどる
+          </button>
+        </div>
+      </div>
+
+      <!-- ステージ選択画面 -->
+      <div id="stageSelectScreen" class="screen">
+        <h2>ステージをえらんでね</h2>
+        <div id="stageButtons" class="stage-grid">
+          <!-- ステージボタンは動的に生成 -->
+        </div>
+        <button id="stageBackButton" class="game-button secondary">
+          もどる
+        </button>
+      </div>
+
+      <!-- ゲーム画面 -->
+      <div id="gameScreen" class="screen">
+        <!-- ゲーム情報表示 -->
+        <div id="gameUI">
+          <div class="ui-top">
+            <div id="scoreDisplay">スコア: <span id="score">0</span></div>
+            <div id="itemDisplay">アイテム: <span id="itemCount">0</span></div>
+            <div id="timeDisplay">じかん: <span id="time">0</span></div>
+            <div id="livesDisplay">
+              <span class="lives-label">ライフ:</span>
+              <span id="hearts" class="hearts-container"></span>
             </div>
+          </div>
+          <button id="backToStageButton" class="ui-button">🏠 もどる</button>
         </div>
 
-        <!-- プレイヤー名編集画面 -->
-        <div id="editNameScreen" class="screen">
-            <h2>なまえをかえる</h2>
-            <div class="current-name-info">
-                <span>いまのなまえ: </span>
-                <span id="currentNameInEdit" class="current-name-text">未設定</span>
-            </div>
-            <input type="text" id="editPlayerNameInput" placeholder="あたらしいなまえ" maxlength="10">
-            <div class="menu-buttons">
-                <button id="confirmEditNameButton" class="game-button">かえる</button>
-                <button id="cancelEditNameButton" class="game-button secondary">もどる</button>
-            </div>
+        <!-- ゲームキャンバス -->
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+        <!-- タッチ操作用ボタン（モバイル） -->
+        <div id="touchControls" class="touch-controls">
+          <div class="control-left">
+            <button id="leftButton" class="control-button">←</button>
+            <button id="rightButton" class="control-button">→</button>
+          </div>
+          <div class="control-right">
+            <button id="jumpButton" class="control-button jump">
+              ジャンプ
+            </button>
+            <button id="crouchButton" class="control-button">しゃがむ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 一時停止画面 -->
+      <div id="pauseScreen" class="screen overlay">
+        <div class="pause-menu">
+          <h2>いちじていし</h2>
+          <div class="menu-buttons">
+            <button id="resumeButton" class="game-button">つづける</button>
+            <button id="restartButton" class="game-button">さいスタート</button>
+            <button id="pauseBackButton" class="game-button secondary">
+              メニューへ
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ゲームクリア画面 -->
+      <div id="clearScreen" class="screen overlay">
+        <div class="result-menu">
+          <h2>ステージクリア！</h2>
+          <div class="result-stats">
+            <p>スコア: <span id="clearScore">0</span></p>
+            <p>タイム: <span id="clearTime">0</span>秒</p>
+            <p>アイテム: <span id="clearItems">0</span>個</p>
+          </div>
+          <div class="menu-buttons">
+            <button id="nextStageButton" class="game-button">
+              つぎのステージへ
+            </button>
+            <button id="clearBackButton" class="game-button secondary">
+              もどる
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ゲームオーバー画面 -->
+      <div id="gameOverScreen" class="screen overlay">
+        <div class="result-menu">
+          <h2>ざんねん...</h2>
+          <p>もういちど ちょうせんしてみよう！</p>
+          <div class="menu-buttons">
+            <button id="retryButton" class="game-button">もういちど</button>
+            <button id="gameOverBackButton" class="game-button secondary">
+              ステージせんたく
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 統計・ダッシュボード画面 -->
+      <div id="statsScreen" class="screen">
+        <div class="stats-screen-header">
+          <h2>せいせき</h2>
         </div>
 
-        <!-- ステージ選択画面 -->
-        <div id="stageSelectScreen" class="screen">
-            <h2>ステージをえらんでね</h2>
-            <div id="stageButtons" class="stage-grid">
-                <!-- ステージボタンは動的に生成 -->
+        <div class="stats-content-wrapper">
+          <!-- 総合スコア表示 -->
+          <div class="stats-summary">
+            <div class="stats-summary-header">
+              <div class="score-label">そうごうスコア</div>
             </div>
-            <button id="stageBackButton" class="game-button secondary">もどる</button>
-        </div>
-
-        <!-- ゲーム画面 -->
-        <div id="gameScreen" class="screen">
-            <!-- ゲーム情報表示 -->
-            <div id="gameUI">
-                <div class="ui-top">
-                    <div id="scoreDisplay">スコア: <span id="score">0</span></div>
-                    <div id="itemDisplay">アイテム: <span id="itemCount">0</span></div>
-                    <div id="timeDisplay">じかん: <span id="time">0</span></div>
-                    <div id="livesDisplay">
-                        <span class="lives-label">ライフ:</span>
-                        <span id="hearts" class="hearts-container"></span>
+            <div class="stats-summary-content">
+              <div class="total-score-display">
+                <div id="totalScoreValue" class="score-value">0</div>
+                <div class="score-progress">
+                  <div id="totalScoreBar" class="progress-bar">
+                    <div class="progress-fill"></div>
+                  </div>
+                  <div class="progress-text">
+                    レベル <span id="playerLevel">1</span>
+                  </div>
+                  <div class="level-info">
+                    <div class="current-level">
+                      げんざいのレベル: <span id="currentLevelText">1</span>
                     </div>
-                </div>
-                <button id="backToStageButton" class="ui-button">🏠 もどる</button>
-            </div>
-
-            <!-- ゲームキャンバス -->
-            <canvas id="gameCanvas" width="800" height="400"></canvas>
-
-            <!-- タッチ操作用ボタン（モバイル） -->
-            <div id="touchControls" class="touch-controls">
-                <div class="control-left">
-                    <button id="leftButton" class="control-button">←</button>
-                    <button id="rightButton" class="control-button">→</button>
-                </div>
-                <div class="control-right">
-                    <button id="jumpButton" class="control-button jump">ジャンプ</button>
-                    <button id="crouchButton" class="control-button">しゃがむ</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 一時停止画面 -->
-        <div id="pauseScreen" class="screen overlay">
-            <div class="pause-menu">
-                <h2>いちじていし</h2>
-                <div class="menu-buttons">
-                    <button id="resumeButton" class="game-button">つづける</button>
-                    <button id="restartButton" class="game-button">さいスタート</button>
-                    <button id="pauseBackButton" class="game-button secondary">メニューへ</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ゲームクリア画面 -->
-        <div id="clearScreen" class="screen overlay">
-            <div class="result-menu">
-                <h2>ステージクリア！</h2>
-                <div class="result-stats">
-                    <p>スコア: <span id="clearScore">0</span></p>
-                    <p>タイム: <span id="clearTime">0</span>秒</p>
-                    <p>アイテム: <span id="clearItems">0</span>個</p>
-                </div>
-                <div class="menu-buttons">
-                    <button id="nextStageButton" class="game-button">つぎのステージへ</button>
-                    <button id="clearBackButton" class="game-button secondary">もどる</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ゲームオーバー画面 -->
-        <div id="gameOverScreen" class="screen overlay">
-            <div class="result-menu">
-                <h2>ざんねん...</h2>
-                <p>もういちど ちょうせんしてみよう！</p>
-                <div class="menu-buttons">
-                    <button id="retryButton" class="game-button">もういちど</button>
-                    <button id="gameOverBackButton" class="game-button secondary">ステージせんたく</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 統計・ダッシュボード画面 -->
-        <div id="statsScreen" class="screen">
-            <div class="stats-screen-header">
-                <h2>せいせき</h2>
-            </div>
-            
-            <div class="stats-content-wrapper">
-                <!-- 総合スコア表示 -->
-                <div class="stats-summary">
-                    <div class="stats-summary-header">
-                        <div class="score-label">そうごうスコア</div>
+                    <div class="next-level">
+                      つぎのレベルまで:
+                      <span id="nextLevelPoints">1000</span>てん
                     </div>
-                    <div class="stats-summary-content">
-                        <div class="total-score-display">
-                            <div id="totalScoreValue" class="score-value">0</div>
-                            <div class="score-progress">
-                                <div id="totalScoreBar" class="progress-bar">
-                                    <div class="progress-fill"></div>
-                                </div>
-                                <div class="progress-text">レベル <span id="playerLevel">1</span></div>
-                                <div class="level-info">
-                                    <div class="current-level">げんざいのレベル: <span id="currentLevelText">1</span></div>
-                                    <div class="next-level">つぎのレベルまで: <span id="nextLevelPoints">1000</span>てん</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                  </div>
                 </div>
-
-                <!-- ステージ別成績 -->
-                <div class="stage-stats">
-                    <h3>ステージべつせいせき</h3>
-                    <div id="stageStatsContainer" class="stage-stats-grid">
-                        <!-- 動的に生成 -->
-                    </div>
-                </div>
-
-                <!-- 最近の成績グラフ -->
-                <div class="recent-stats">
-                    <h3>さいきんのせいせき</h3>
-                    <div id="recentStatsChart" class="stats-chart">
-                        <!-- グラフエリア -->
-                    </div>
-                </div>
-
-                <div class="menu-buttons">
-                    <button id="statsBackButton" class="game-button secondary">もどる</button>
-                </div>
+              </div>
             </div>
-        </div>
-        <div id="settingsScreen" class="screen">
-            <h2>せってい</h2>
-            <div class="settings-options">
-                <div class="setting-item">
-                    <label>おんがく</label>
-                    <button id="musicToggle" class="toggle-button">ON</button>
-                </div>
-                <div class="setting-item">
-                    <label>こうかおん</label>
-                    <button id="soundToggle" class="toggle-button">ON</button>
-                </div>
-                <div class="setting-item debug-section">
-                    <label>デバッグ機能</label>
-                    <div class="debug-buttons">
-                        <button id="addTestDataButton" class="debug-button">テストデータ生成</button>
-                        <button id="addTestScoreButton" class="debug-button">テストスコア追加</button>
-                        <button id="resetScoreButton" class="debug-button">スコアリセット</button>
-                    </div>
-                </div>
+          </div>
+
+          <!-- ステージ別成績 -->
+          <div class="stage-stats">
+            <h3>ステージべつせいせき</h3>
+            <div id="stageStatsContainer" class="stage-stats-grid">
+              <!-- 動的に生成 -->
             </div>
-            <button id="settingsBackButton" class="game-button secondary">もどる</button>
+          </div>
+
+          <!-- 最近の成績グラフ -->
+          <div class="recent-stats">
+            <h3>さいきんのせいせき</h3>
+            <div id="recentStatsChart" class="stats-chart">
+              <!-- グラフエリア -->
+            </div>
+          </div>
+
+          <div class="menu-buttons">
+            <button id="statsBackButton" class="game-button secondary">
+              もどる
+            </button>
+          </div>
         </div>
+      </div>
+      <div id="settingsScreen" class="screen">
+        <h2>せってい</h2>
+        <div class="settings-options">
+          <div class="setting-item">
+            <label>おんがく</label>
+            <button id="musicToggle" class="toggle-button">ON</button>
+          </div>
+          <div class="setting-item">
+            <label>こうかおん</label>
+            <button id="soundToggle" class="toggle-button">ON</button>
+          </div>
+          <div class="setting-item debug-section">
+            <label>デバッグ機能</label>
+            <div class="debug-buttons">
+              <button id="addTestDataButton" class="debug-button">
+                テストデータ生成
+              </button>
+              <button id="addTestScoreButton" class="debug-button">
+                テストスコア追加
+              </button>
+              <button id="resetScoreButton" class="debug-button">
+                スコアリセット
+              </button>
+            </div>
+          </div>
+        </div>
+        <button id="settingsBackButton" class="game-button secondary">
+          もどる
+        </button>
+      </div>
     </div>
 
     <!-- JavaScript読み込み（同期・順序保証） -->
@@ -215,14 +262,14 @@
     <script src="js/goal-animation.js?v=61"></script>
     <script src="js/game-simple.js?v=61"></script>
     <script src="js/ui.js?v=61"></script>
-    
+
     <!-- UIManager初期化 -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof UIManager !== 'undefined') {
-                window.uiManager = new UIManager();
-            }
-        });
+      document.addEventListener("DOMContentLoaded", () => {
+        if (typeof UIManager !== "undefined") {
+          window.uiManager = new UIManager();
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

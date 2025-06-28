@@ -19,12 +19,12 @@ class UIManager {
             gameStorage.setCurrentPlayer(lastPlayer);
             console.log('最後のプレイヤーを復元:', lastPlayer);
         }
-        
+
         this.gameData = gameStorage.loadGameData();
         this.setupEventListeners();
         this.updateUI();
         this.showScreen('titleScreen');
-        
+
         // 初期化後にプレイヤー名表示を更新
         setTimeout(() => {
             this.updatePlayerNameDisplay();
@@ -39,7 +39,7 @@ class UIManager {
         const confirmEditButton = document.getElementById('confirmEditNameButton');
         const cancelEditButton = document.getElementById('cancelEditNameButton');
         const editNameInput = document.getElementById('editPlayerNameInput');
-        
+
         // 既存のイベントリスナーを削除
         if (confirmEditButton) {
             confirmEditButton.replaceWith(confirmEditButton.cloneNode(true));
@@ -50,7 +50,7 @@ class UIManager {
         if (editNameInput) {
             editNameInput.replaceWith(editNameInput.cloneNode(true));
         }
-        
+
         // タイトル画面
         document.getElementById('startButton').addEventListener('click', () => {
             if (this.gameData.playerName) {
@@ -211,6 +211,7 @@ class UIManager {
         }
         */
         this.setupTouchControls();
+        this.setupCanvasTouch();
     }
 
     /**
@@ -224,38 +225,152 @@ class UIManager {
             crouchButton: 'crouch'
         };
 
+        console.log('タッチコントロール設定開始...');
+
+        // デバッグ: ボタンの存在確認
+        console.log('ボタンの存在確認:');
+        Object.keys(touchButtons).forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            console.log(`${buttonId}: ${button ? '見つかった' : '見つからない'}`, button);
+        });
+
         Object.entries(touchButtons).forEach(([buttonId, action]) => {
             const button = document.getElementById(buttonId);
-            
+
+            if (!button) {
+                console.error(`タッチボタンが見つかりません: ${buttonId}`);
+                return;
+            }
+
+            console.log(`${buttonId} ボタンにイベントリスナーを追加`);
+
+            // タッチイベント（モバイル用）
             button.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                if (window.game && window.game.player) {
-                    window.game.player.handleInput(action, true);
-                }
+                e.stopPropagation();
+                console.log(`タッチ開始: ${action}`);
+                this.handleButtonInput(action, true);
             });
 
             button.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                if (window.game && window.game.player) {
-                    window.game.player.handleInput(action, false);
-                }
+                e.stopPropagation();
+                console.log(`タッチ終了: ${action}`);
+                this.handleButtonInput(action, false);
             });
 
-            // マウスイベントも追加（デバッグ用）
-            button.addEventListener('mousedown', (e) => {
+            button.addEventListener('touchcancel', (e) => {
                 e.preventDefault();
-                if (window.game && window.game.player) {
-                    window.game.player.handleInput(action, true);
-                }
+                e.stopPropagation();
+                console.log(`タッチキャンセル: ${action}`);
+                this.handleButtonInput(action, false);
             });
 
-            button.addEventListener('mouseup', (e) => {
+            // クリックイベント（マウス用 - シンプルで確実）
+            button.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (window.game && window.game.player) {
-                    window.game.player.handleInput(action, false);
-                }
+                e.stopPropagation();
+                console.log(`[BUTTON_DEBUG] クリック: ${action}`);
+
+                // すべての動作を handleButtonInput 経由で処理（連続押下防止統一）
+                console.log(`[BUTTON_DEBUG] handleButtonInput経由でジャンプ実行: ${action}`);
+                this.handleButtonInput(action, true);
+                setTimeout(() => {
+                    this.handleButtonInput(action, false);
+                }, 100);
             });
+
+            // マウスイベント（長押し対応用 - ジャンプ以外）
+            if (action !== 'jump') {
+                button.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log(`[BUTTON_DEBUG] マウス押下: ${action}`);
+                    this.handleButtonInput(action, true);
+                });
+
+                button.addEventListener('mouseup', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log(`[BUTTON_DEBUG] マウス離上: ${action}`);
+                    this.handleButtonInput(action, false);
+                });
+
+                button.addEventListener('mouseleave', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log(`[BUTTON_DEBUG] マウス離脱: ${action}`);
+                    this.handleButtonInput(action, false);
+                });
+            }
+
+            // ビジュアルフィードバック - タッチ
+            button.addEventListener('touchstart', () => {
+                button.classList.add('pressed');
+            });
+
+            button.addEventListener('touchend', () => {
+                button.classList.remove('pressed');
+            });
+
+            button.addEventListener('touchcancel', () => {
+                button.classList.remove('pressed');
+            });
+
+            // ビジュアルフィードバック - クリック（全ボタン共通）
+            button.addEventListener('click', () => {
+                button.classList.add('pressed');
+                setTimeout(() => {
+                    button.classList.remove('pressed');
+                }, 150);
+            });
+
+            // ビジュアルフィードバック - マウス（ジャンプ以外の長押し対応）
+            if (action !== 'jump') {
+                button.addEventListener('mousedown', () => {
+                    button.classList.add('pressed');
+                });
+
+                button.addEventListener('mouseup', () => {
+                    button.classList.remove('pressed');
+                });
+
+                button.addEventListener('mouseleave', () => {
+                    button.classList.remove('pressed');
+                });
+            }
         });
+
+        console.log('タッチコントロール設定完了');
+    }
+
+    /**
+     * ボタン入力処理
+     */
+    handleButtonInput(action, isPressed) {
+        console.log(`🎮 ボタン入力処理: ${action}, 押下状態: ${isPressed}`);
+        console.log('🎮 ゲーム状態:', {
+            'window.game': !!window.game,
+            'window.game.player': !!(window.game && window.game.player),
+            'ゲーム実行中': window.game ? window.game.isRunning : false,
+            'currentScreen': this.currentScreen
+        });
+
+        if (window.game && window.game.player) {
+            try {
+                window.game.player.handleInput(action, isPressed);
+                console.log(`✅ プレイヤーに入力送信: ${action}`);
+            } catch (error) {
+                console.error('❌ プレイヤー入力エラー:', error);
+            }
+        } else {
+            console.warn('⚠️ ゲームまたはプレイヤーが利用できません');
+            console.log('利用可能なオブジェクト:', {
+                'window': typeof window,
+                'window.game': typeof window.game,
+                'window.game?.player': typeof window.game?.player
+            });
+        }
     }
 
     /**
@@ -322,33 +437,33 @@ class UIManager {
 
         if (name.length > 0) {
             console.log('有効な名前が入力されました:', name);
-            
+
             // 既存のプレイヤー名リストを取得
             const existingPlayers = gameStorage.getAllPlayerNames();
             const isExistingPlayer = existingPlayers.includes(name);
-            
+
             // プレイヤーを設定
             gameStorage.setCurrentPlayer(name);
-            
+
             // プレイヤー名を保存
             const success = gameStorage.savePlayerName(name);
-            
+
             if (success) {
                 // 最新データを読み込み
                 this.gameData = gameStorage.loadGameData();
-                
+
                 // UI更新
                 this.updatePlayerNameDisplay();
                 this.updateUI();
-                
+
                 console.log('名前保存成功:', name);
-                
+
                 if (isExistingPlayer) {
                     alert(`プレイヤー "${name}" に切り替えました`);
                 } else {
                     alert(`新しいプレイヤー "${name}" を作成しました\nゼロからスタートです！`);
                 }
-                
+
                 this.showScreen('stageSelectScreen');
             } else {
                 console.error('名前保存失敗');
@@ -369,10 +484,10 @@ class UIManager {
         const stageStats = this.gameData.progress.stageStats || {};
         stageButtonsContainer.innerHTML = '';
 
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 20; i++) {
             const button = document.createElement('button');
             button.className = 'stage-button';
-            
+
             const isUnlocked = gameStorage.isStageUnlocked(i);
             const isCompleted = gameStorage.isStageCompleted(i);
             const stats = stageStats[i] || {};
@@ -382,7 +497,7 @@ class UIManager {
                     // 星評価計算
                     const stars = this.calculateStageStars(stats, isCompleted);
                     const starsDisplay = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
-                    
+
                     button.classList.add('completed');
                     button.innerHTML = `
                         <div class="stage-number">${i}</div>
@@ -396,7 +511,7 @@ class UIManager {
                     button.classList.add('unlocked');
                     button.innerHTML = `<div class="stage-number">${i}</div>`;
                 }
-                
+
                 button.addEventListener('click', () => {
                     this.startStage(i);
                 });
@@ -414,17 +529,17 @@ class UIManager {
      */
     startStage(stageNumber) {
         this.showScreen('gameScreen');
-        
+
         // 既存のゲームを停止
         if (window.simpleGame) {
             window.simpleGame.stop();
             window.simpleGame = null;
         }
-        
+
         // ライフ表示を確実に初期化（最大ライフで開始）
         this.updateLivesDisplay(3);
         console.log('ライフ表示を3個で初期化しました');
-        
+
         // クラス定義を待機してからゲーム開始
         this.waitForClassesAndStartGame(stageNumber);
     }
@@ -449,13 +564,13 @@ class UIManager {
         });
 
         // 必要なクラスが全て定義されているかチェック（両方の方法で確認）
-        const directCheck = typeof SimpleGame !== 'undefined' && 
-                           typeof Player !== 'undefined' && 
-                           typeof Stage !== 'undefined';
-                           
-        const windowCheck = typeof window.SimpleGame !== 'undefined' && 
-                           typeof window.Player !== 'undefined' && 
-                           typeof window.Stage !== 'undefined';
+        const directCheck = typeof SimpleGame !== 'undefined' &&
+            typeof Player !== 'undefined' &&
+            typeof Stage !== 'undefined';
+
+        const windowCheck = typeof window.SimpleGame !== 'undefined' &&
+            typeof window.Player !== 'undefined' &&
+            typeof window.Stage !== 'undefined';
 
         if (directCheck || windowCheck) {
             console.log('✅ 全てのクラスが定義されました');
@@ -476,7 +591,7 @@ class UIManager {
             if (typeof window.SimpleGame === 'undefined' && typeof SimpleGame === 'undefined') missingClasses.push('SimpleGame');
             if (typeof window.Player === 'undefined' && typeof Player === 'undefined') missingClasses.push('Player');
             if (typeof window.Stage === 'undefined' && typeof Stage === 'undefined') missingClasses.push('Stage');
-            
+
             const errorMessage = `必要なクラスが定義されていません: ${missingClasses.join(', ')}`;
             console.error('❌', errorMessage);
             alert('ゲームの開始に失敗しました: ' + errorMessage);
@@ -489,18 +604,27 @@ class UIManager {
     startGameWithClasses(stageNumber) {
         try {
             console.log('🎮 全クラス定義確認完了 - ゲーム開始:', stageNumber);
-            
+
             // SimpleGameクラスを取得（直接参照またはwindow経由）
             const SimpleGameClass = typeof SimpleGame !== 'undefined' ? SimpleGame : window.SimpleGame;
-            
+
             if (!SimpleGameClass) {
                 throw new Error('SimpleGameクラスが見つかりません');
             }
-            
+
             window.simpleGame = new SimpleGameClass();
+            // タッチコントロール用に window.game も設定
+            window.game = window.simpleGame;
+
             window.simpleGame.startStage(stageNumber);
             console.log('✅ シンプルゲーム開始処理完了');
-            
+            console.log('🔗 window.game と window.simpleGame を連携:', {
+                'window.game': !!window.game,
+                'window.simpleGame': !!window.simpleGame,
+                'window.game.player': !!(window.game && window.game.player),
+                '同一インスタンス': window.game === window.simpleGame
+            });
+
             // ゲーム開始後にもう一度ライフ表示を確認
             setTimeout(() => {
                 if (window.simpleGame && window.simpleGame.gameState) {
@@ -508,7 +632,7 @@ class UIManager {
                     console.log('❤️ ゲーム開始後ライフ表示確認:', window.simpleGame.gameState.lives);
                 }
             }, 200);
-            
+
         } catch (error) {
             console.error('❌ ゲーム開始エラー:', error);
             console.error('エラースタック:', error.stack);
@@ -521,11 +645,11 @@ class UIManager {
      */
     handleNextStage() {
         const currentGame = window.simpleGame || window.game;
-        
-        if (currentGame && currentGame.currentStage < 5) {
+
+        if (currentGame && currentGame.currentStage < 20) {
             const nextStage = currentGame.currentStage + 1;
             console.log(`次のステージ処理: ${currentGame.currentStage} → ${nextStage}`);
-            
+
             // 次のステージが解放されているかチェック
             if (gameStorage.isStageUnlocked(nextStage)) {
                 console.log(`ステージ${nextStage}開始`);
@@ -584,21 +708,21 @@ class UIManager {
     updateLivesDisplay(currentLives, showDamageEffect = false) {
         const heartsContainer = document.getElementById('hearts');
         const maxLives = 3; // 最大ライフ数
-        
+
         // ハートを全てクリア
         heartsContainer.innerHTML = '';
-        
+
         // ハートを生成
         for (let i = 0; i < maxLives; i++) {
             const heart = document.createElement('span');
             heart.className = 'heart';
             heart.textContent = '❤️';
-            
+
             // 失ったライフは灰色に
             if (i >= currentLives) {
                 heart.classList.add('lost');
                 heart.textContent = '🤍'; // 白いハート
-                
+
                 // 最後に失ったハートにダメージエフェクト
                 if (showDamageEffect && i === currentLives) {
                     setTimeout(() => {
@@ -606,7 +730,7 @@ class UIManager {
                     }, 100);
                 }
             }
-            
+
             heartsContainer.appendChild(heart);
         }
     }
@@ -620,7 +744,7 @@ class UIManager {
         hearts.forEach(heart => {
             heart.classList.add('damage');
         });
-        
+
         // 少し遅れてライフ表示を更新
         setTimeout(() => {
             this.updateLivesDisplay(currentLives, true);
@@ -632,16 +756,16 @@ class UIManager {
      */
     showGameClear(stats) {
         console.log('ゲームクリア画面表示:', stats);
-        
+
         // 統計情報を表示
         document.getElementById('clearScore').textContent = stats.score.toLocaleString();
         document.getElementById('clearTime').textContent = this.formatTime(stats.time * 1000); // 秒をミリ秒に変換
         document.getElementById('clearItems').textContent = stats.itemsCollected;
-        
+
         // 次のステージボタンの表示制御
         const currentGame = window.simpleGame || window.game;
         const nextButton = document.getElementById('nextStageButton');
-        
+
         if (currentGame && currentGame.currentStage < 5) {
             const nextStage = currentGame.currentStage + 1;
             if (gameStorage.isStageUnlocked(nextStage)) {
@@ -652,9 +776,9 @@ class UIManager {
         } else {
             nextButton.style.display = 'none';
         }
-        
+
         this.showScreen('clearScreen');
-        
+
         // 統計データを更新（クリア後に最新データを反映）
         setTimeout(() => {
             if (this.gameData) {
@@ -675,7 +799,7 @@ class UIManager {
      */
     updateUI() {
         this.gameData = gameStorage.loadGameData();
-        
+
         // プレイヤー名表示更新
         this.updatePlayerNameDisplay();
     }
@@ -686,7 +810,7 @@ class UIManager {
     updatePlayerNameDisplay() {
         const currentPlayerNameElement = document.getElementById('currentPlayerName');
         const editButton = document.getElementById('editPlayerNameButton');
-        
+
         if (this.gameData.playerName && this.gameData.playerName.trim() !== '') {
             currentPlayerNameElement.textContent = this.gameData.playerName;
             editButton.style.display = 'inline-block';
@@ -702,12 +826,12 @@ class UIManager {
     showEditNameScreen() {
         const currentNameInEdit = document.getElementById('currentNameInEdit');
         const editInput = document.getElementById('editPlayerNameInput');
-        
+
         console.log('プレイヤー名編集画面を表示:', {
             currentPlayerName: this.gameData.playerName,
             hasPlayerName: !!(this.gameData.playerName && this.gameData.playerName.trim() !== '')
         });
-        
+
         // 現在の名前を表示
         if (this.gameData.playerName && this.gameData.playerName.trim() !== '') {
             currentNameInEdit.textContent = this.gameData.playerName;
@@ -718,9 +842,9 @@ class UIManager {
             editInput.value = '';
             console.log('名前が未設定のため、入力フィールドを空に設定');
         }
-        
+
         this.showScreen('editNameScreen');
-        
+
         // 入力フィールドにフォーカス
         setTimeout(() => {
             editInput.focus();
@@ -735,14 +859,14 @@ class UIManager {
     handleEditNameInput() {
         const nameInput = document.getElementById('editPlayerNameInput');
         const name = nameInput.value.trim();
-        
+
         console.log('=== プレイヤー名編集処理開始 ===');
         console.log('入力値:', {
             raw: `"${nameInput.value}"`,
             trimmed: `"${name}"`,
             length: name.length
         });
-        
+
         // バリデーション
         if (name.length === 0) {
             console.log('❌ 空の名前 - エラーメッセージ表示');
@@ -750,40 +874,40 @@ class UIManager {
             nameInput.focus();
             return;
         }
-        
+
         // 既存のプレイヤー名リストを取得
         const existingPlayers = gameStorage.getAllPlayerNames();
         const isExistingPlayer = existingPlayers.includes(name);
-        
+
         try {
             // プレイヤーを切り替え
             gameStorage.setCurrentPlayer(name);
-            
+
             // プレイヤー名を保存（新規プレイヤーの場合は新しいデータが作成される）
             const success = gameStorage.savePlayerName(name);
-            
+
             if (success) {
                 // 最新データを読み込み
                 this.gameData = gameStorage.loadGameData();
-                
+
                 // UI更新
                 this.updatePlayerNameDisplay();
                 this.updateUI();
-                
+
                 console.log('✅ プレイヤー名変更成功:', name);
-                
+
                 if (isExistingPlayer) {
                     alert(`プレイヤー "${name}" に切り替えました`);
                 } else {
                     alert(`新しいプレイヤー "${name}" を作成しました\nゼロからスタートです！`);
                 }
-                
+
                 // タイトル画面に戻る
                 this.showScreen('titleScreen');
             } else {
                 throw new Error('保存に失敗しました');
             }
-            
+
             console.log('=== 処理完了 ===');
         } catch (error) {
             console.error('❌ 保存処理エラー:', error);
@@ -811,25 +935,25 @@ class UIManager {
             alert('プレイヤーが設定されていません');
             return;
         }
-        
+
         const currentData = gameStorage.loadGameData();
-        
-        if (currentData.totalStats.totalScore > 0 || 
+
+        if (currentData.totalStats.totalScore > 0 ||
             Object.keys(currentData.progress.stageStats).length > 0) {
             if (!confirm(`プレイヤー "${currentPlayer}" には既にデータがあります。\nテストデータを追加しますか？`)) {
                 return;
             }
         }
-        
+
         console.log(`プレイヤー "${currentPlayer}" のテスト用データを生成中...`);
-        
+
         // テスト用のステージクリアデータを生成
         const testStages = [
             { stage: 1, score: 1500, time: 45000, items: 8 },
             { stage: 2, score: 1200, time: 52000, items: 6 },
             { stage: 3, score: 800, time: 68000, items: 4 }
         ];
-        
+
         testStages.forEach(stageData => {
             gameStorage.saveStageCompletion(stageData.stage, {
                 score: stageData.score,
@@ -837,7 +961,7 @@ class UIManager {
                 itemsCollected: stageData.items
             });
         });
-        
+
         console.log('テスト用データ生成完了');
         alert(`プレイヤー "${currentPlayer}" にテストデータを生成しました！\n総合スコア: 3,500点`);
     }
@@ -862,14 +986,14 @@ class UIManager {
             alert('プレイヤーが設定されていません');
             return;
         }
-        
+
         if (confirm(`プレイヤー "${currentPlayer}" のスコアデータをリセットしますか？`)) {
             gameStorage.deletePlayerData(currentPlayer);
-            
+
             // 新しいデータを作成
             gameStorage.setCurrentPlayer(currentPlayer);
             this.gameData = gameStorage.loadGameData();
-            
+
             console.log(`プレイヤー "${currentPlayer}" のスコアデータをリセットしました`);
             alert(`プレイヤー "${currentPlayer}" のスコアデータをリセットしました`);
         }
@@ -884,18 +1008,18 @@ class UIManager {
             alert('プレイヤーが設定されていません');
             return;
         }
-        
+
         const randomScore = Math.floor(Math.random() * 2000) + 500;
         const randomTime = Math.floor(Math.random() * 60000) + 30000;
         const randomItems = Math.floor(Math.random() * 10) + 1;
-        const randomStage = Math.floor(Math.random() * 5) + 1;
-        
+        const randomStage = Math.floor(Math.random() * 20) + 1;
+
         gameStorage.saveStageCompletion(randomStage, {
             score: randomScore,
             time: randomTime,
             itemsCollected: randomItems
         });
-        
+
         console.log(`プレイヤー "${currentPlayer}" にテストスコア追加: ステージ${randomStage}, スコア${randomScore}, 時間${randomTime}ms, アイテム${randomItems}個`);
         alert(`テストスコア追加完了！\nプレイヤー: ${currentPlayer}\nステージ${randomStage}: ${randomScore}点`);
     }
@@ -905,23 +1029,23 @@ class UIManager {
      */
     updateStatsDisplay() {
         console.log('統計表示を更新中...');
-        
+
         // 最新データを取得
         this.gameData = gameStorage.loadGameData();
-        
+
         // デバッグ用：現在のデータ状況をログ出力
         console.log('現在のゲームデータ:', {
             totalStats: this.gameData.totalStats,
             stageStats: this.gameData.progress.stageStats,
             completedStages: this.gameData.progress.completedStages
         });
-        
+
         // 総合スコア表示
         this.updateTotalScoreDisplay();
-        
+
         // ステージ別成績表示
         this.updateStageStatsDisplay();
-        
+
         // 最近の成績グラフ表示
         this.updateRecentStatsChart();
     }
@@ -936,29 +1060,29 @@ class UIManager {
         const playerLevelElement = document.getElementById('playerLevel');
         const currentLevelTextElement = document.getElementById('currentLevelText');
         const nextLevelPointsElement = document.getElementById('nextLevelPoints');
-        
+
         // スコア表示
         totalScoreElement.textContent = totalScore.toLocaleString();
-        
+
         // レベル計算（1000点で1レベル）
         const level = Math.floor(totalScore / 1000) + 1;
         const nextLevelScore = level * 1000;
         const currentLevelProgress = ((totalScore % 1000) / 1000) * 100;
         const pointsToNextLevel = nextLevelScore - totalScore;
-        
+
         // レベル情報更新
         playerLevelElement.textContent = level;
         currentLevelTextElement.textContent = level;
         nextLevelPointsElement.textContent = pointsToNextLevel.toLocaleString();
-        
+
         // プログレスバーアニメーション
         setTimeout(() => {
             progressFill.style.width = `${currentLevelProgress}%`;
         }, 200);
-        
-        console.log('総合スコア更新:', { 
-            totalScore, 
-            level, 
+
+        console.log('総合スコア更新:', {
+            totalScore,
+            level,
             progress: currentLevelProgress,
             pointsToNext: pointsToNextLevel
         });
@@ -970,19 +1094,19 @@ class UIManager {
     updateStageStatsDisplay() {
         const container = document.getElementById('stageStatsContainer');
         container.innerHTML = '';
-        
+
         const stageStats = this.gameData.progress.stageStats || {};
         const completedStages = this.gameData.progress.completedStages || [];
-        
-        // 5つのステージを表示
-        for (let stage = 1; stage <= 5; stage++) {
+
+        // 20つのステージを表示
+        for (let stage = 1; stage <= 20; stage++) {
             const stats = stageStats[stage] || {};
             const isCompleted = completedStages.includes(stage);
-            
+
             const card = this.createStageStatCard(stage, stats, isCompleted);
             container.appendChild(card);
         }
-        
+
         console.log('ステージ別成績更新完了');
     }
 
@@ -992,11 +1116,11 @@ class UIManager {
     createStageStatCard(stageNumber, stats, isCompleted) {
         const card = document.createElement('div');
         card.className = 'stage-stat-card';
-        
+
         // 星評価計算
         const stars = this.calculateStageStars(stats, isCompleted);
         const starsDisplay = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
-        
+
         card.innerHTML = `
             <div class="stage-stat-header">
                 <div class="stage-name">ステージ ${stageNumber}</div>
@@ -1025,7 +1149,7 @@ class UIManager {
                 </div>
             </div>
         `;
-        
+
         return card;
     }
 
@@ -1034,25 +1158,25 @@ class UIManager {
      */
     calculateStageStars(stats, isCompleted) {
         if (!isCompleted) return 0;
-        
+
         const score = stats.bestScore || 0;
         const time = stats.bestTime || Infinity;
         const items = stats.maxItemsCollected || 0;
-        
+
         let stars = 1; // クリアで1つ星
-        
+
         // スコアベースで星追加
         if (score >= 1500) stars++;
         if (score >= 2000) stars++;
-        
+
         // タイムベースで星追加（60秒以内で追加星）
         if (time <= 60000) stars = Math.max(stars, 2);
         if (time <= 30000) stars = 3;
-        
+
         // アイテム収集で星追加
         if (items >= 8) stars = Math.max(stars, 2);
         if (items >= 10) stars = 3;
-        
+
         return Math.min(stars, 3);
     }
 
@@ -1062,13 +1186,13 @@ class UIManager {
     updateRecentStatsChart() {
         const chartContainer = document.getElementById('recentStatsChart');
         const stageStats = this.gameData.progress.stageStats || {};
-        
+
         // データがない場合
         if (Object.keys(stageStats).length === 0) {
             chartContainer.innerHTML = '<div class="no-data-message">まだデータがありません<br>ゲームをプレイしてみましょう！</div>';
             return;
         }
-        
+
         // チャートHTML作成
         const chartHTML = `
             <div class="chart-container">
@@ -1077,14 +1201,14 @@ class UIManager {
                 </div>
             </div>
         `;
-        
+
         chartContainer.innerHTML = chartHTML;
-        
+
         // アニメーション開始
         setTimeout(() => {
             this.animateChartBars();
         }, 100);
-        
+
         console.log('成績グラフ更新完了');
     }
 
@@ -1094,12 +1218,12 @@ class UIManager {
     createChartBars(stageStats) {
         let barsHTML = '';
         const maxScore = Math.max(...Object.values(stageStats).map(s => s.bestScore || 0), 1);
-        
-        for (let stage = 1; stage <= 5; stage++) {
+
+        for (let stage = 1; stage <= 20; stage++) {
             const stats = stageStats[stage] || {};
             const score = stats.bestScore || 0;
             const height = Math.max((score / maxScore) * 100, 5); // 最小5%
-            
+
             barsHTML += `
                 <div class="chart-bar" data-height="${height}">
                     <div class="chart-bar-value">${score}</div>
@@ -1107,7 +1231,7 @@ class UIManager {
                 </div>
             `;
         }
-        
+
         return barsHTML;
     }
 
@@ -1129,12 +1253,496 @@ class UIManager {
      */
     formatTime(milliseconds) {
         if (milliseconds === 0) return '--:--';
-        
+
         const seconds = Math.floor(milliseconds / 1000);
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
-        
+
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    /**
+     * キャンバスタッチ操作設定
+     */
+    setupCanvasTouch() {
+        const canvas = document.getElementById('gameCanvas');
+        if (!canvas) {
+            console.warn('ゲームキャンバスが見つかりません');
+            return;
+        }
+
+        // タッチ状態管理（画面分割方式）
+        this.touchState = {
+            activeTouches: new Map(), // タッチID -> タッチ情報
+            currentMoveActions: new Set(), // 現在実行中の移動アクション
+        };
+
+        console.log('🎮 キャンバスタッチ設定開始（画面分割方式）');
+
+        // タッチ開始
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+
+            Array.from(e.changedTouches).forEach(touch => {
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                const canvasWidth = rect.width;
+                const canvasHeight = rect.height;
+
+                // 画面を上下に分割：上半分=ジャンプ、下半分=移動
+                const isUpperHalf = y < canvasHeight / 2;
+                const isLeftSide = x < canvasWidth / 2;
+
+                console.log('[CANVAS_TOUCH] タッチ開始:', {
+                    id: touch.identifier,
+                    x: x,
+                    y: y,
+                    canvasWidth: canvasWidth,
+                    canvasHeight: canvasHeight,
+                    isUpperHalf: isUpperHalf,
+                    isLeftSide: isLeftSide
+                });
+
+                this.touchState.activeTouches.set(touch.identifier, {
+                    x: x,
+                    y: y,
+                    isUpperHalf: isUpperHalf,
+                    isLeftSide: isLeftSide,
+                    startTime: Date.now()
+                });
+
+                this.handleAreaTouch(touch.identifier, true);
+            });
+        });
+
+        // タッチ移動
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+
+            Array.from(e.changedTouches).forEach(touch => {
+                if (this.touchState.activeTouches.has(touch.identifier)) {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    const canvasWidth = rect.width;
+                    const canvasHeight = rect.height;
+
+                    const isUpperHalf = y < canvasHeight / 2;
+                    const isLeftSide = x < canvasWidth / 2;
+
+                    const touchInfo = this.touchState.activeTouches.get(touch.identifier);
+
+                    // エリアが変わった場合は操作を更新
+                    if (touchInfo.isUpperHalf !== isUpperHalf || touchInfo.isLeftSide !== isLeftSide) {
+                        // 古い操作を停止
+                        this.handleAreaTouch(touch.identifier, false);
+
+                        // 新しい操作を開始
+                        touchInfo.isUpperHalf = isUpperHalf;
+                        touchInfo.isLeftSide = isLeftSide;
+                        this.handleAreaTouch(touch.identifier, true);
+                    }
+                }
+            });
+        });
+
+        // タッチ終了
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+
+            Array.from(e.changedTouches).forEach(touch => {
+                if (this.touchState.activeTouches.has(touch.identifier)) {
+                    const touchInfo = this.touchState.activeTouches.get(touch.identifier);
+                    const duration = Date.now() - touchInfo.startTime;
+
+                    console.log('[CANVAS_TOUCH] タッチ終了:', {
+                        id: touch.identifier,
+                        duration: duration,
+                        isUpperHalf: touchInfo.isUpperHalf,
+                        isLeftSide: touchInfo.isLeftSide
+                    });
+
+                    // 上半分の短いタップ = ジャンプ
+                    if (touchInfo.isUpperHalf && duration < 300) {
+                        console.log('[CANVAS_TOUCH] ✅ 上エリアタップでジャンプ');
+                        this.handleCanvasJump();
+                    }
+
+                    this.handleAreaTouch(touch.identifier, false);
+                    this.touchState.activeTouches.delete(touch.identifier);
+                }
+            });
+        });
+
+        // タッチキャンセル
+        canvas.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+
+            Array.from(e.changedTouches).forEach(touch => {
+                if (this.touchState.activeTouches.has(touch.identifier)) {
+                    console.log('[CANVAS_TOUCH] タッチキャンセル:', { id: touch.identifier });
+                    this.handleAreaTouch(touch.identifier, false);
+                    this.touchState.activeTouches.delete(touch.identifier);
+                }
+            });
+        });
+
+        // マウス操作も追加（PC用）
+        this.setupCanvasMouse(canvas);
+
+        console.log('✅ キャンバスタッチ設定完了（画面分割方式）');
+    }
+
+    /**
+     * キャンバスマウス操作設定（PC用・画面分割方式）
+     */
+    setupCanvasMouse(canvas) {
+        // マウス状態管理
+        this.mouseState = {
+            isPressed: false,
+            currentArea: null, // 現在押下されているエリア
+            currentMoveActions: new Set(),
+        };
+
+        console.log('🖱️ キャンバスマウス設定開始（画面分割方式）');
+
+        // マウス押下
+        canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const canvasWidth = rect.width;
+            const canvasHeight = rect.height;
+
+            // 画面を上下に分割：上半分=ジャンプ、下半分=移動
+            const isUpperHalf = y < canvasHeight / 2;
+            const isLeftSide = x < canvasWidth / 2;
+
+            console.log('[CANVAS_MOUSE] マウス押下:', {
+                x: x,
+                y: y,
+                canvasWidth: canvasWidth,
+                canvasHeight: canvasHeight,
+                isUpperHalf: isUpperHalf,
+                isLeftSide: isLeftSide,
+                button: e.button
+            });
+
+            this.mouseState.isPressed = true;
+            this.mouseState.currentArea = { isUpperHalf, isLeftSide };
+            this.handleMouseArea(true);
+        });
+
+        // マウス移動
+        canvas.addEventListener('mousemove', (e) => {
+            if (!this.mouseState.isPressed) return;
+
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const canvasWidth = rect.width;
+            const canvasHeight = rect.height;
+
+            const isUpperHalf = y < canvasHeight / 2;
+            const isLeftSide = x < canvasWidth / 2;
+
+            // エリアが変わった場合は操作を更新
+            if (this.mouseState.currentArea &&
+                (this.mouseState.currentArea.isUpperHalf !== isUpperHalf ||
+                    this.mouseState.currentArea.isLeftSide !== isLeftSide)) {
+
+                // 古い操作を停止
+                this.handleMouseArea(false);
+
+                // 新しい操作を開始
+                this.mouseState.currentArea = { isUpperHalf, isLeftSide };
+                this.handleMouseArea(true);
+            }
+        });
+
+        // マウス離上
+        canvas.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+
+            if (this.mouseState.isPressed && this.mouseState.currentArea) {
+                console.log('[CANVAS_MOUSE] マウス離上:', {
+                    area: this.mouseState.currentArea
+                });
+
+                // 上半分のクリック = ジャンプ
+                if (this.mouseState.currentArea.isUpperHalf) {
+                    console.log('[CANVAS_MOUSE] ✅ 上エリアクリックでジャンプ');
+                    this.handleCanvasJump();
+                }
+
+                this.handleMouseArea(false);
+            }
+
+            this.mouseState.isPressed = false;
+            this.mouseState.currentArea = null;
+        });
+
+        // マウスがキャンバスから離れた場合
+        canvas.addEventListener('mouseleave', (e) => {
+            if (this.mouseState.isPressed) {
+                console.log('[CANVAS_MOUSE] マウス離脱');
+                this.handleMouseArea(false);
+                this.mouseState.isPressed = false;
+                this.mouseState.currentArea = null;
+            }
+        });
+
+        console.log('✅ キャンバスマウス設定完了（画面分割方式）');
+    }
+
+    /**
+     * マウスドラッグ処理 - 廃止（画面分割方式で不要）
+     */
+    handleMouseDrag(deltaX, deltaY) {
+        console.log('[CANVAS_MOUSE] ⚠️ 廃止されたドラッグ処理が呼ばれました');
+    }
+
+    /**
+     * マウスエリア処理（画面分割方式）
+     */
+    handleMouseArea(isPressed) {
+        if (!this.mouseState.currentArea) return;
+
+        if (this.mouseState.currentArea.isUpperHalf) {
+            // 上半分: ジャンプエリア（リリース時にジャンプ処理は mouseup で行う）
+            console.log(`[CANVAS_MOUSE] 上エリア ${isPressed ? '押下' : 'リリース'}`);
+        } else {
+            // 下半分: 移動エリア
+            let action = null;
+            if (this.mouseState.currentArea.isLeftSide) {
+                action = 'left';
+                console.log(`[CANVAS_MOUSE] 下左エリア ${isPressed ? '押下' : 'リリース'}: 左移動`);
+            } else {
+                action = 'right';
+                console.log(`[CANVAS_MOUSE] 下右エリア ${isPressed ? '押下' : 'リリース'}: 右移動`);
+            }
+
+            if (action && window.game && window.game.player) {
+                if (isPressed) {
+                    // 相反する移動を停止してから新しい移動を開始
+                    this.stopConflictingMouseMoveActions(action);
+                    this.mouseState.currentMoveActions.add(action);
+                    window.game.player.handleInput(action, true);
+                } else {
+                    // 移動を停止
+                    if (this.mouseState.currentMoveActions.has(action)) {
+                        this.mouseState.currentMoveActions.delete(action);
+                        window.game.player.handleInput(action, false);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * マウスクリック処理（ジャンプ） - 廃止予定
+     */
+    handleMouseClick() {
+        console.log('[CANVAS_MOUSE] ✅ クリック検出 - ジャンプ（移動継続）');
+        this.handleCanvasJump();
+    }
+
+    /**
+ * マウス移動アクション開始
+ */
+    startMouseMoveAction(action) {
+        // 相反する移動アクションのみ停止（左右の移動、立ち/しゃがみ）
+        this.stopConflictingMouseMoveActions(action);
+
+        // 新しい移動アクションを開始（重複チェック）
+        if (!this.mouseState.currentMoveActions.has(action)) {
+            this.mouseState.currentMoveActions.add(action);
+
+            if (window.game && window.game.player) {
+                console.log(`[CANVAS_MOUSE] 🖱️ 移動開始: ${action}`);
+                window.game.player.handleInput(action, true);
+            }
+        }
+    }
+
+    /**
+     * 相反するマウス移動アクションを停止
+     */
+    stopConflictingMouseMoveActions(newAction) {
+        const conflictMap = {
+            'left': ['right'],     // 左移動は右移動と相反
+            'right': ['left'],     // 右移動は左移動と相反
+            'crouch': []           // しゃがみは他と相反しない（移動しながらしゃがめる）
+        };
+
+        const conflicting = conflictMap[newAction] || [];
+
+        if (window.game && window.game.player) {
+            conflicting.forEach(action => {
+                if (this.mouseState.currentMoveActions.has(action)) {
+                    console.log(`[CANVAS_MOUSE] 🔄 相反アクション停止: ${action} (新規: ${newAction})`);
+                    window.game.player.handleInput(action, false);
+                    this.mouseState.currentMoveActions.delete(action);
+                }
+            });
+        }
+    }
+
+    /**
+     * マウス移動アクションを停止
+     */
+    stopMouseMoveActions() {
+        if (this.mouseState.currentMoveActions.size > 0) {
+            console.log('[CANVAS_MOUSE] 🛑 移動アクション停止:', Array.from(this.mouseState.currentMoveActions));
+
+            if (window.game && window.game.player) {
+                this.mouseState.currentMoveActions.forEach(action => {
+                    window.game.player.handleInput(action, false);
+                });
+            }
+
+            this.mouseState.currentMoveActions.clear();
+        }
+    }
+
+    /**
+     * スワイプ処理 - 廃止（画面分割方式で不要）
+     */
+    handleSwipe(deltaX, deltaY) {
+        console.log('[CANVAS_TOUCH] ⚠️ 廃止されたスワイプ処理が呼ばれました');
+    }
+
+    /**
+     * エリアタッチ処理（画面分割方式）
+     */
+    handleAreaTouch(touchId, isPressed) {
+        const touchInfo = this.touchState.activeTouches.get(touchId);
+        if (!touchInfo) return;
+
+        if (touchInfo.isUpperHalf) {
+            // 上半分: ジャンプエリア（タッチ中は何もしない、リリース時にジャンプ）
+            console.log(`[CANVAS_TOUCH] 上エリア ${isPressed ? '押下' : 'リリース'}:`, { touchId });
+        } else {
+            // 下半分: 移動エリア
+            let action = null;
+            if (touchInfo.isLeftSide) {
+                action = 'left';
+                console.log(`[CANVAS_TOUCH] 下左エリア ${isPressed ? '押下' : 'リリース'}: 左移動`, { touchId });
+            } else {
+                action = 'right';
+                console.log(`[CANVAS_TOUCH] 下右エリア ${isPressed ? '押下' : 'リリース'}: 右移動`, { touchId });
+            }
+
+            if (action && window.game && window.game.player) {
+                if (isPressed) {
+                    // 相反する移動を停止してから新しい移動を開始
+                    this.stopConflictingMoveActions(action);
+                    this.touchState.currentMoveActions.add(action);
+                    window.game.player.handleInput(action, true);
+                } else {
+                    // この特定のタッチによる移動を停止
+                    if (this.touchState.currentMoveActions.has(action)) {
+                        this.touchState.currentMoveActions.delete(action);
+                        // 他のタッチで同じ方向に移動していないかチェック
+                        let hasOtherTouch = false;
+                        for (let [otherId, otherInfo] of this.touchState.activeTouches) {
+                            if (otherId !== touchId && !otherInfo.isUpperHalf) {
+                                if ((action === 'left' && otherInfo.isLeftSide) ||
+                                    (action === 'right' && !otherInfo.isLeftSide)) {
+                                    hasOtherTouch = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!hasOtherTouch) {
+                            window.game.player.handleInput(action, false);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * タップ処理（ジャンプ） - 廃止予定
+     */
+    handleTap() {
+        console.log('[CANVAS_TOUCH] ✅ タップ検出 - ジャンプ（移動継続）');
+        this.handleCanvasJump();
+    }
+
+    /**
+     * キャンバスからのジャンプ処理
+     */
+    handleCanvasJump() {
+        if (window.game && window.game.player) {
+            console.log('[CANVAS_TOUCH] 🚀 キャンバスジャンプ実行');
+            window.game.player.attemptJump();
+        } else {
+            console.warn('[CANVAS_TOUCH] ⚠️ ゲームまたはプレイヤーが利用できません');
+        }
+    }
+
+    /**
+ * 移動アクション開始
+ */
+    startMoveAction(action) {
+        // 相反する移動アクションのみ停止（左右の移動、立ち/しゃがみ）
+        this.stopConflictingMoveActions(action);
+
+        // 新しい移動アクションを開始（重複チェック）
+        if (!this.touchState.currentMoveActions.has(action)) {
+            this.touchState.currentMoveActions.add(action);
+
+            if (window.game && window.game.player) {
+                console.log(`[CANVAS_TOUCH] 📱 移動開始: ${action}`);
+                window.game.player.handleInput(action, true);
+            }
+        }
+    }
+
+    /**
+     * 相反する移動アクションを停止
+     */
+    stopConflictingMoveActions(newAction) {
+        const conflictMap = {
+            'left': ['right'],     // 左移動は右移動と相反
+            'right': ['left'],     // 右移動は左移動と相反
+            'crouch': []           // しゃがみは他と相反しない（移動しながらしゃがめる）
+        };
+
+        const conflicting = conflictMap[newAction] || [];
+
+        if (window.game && window.game.player) {
+            conflicting.forEach(action => {
+                if (this.touchState.currentMoveActions.has(action)) {
+                    console.log(`[CANVAS_TOUCH] 🔄 相反アクション停止: ${action} (新規: ${newAction})`);
+                    window.game.player.handleInput(action, false);
+                    this.touchState.currentMoveActions.delete(action);
+                }
+            });
+        }
+    }
+
+    /**
+     * 全ての移動アクションを停止
+     */
+    stopMoveActions() {
+        if (this.touchState.currentMoveActions.size > 0) {
+            console.log('[CANVAS_TOUCH] 🛑 移動アクション停止:', Array.from(this.touchState.currentMoveActions));
+
+            if (window.game && window.game.player) {
+                this.touchState.currentMoveActions.forEach(action => {
+                    window.game.player.handleInput(action, false);
+                });
+            }
+
+            this.touchState.currentMoveActions.clear();
+        }
     }
 }
 
@@ -1147,7 +1755,7 @@ let uiManager;
 // DOM読み込み完了後に初期化
 document.addEventListener('DOMContentLoaded', () => {
     console.log('=== DOM読み込み完了 ===');
-    
+
     // 即座にクラス定義状況を確認
     console.log('即座のクラス確認:', {
         Player: typeof Player,
@@ -1155,14 +1763,14 @@ document.addEventListener('DOMContentLoaded', () => {
         SimpleGame: typeof SimpleGame,
         UIManager: typeof UIManager
     });
-    
+
     console.log('windowオブジェクトのクラス:', {
         Player: typeof window.Player,
         Stage: typeof window.Stage,
         SimpleGame: typeof window.SimpleGame,
         UIManager: typeof window.UIManager
     });
-    
+
     // 少し待ってから再確認
     setTimeout(() => {
         console.log('=== 100ms後のクラス確認 ===');
@@ -1172,14 +1780,14 @@ document.addEventListener('DOMContentLoaded', () => {
             SimpleGame: typeof SimpleGame,
             UIManager: typeof UIManager
         });
-        
+
         console.log('遅延後のwindowオブジェクトのクラス:', {
             Player: typeof window.Player,
             Stage: typeof window.Stage,
             SimpleGame: typeof window.SimpleGame,
             UIManager: typeof window.UIManager
         });
-        
+
         try {
             uiManager = new UIManager();
             window.uiManager = uiManager; // グローバルアクセス用
@@ -1192,3 +1800,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // UIManager初期化確認
 console.log('ui.js読み込み完了');
+
+/**
+ * タッチコントロール修正完了 - 2024年12月27日
+ * - window.game設定追加
+ * - 堅牢なタッチイベント処理
+ * - 詳細なログ出力
+ * - ビジュアルフィードバック改善
+ */
