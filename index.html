@@ -24,6 +24,7 @@
             
             <div class="menu-buttons">
                 <button id="startButton" class="game-button">ゲームスタート</button>
+                <button id="statsButton" class="game-button">せいせき</button>
                 <button id="settingsButton" class="game-button">せってい</button>
             </div>
         </div>
@@ -133,7 +134,56 @@
             </div>
         </div>
 
-        <!-- 設定画面 -->
+        <!-- 統計・ダッシュボード画面 -->
+        <div id="statsScreen" class="screen">
+            <div class="stats-screen-header">
+                <h2>せいせき</h2>
+            </div>
+            
+            <div class="stats-content-wrapper">
+                <!-- 総合スコア表示 -->
+                <div class="stats-summary">
+                    <div class="stats-summary-header">
+                        <div class="score-label">そうごうスコア</div>
+                    </div>
+                    <div class="stats-summary-content">
+                        <div class="total-score-display">
+                            <div id="totalScoreValue" class="score-value">0</div>
+                            <div class="score-progress">
+                                <div id="totalScoreBar" class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div class="progress-text">レベル <span id="playerLevel">1</span></div>
+                                <div class="level-info">
+                                    <div class="current-level">げんざいのレベル: <span id="currentLevelText">1</span></div>
+                                    <div class="next-level">つぎのレベルまで: <span id="nextLevelPoints">1000</span>てん</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ステージ別成績 -->
+                <div class="stage-stats">
+                    <h3>ステージべつせいせき</h3>
+                    <div id="stageStatsContainer" class="stage-stats-grid">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+
+                <!-- 最近の成績グラフ -->
+                <div class="recent-stats">
+                    <h3>さいきんのせいせき</h3>
+                    <div id="recentStatsChart" class="stats-chart">
+                        <!-- グラフエリア -->
+                    </div>
+                </div>
+
+                <div class="menu-buttons">
+                    <button id="statsBackButton" class="game-button secondary">もどる</button>
+                </div>
+            </div>
+        </div>
         <div id="settingsScreen" class="screen">
             <h2>せってい</h2>
             <div class="settings-options">
@@ -145,18 +195,26 @@
                     <label>こうかおん</label>
                     <button id="soundToggle" class="toggle-button">ON</button>
                 </div>
+                <div class="setting-item debug-section">
+                    <label>デバッグ機能</label>
+                    <div class="debug-buttons">
+                        <button id="addTestDataButton" class="debug-button">テストデータ生成</button>
+                        <button id="addTestScoreButton" class="debug-button">テストスコア追加</button>
+                        <button id="resetScoreButton" class="debug-button">スコアリセット</button>
+                    </div>
+                </div>
             </div>
             <button id="settingsBackButton" class="game-button secondary">もどる</button>
         </div>
     </div>
 
     <!-- JavaScript読み込み（同期・順序保証） -->
-    <script src="js/storage.js?v=42"></script>
-    <script src="js/player.js?v=42"></script>
-    <script src="js/stage.js?v=42"></script>
-    <script src="js/goal-animation.js?v=42"></script>
-    <script src="js/game-simple.js?v=42"></script>
-    <script src="js/ui.js?v=42"></script>
+    <script src="js/storage.js?v=61"></script>
+    <script src="js/player.js?v=61"></script>
+    <script src="js/stage.js?v=61"></script>
+    <script src="js/goal-animation.js?v=61"></script>
+    <script src="js/game-simple.js?v=61"></script>
+    <script src="js/ui.js?v=61"></script>
     
     <!-- UIManager初期化 -->
     <script>

@@ -4,6 +4,7 @@
 class GameStorage {
     constructor() {
         this.storageKey = 'kidsAdventureGame';
+        this.currentPlayer = null;
         this.defaultData = {
             playerName: '',
             settings: {
@@ -24,33 +25,83 @@ class GameStorage {
     }
 
     /**
-     * ゲームデータを読み込み
+     * 現在のプレイヤー名を設定
      */
-    loadGameData() {
-        try {
-            const savedData = localStorage.getItem(this.storageKey);
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                // デフォルトデータとマージして不足項目を補完
-                return this.mergeWithDefault(data);
-            }
-        } catch (error) {
-            console.warn('セーブデータの読み込みに失敗しました:', error);
-        }
-        return { ...this.defaultData };
+    setCurrentPlayer(playerName) {
+        this.currentPlayer = playerName;
+        console.log('現在のプレイヤーを設定:', playerName);
     }
 
     /**
-     * ゲームデータを保存
+     * 現在のプレイヤー名を取得
      */
-    saveGameData(data) {
+    getCurrentPlayer() {
+        return this.currentPlayer;
+    }
+
+    /**
+     * 全プレイヤーのデータを取得
+     */
+    loadAllPlayersData() {
         try {
-            localStorage.setItem(this.storageKey, JSON.stringify(data));
+            const data = localStorage.getItem(this.storageKey);
+            return data ? JSON.parse(data) : {};
+        } catch (error) {
+            console.error('全プレイヤーデータ読み込みエラー:', error);
+            return {};
+        }
+    }
+
+    /**
+     * 全プレイヤーのデータを保存
+     */
+    saveAllPlayersData(allData) {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(allData));
             return true;
         } catch (error) {
-            console.error('セーブデータの保存に失敗しました:', error);
+            console.error('全プレイヤーデータ保存エラー:', error);
             return false;
         }
+    }
+
+    /**
+     * ゲームデータを読み込み（現在のプレイヤー用）
+     */
+    loadGameData() {
+        if (!this.currentPlayer) {
+            console.warn('プレイヤー名が設定されていません');
+            return { ...this.defaultData };
+        }
+
+        const allData = this.loadAllPlayersData();
+        
+        if (!allData[this.currentPlayer]) {
+            console.log(`新しいプレイヤー "${this.currentPlayer}" のデータを作成`);
+            const newData = { ...this.defaultData };
+            newData.playerName = this.currentPlayer;
+            allData[this.currentPlayer] = newData;
+            this.saveAllPlayersData(allData);
+            return newData;
+        }
+
+        // デフォルトデータとマージして不足項目を補完
+        return this.mergeWithDefault(allData[this.currentPlayer]);
+    }
+
+    /**
+     * ゲームデータを保存（現在のプレイヤー用）
+     */
+    saveGameData(data) {
+        if (!this.currentPlayer) {
+            console.error('プレイヤー名が設定されていません');
+            return false;
+        }
+
+        const allData = this.loadAllPlayersData();
+        allData[this.currentPlayer] = data;
+        
+        return this.saveAllPlayersData(allData);
     }
 
     /**
@@ -71,9 +122,56 @@ class GameStorage {
      * プレイヤー名を保存
      */
     savePlayerName(name) {
+        this.setCurrentPlayer(name);
         const data = this.loadGameData();
         data.playerName = name;
+        
+        // 最後にプレイしたプレイヤーとして記録
+        this.saveLastPlayer(name);
+        
         return this.saveGameData(data);
+    }
+
+    /**
+     * 最後にプレイしたプレイヤー名を保存/取得
+     */
+    saveLastPlayer(playerName) {
+        try {
+            localStorage.setItem('kidsAdventureLastPlayer', playerName);
+        } catch (error) {
+            console.error('最後のプレイヤー保存エラー:', error);
+        }
+    }
+
+    getLastPlayer() {
+        try {
+            return localStorage.getItem('kidsAdventureLastPlayer') || '';
+        } catch (error) {
+            console.error('最後のプレイヤー取得エラー:', error);
+            return '';
+        }
+    }
+
+    /**
+     * 全プレイヤー名のリストを取得
+     */
+    getAllPlayerNames() {
+        const allData = this.loadAllPlayersData();
+        return Object.keys(allData);
+    }
+
+    /**
+     * プレイヤーデータを削除
+     */
+    deletePlayerData(playerName) {
+        const allData = this.loadAllPlayersData();
+        if (allData[playerName]) {
+            delete allData[playerName];
+            this.saveAllPlayersData(allData);
+            console.log(`プレイヤー "${playerName}" のデータを削除しました`);
+            return true;
+        }
+        return false;
     }
 
     /**

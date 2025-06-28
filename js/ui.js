@@ -13,6 +13,13 @@ class UIManager {
      * UI初期化
      */
     init() {
+        // 最後にプレイしたプレイヤーを復元
+        const lastPlayer = gameStorage.getLastPlayer();
+        if (lastPlayer) {
+            gameStorage.setCurrentPlayer(lastPlayer);
+            console.log('最後のプレイヤーを復元:', lastPlayer);
+        }
+        
         this.gameData = gameStorage.loadGameData();
         this.setupEventListeners();
         this.updateUI();
@@ -57,6 +64,11 @@ class UIManager {
             this.showScreen('settingsScreen');
         });
 
+        // 統計ボタン
+        document.getElementById('statsButton').addEventListener('click', () => {
+            this.showStatsScreen();
+        });
+
         // プレイヤー名編集ボタン
         document.getElementById('editPlayerNameButton').addEventListener('click', () => {
             this.showEditNameScreen();
@@ -93,6 +105,24 @@ class UIManager {
                 console.log('編集入力フィールドでEnterキーが押されました');
                 this.handleEditNameInput();
             }
+        });
+
+        // 統計画面
+        document.getElementById('statsBackButton').addEventListener('click', () => {
+            this.showScreen('titleScreen');
+        });
+
+        // デバッグボタン
+        document.getElementById('addTestDataButton').addEventListener('click', () => {
+            this.generateTestData();
+        });
+
+        document.getElementById('addTestScoreButton').addEventListener('click', () => {
+            this.addTestScore();
+        });
+
+        document.getElementById('resetScoreButton').addEventListener('click', () => {
+            this.resetScoreData();
         });
 
         // ステージ選択画面
@@ -292,9 +322,38 @@ class UIManager {
 
         if (name.length > 0) {
             console.log('有効な名前が入力されました:', name);
-            this.gameData.playerName = name;
-            gameStorage.savePlayerName(name);
-            this.showScreen('stageSelectScreen');
+            
+            // 既存のプレイヤー名リストを取得
+            const existingPlayers = gameStorage.getAllPlayerNames();
+            const isExistingPlayer = existingPlayers.includes(name);
+            
+            // プレイヤーを設定
+            gameStorage.setCurrentPlayer(name);
+            
+            // プレイヤー名を保存
+            const success = gameStorage.savePlayerName(name);
+            
+            if (success) {
+                // 最新データを読み込み
+                this.gameData = gameStorage.loadGameData();
+                
+                // UI更新
+                this.updatePlayerNameDisplay();
+                this.updateUI();
+                
+                console.log('名前保存成功:', name);
+                
+                if (isExistingPlayer) {
+                    alert(`プレイヤー "${name}" に切り替えました`);
+                } else {
+                    alert(`新しいプレイヤー "${name}" を作成しました\nゼロからスタートです！`);
+                }
+                
+                this.showScreen('stageSelectScreen');
+            } else {
+                console.error('名前保存失敗');
+                alert('なまえのほぞんにしっぱいしました');
+            }
         } else {
             console.log('空の名前が入力されました');
             alert('なまえをいれてください');
@@ -307,22 +366,35 @@ class UIManager {
      */
     updateStageButtons() {
         const stageButtonsContainer = document.getElementById('stageButtons');
+        const stageStats = this.gameData.progress.stageStats || {};
         stageButtonsContainer.innerHTML = '';
 
         for (let i = 1; i <= 5; i++) {
             const button = document.createElement('button');
             button.className = 'stage-button';
-            button.textContent = i;
-
+            
             const isUnlocked = gameStorage.isStageUnlocked(i);
             const isCompleted = gameStorage.isStageCompleted(i);
+            const stats = stageStats[i] || {};
 
             if (isUnlocked) {
                 if (isCompleted) {
+                    // 星評価計算
+                    const stars = this.calculateStageStars(stats, isCompleted);
+                    const starsDisplay = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+                    
                     button.classList.add('completed');
-                    button.innerHTML = `${i}<br>⭐`;
+                    button.innerHTML = `
+                        <div class="stage-number">${i}</div>
+                        <div class="stage-stars">${starsDisplay}</div>
+                        <div class="stage-info">
+                            <div class="stage-score">${(stats.bestScore || 0).toLocaleString()}</div>
+                            <div class="stage-time">${this.formatTime(stats.bestTime || 0)}</div>
+                        </div>
+                    `;
                 } else {
                     button.classList.add('unlocked');
+                    button.innerHTML = `<div class="stage-number">${i}</div>`;
                 }
                 
                 button.addEventListener('click', () => {
@@ -330,7 +402,7 @@ class UIManager {
                 });
             } else {
                 button.classList.add('locked');
-                button.innerHTML = `${i}<br>🔒`;
+                button.innerHTML = `<div class="stage-number">${i}</div><div class="lock-icon">🔒</div>`;
             }
 
             stageButtonsContainer.appendChild(button);
@@ -559,9 +631,11 @@ class UIManager {
      * ゲームクリア表示
      */
     showGameClear(stats) {
+        console.log('ゲームクリア画面表示:', stats);
+        
         // 統計情報を表示
-        document.getElementById('clearScore').textContent = stats.score;
-        document.getElementById('clearTime').textContent = stats.time;
+        document.getElementById('clearScore').textContent = stats.score.toLocaleString();
+        document.getElementById('clearTime').textContent = this.formatTime(stats.time * 1000); // 秒をミリ秒に変換
         document.getElementById('clearItems').textContent = stats.itemsCollected;
         
         // 次のステージボタンの表示制御
@@ -580,6 +654,13 @@ class UIManager {
         }
         
         this.showScreen('clearScreen');
+        
+        // 統計データを更新（クリア後に最新データを反映）
+        setTimeout(() => {
+            if (this.gameData) {
+                this.gameData = gameStorage.loadGameData();
+            }
+        }, 100);
     }
 
     /**
@@ -667,48 +748,393 @@ class UIManager {
             console.log('❌ 空の名前 - エラーメッセージ表示');
             alert('なまえをいれてください');
             nameInput.focus();
-            console.log('=== 処理終了（エラー） ===');
             return;
         }
         
-        if (name.length > 10) {
-            console.log('❌ 名前が長すぎる - エラーメッセージ表示');
-            alert('なまえは10もじいないでいれてください');
-            nameInput.focus();
-            console.log('=== 処理終了（エラー） ===');
-            return;
-        }
-        
-        // 正常処理
-        console.log('✅ バリデーション通過 - 保存処理開始');
+        // 既存のプレイヤー名リストを取得
+        const existingPlayers = gameStorage.getAllPlayerNames();
+        const isExistingPlayer = existingPlayers.includes(name);
         
         try {
-            // 保存
-            gameStorage.savePlayerName(name);
-            this.gameData = gameStorage.loadGameData();
-            console.log('✅ 名前保存完了:', this.gameData.playerName);
+            // プレイヤーを切り替え
+            gameStorage.setCurrentPlayer(name);
             
-            // UI更新
-            this.updatePlayerNameDisplay();
-            console.log('✅ UI更新完了');
+            // プレイヤー名を保存（新規プレイヤーの場合は新しいデータが作成される）
+            const success = gameStorage.savePlayerName(name);
             
-            // 画面遷移
-            nameInput.value = '';
-            this.showScreen('titleScreen');
-            console.log('✅ 画面遷移完了');
+            if (success) {
+                // 最新データを読み込み
+                this.gameData = gameStorage.loadGameData();
+                
+                // UI更新
+                this.updatePlayerNameDisplay();
+                this.updateUI();
+                
+                console.log('✅ プレイヤー名変更成功:', name);
+                
+                if (isExistingPlayer) {
+                    alert(`プレイヤー "${name}" に切り替えました`);
+                } else {
+                    alert(`新しいプレイヤー "${name}" を作成しました\nゼロからスタートです！`);
+                }
+                
+                // タイトル画面に戻る
+                this.showScreen('titleScreen');
+            } else {
+                throw new Error('保存に失敗しました');
+            }
             
-            // 成功メッセージ（遅延実行）
-            setTimeout(() => {
-                console.log('✅ 成功メッセージ表示:', name);
-                alert(`なまえを「${name}」にかえました！`);
-                console.log('=== 処理完了（成功） ===');
-            }, 200);
-            
+            console.log('=== 処理完了 ===');
         } catch (error) {
             console.error('❌ 保存処理エラー:', error);
             alert('なまえのほぞんにしっぱいしました');
             console.log('=== 処理終了（保存エラー） ===');
         }
+    }
+
+    /**
+     * 統計画面を表示
+     */
+    showStatsScreen() {
+        // テストデータ生成は無効化（新規プレイヤーはゼロから開始）
+        // this.ensureTestData();
+        this.updateStatsDisplay();
+        this.showScreen('statsScreen');
+    }
+
+    /**
+     * デバッグ用：テストデータを生成
+     */
+    generateTestData() {
+        const currentPlayer = gameStorage.getCurrentPlayer();
+        if (!currentPlayer) {
+            alert('プレイヤーが設定されていません');
+            return;
+        }
+        
+        const currentData = gameStorage.loadGameData();
+        
+        if (currentData.totalStats.totalScore > 0 || 
+            Object.keys(currentData.progress.stageStats).length > 0) {
+            if (!confirm(`プレイヤー "${currentPlayer}" には既にデータがあります。\nテストデータを追加しますか？`)) {
+                return;
+            }
+        }
+        
+        console.log(`プレイヤー "${currentPlayer}" のテスト用データを生成中...`);
+        
+        // テスト用のステージクリアデータを生成
+        const testStages = [
+            { stage: 1, score: 1500, time: 45000, items: 8 },
+            { stage: 2, score: 1200, time: 52000, items: 6 },
+            { stage: 3, score: 800, time: 68000, items: 4 }
+        ];
+        
+        testStages.forEach(stageData => {
+            gameStorage.saveStageCompletion(stageData.stage, {
+                score: stageData.score,
+                time: stageData.time,
+                itemsCollected: stageData.items
+            });
+        });
+        
+        console.log('テスト用データ生成完了');
+        alert(`プレイヤー "${currentPlayer}" にテストデータを生成しました！\n総合スコア: 3,500点`);
+    }
+
+    /**
+     * テスト用データを確保（実際のゲームデータがない場合）
+     * ※現在は使用していない（新規プレイヤーはゼロから開始）
+     */
+    ensureTestData() {
+        // この機能は無効化されています
+        // 新規プレイヤーは完全にゼロから開始します
+        // テストデータが必要な場合は設定画面の「テストデータ生成」ボタンを使用してください
+        return;
+    }
+
+    /**
+     * デバッグ用：スコアデータをリセット
+     */
+    resetScoreData() {
+        const currentPlayer = gameStorage.getCurrentPlayer();
+        if (!currentPlayer) {
+            alert('プレイヤーが設定されていません');
+            return;
+        }
+        
+        if (confirm(`プレイヤー "${currentPlayer}" のスコアデータをリセットしますか？`)) {
+            gameStorage.deletePlayerData(currentPlayer);
+            
+            // 新しいデータを作成
+            gameStorage.setCurrentPlayer(currentPlayer);
+            this.gameData = gameStorage.loadGameData();
+            
+            console.log(`プレイヤー "${currentPlayer}" のスコアデータをリセットしました`);
+            alert(`プレイヤー "${currentPlayer}" のスコアデータをリセットしました`);
+        }
+    }
+
+    /**
+     * デバッグ用：テストスコアを追加
+     */
+    addTestScore() {
+        const currentPlayer = gameStorage.getCurrentPlayer();
+        if (!currentPlayer) {
+            alert('プレイヤーが設定されていません');
+            return;
+        }
+        
+        const randomScore = Math.floor(Math.random() * 2000) + 500;
+        const randomTime = Math.floor(Math.random() * 60000) + 30000;
+        const randomItems = Math.floor(Math.random() * 10) + 1;
+        const randomStage = Math.floor(Math.random() * 5) + 1;
+        
+        gameStorage.saveStageCompletion(randomStage, {
+            score: randomScore,
+            time: randomTime,
+            itemsCollected: randomItems
+        });
+        
+        console.log(`プレイヤー "${currentPlayer}" にテストスコア追加: ステージ${randomStage}, スコア${randomScore}, 時間${randomTime}ms, アイテム${randomItems}個`);
+        alert(`テストスコア追加完了！\nプレイヤー: ${currentPlayer}\nステージ${randomStage}: ${randomScore}点`);
+    }
+
+    /**
+     * 統計表示を更新
+     */
+    updateStatsDisplay() {
+        console.log('統計表示を更新中...');
+        
+        // 最新データを取得
+        this.gameData = gameStorage.loadGameData();
+        
+        // デバッグ用：現在のデータ状況をログ出力
+        console.log('現在のゲームデータ:', {
+            totalStats: this.gameData.totalStats,
+            stageStats: this.gameData.progress.stageStats,
+            completedStages: this.gameData.progress.completedStages
+        });
+        
+        // 総合スコア表示
+        this.updateTotalScoreDisplay();
+        
+        // ステージ別成績表示
+        this.updateStageStatsDisplay();
+        
+        // 最近の成績グラフ表示
+        this.updateRecentStatsChart();
+    }
+
+    /**
+     * 総合スコア表示を更新
+     */
+    updateTotalScoreDisplay() {
+        const totalScore = this.gameData.totalStats.totalScore || 0;
+        const totalScoreElement = document.getElementById('totalScoreValue');
+        const progressFill = document.querySelector('#totalScoreBar .progress-fill');
+        const playerLevelElement = document.getElementById('playerLevel');
+        const currentLevelTextElement = document.getElementById('currentLevelText');
+        const nextLevelPointsElement = document.getElementById('nextLevelPoints');
+        
+        // スコア表示
+        totalScoreElement.textContent = totalScore.toLocaleString();
+        
+        // レベル計算（1000点で1レベル）
+        const level = Math.floor(totalScore / 1000) + 1;
+        const nextLevelScore = level * 1000;
+        const currentLevelProgress = ((totalScore % 1000) / 1000) * 100;
+        const pointsToNextLevel = nextLevelScore - totalScore;
+        
+        // レベル情報更新
+        playerLevelElement.textContent = level;
+        currentLevelTextElement.textContent = level;
+        nextLevelPointsElement.textContent = pointsToNextLevel.toLocaleString();
+        
+        // プログレスバーアニメーション
+        setTimeout(() => {
+            progressFill.style.width = `${currentLevelProgress}%`;
+        }, 200);
+        
+        console.log('総合スコア更新:', { 
+            totalScore, 
+            level, 
+            progress: currentLevelProgress,
+            pointsToNext: pointsToNextLevel
+        });
+    }
+
+    /**
+     * ステージ別成績表示を更新
+     */
+    updateStageStatsDisplay() {
+        const container = document.getElementById('stageStatsContainer');
+        container.innerHTML = '';
+        
+        const stageStats = this.gameData.progress.stageStats || {};
+        const completedStages = this.gameData.progress.completedStages || [];
+        
+        // 5つのステージを表示
+        for (let stage = 1; stage <= 5; stage++) {
+            const stats = stageStats[stage] || {};
+            const isCompleted = completedStages.includes(stage);
+            
+            const card = this.createStageStatCard(stage, stats, isCompleted);
+            container.appendChild(card);
+        }
+        
+        console.log('ステージ別成績更新完了');
+    }
+
+    /**
+     * ステージ統計カードを作成
+     */
+    createStageStatCard(stageNumber, stats, isCompleted) {
+        const card = document.createElement('div');
+        card.className = 'stage-stat-card';
+        
+        // 星評価計算
+        const stars = this.calculateStageStars(stats, isCompleted);
+        const starsDisplay = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+        
+        card.innerHTML = `
+            <div class="stage-stat-header">
+                <div class="stage-name">ステージ ${stageNumber}</div>
+                <div class="stage-stars">${starsDisplay}</div>
+            </div>
+            <div class="stage-details">
+                <div>
+                    <span class="label">スコア:</span>
+                    <span class="value">${(stats.bestScore || 0).toLocaleString()}</span>
+                </div>
+                <div>
+                    <span class="label">タイム:</span>
+                    <span class="value">${this.formatTime(stats.bestTime || 0)}</span>
+                </div>
+                <div>
+                    <span class="label">アイテム:</span>
+                    <span class="value">${stats.maxItemsCollected || 0}個</span>
+                </div>
+                <div>
+                    <span class="label">プレイ:</span>
+                    <span class="value">${stats.playCount || 0}回</span>
+                </div>
+                <div>
+                    <span class="label">状態:</span>
+                    <span class="value ${isCompleted ? 'completed' : 'incomplete'}">${isCompleted ? 'クリア' : '未クリア'}</span>
+                </div>
+            </div>
+        `;
+        
+        return card;
+    }
+
+    /**
+     * ステージの星評価を計算
+     */
+    calculateStageStars(stats, isCompleted) {
+        if (!isCompleted) return 0;
+        
+        const score = stats.bestScore || 0;
+        const time = stats.bestTime || Infinity;
+        const items = stats.maxItemsCollected || 0;
+        
+        let stars = 1; // クリアで1つ星
+        
+        // スコアベースで星追加
+        if (score >= 1500) stars++;
+        if (score >= 2000) stars++;
+        
+        // タイムベースで星追加（60秒以内で追加星）
+        if (time <= 60000) stars = Math.max(stars, 2);
+        if (time <= 30000) stars = 3;
+        
+        // アイテム収集で星追加
+        if (items >= 8) stars = Math.max(stars, 2);
+        if (items >= 10) stars = 3;
+        
+        return Math.min(stars, 3);
+    }
+
+    /**
+     * 最近の成績グラフを更新
+     */
+    updateRecentStatsChart() {
+        const chartContainer = document.getElementById('recentStatsChart');
+        const stageStats = this.gameData.progress.stageStats || {};
+        
+        // データがない場合
+        if (Object.keys(stageStats).length === 0) {
+            chartContainer.innerHTML = '<div class="no-data-message">まだデータがありません<br>ゲームをプレイしてみましょう！</div>';
+            return;
+        }
+        
+        // チャートHTML作成
+        const chartHTML = `
+            <div class="chart-container">
+                <div class="chart-bars" id="chartBars">
+                    ${this.createChartBars(stageStats)}
+                </div>
+            </div>
+        `;
+        
+        chartContainer.innerHTML = chartHTML;
+        
+        // アニメーション開始
+        setTimeout(() => {
+            this.animateChartBars();
+        }, 100);
+        
+        console.log('成績グラフ更新完了');
+    }
+
+    /**
+     * チャートバーのHTMLを作成
+     */
+    createChartBars(stageStats) {
+        let barsHTML = '';
+        const maxScore = Math.max(...Object.values(stageStats).map(s => s.bestScore || 0), 1);
+        
+        for (let stage = 1; stage <= 5; stage++) {
+            const stats = stageStats[stage] || {};
+            const score = stats.bestScore || 0;
+            const height = Math.max((score / maxScore) * 100, 5); // 最小5%
+            
+            barsHTML += `
+                <div class="chart-bar" data-height="${height}">
+                    <div class="chart-bar-value">${score}</div>
+                    <div class="chart-bar-label">S${stage}</div>
+                </div>
+            `;
+        }
+        
+        return barsHTML;
+    }
+
+    /**
+     * チャートバーのアニメーション
+     */
+    animateChartBars() {
+        const bars = document.querySelectorAll('.chart-bar');
+        bars.forEach((bar, index) => {
+            const height = bar.dataset.height;
+            setTimeout(() => {
+                bar.style.height = `${height}%`;
+            }, index * 200);
+        });
+    }
+
+    /**
+     * 時間をフォーマット
+     */
+    formatTime(milliseconds) {
+        if (milliseconds === 0) return '--:--';
+        
+        const seconds = Math.floor(milliseconds / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
 }
 

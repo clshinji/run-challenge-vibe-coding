@@ -68,25 +68,44 @@ class SimpleGame {
      */
     resizeCanvas() {
         const container = this.canvas.parentElement;
+        if (!container) return;
+        
         const containerRect = container.getBoundingClientRect();
         
-        const targetRatio = 2;
-        let width = Math.max(containerRect.width - 40, 600);
-        let height = width / targetRatio;
+        const targetRatio = 2; // 横:縦 = 2:1
+        const containerWidth = Math.min(containerRect.width - 40, 1000);
+        const containerHeight = window.innerHeight - 160;
         
-        const maxHeight = Math.max(window.innerHeight - 200, 300);
-        if (height > maxHeight) {
-            height = maxHeight;
+        let width, height;
+        
+        // コンテナの縦横比に基づいて最適なサイズを計算
+        if (containerWidth / containerHeight > targetRatio) {
+            // 高さ基準でサイズを決定
+            height = Math.min(containerHeight, 500);
             width = height * targetRatio;
+        } else {
+            // 幅基準でサイズを決定
+            width = Math.min(containerWidth, 1000);
+            height = width / targetRatio;
         }
         
-        width = Math.max(width, 600);
-        height = Math.max(height, 300);
+        // 最小サイズの保証
+        width = Math.max(width, 400);
+        height = Math.max(height, 200);
         
+        // 最大サイズの制限
+        width = Math.min(width, 1000);
+        height = Math.min(height, 500);
+        
+        // キャンバスの実際のサイズ設定
         this.canvas.width = width;
         this.canvas.height = height;
+        
+        // CSS表示サイズも同じに設定（縦横比維持）
         this.canvas.style.width = width + 'px';
         this.canvas.style.height = height + 'px';
+        
+        console.log(`キャンバスサイズ調整: ${width}x${height} (比率: ${(width/height).toFixed(2)})`);
     }
 
     /**

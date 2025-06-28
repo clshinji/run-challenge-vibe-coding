@@ -823,7 +823,7 @@ console.log('最終確認:', {
 
 // テスト用のインスタンス作成確認
 try {
-    const testPlayer = new Player(0, 0);
+    let testPlayer = new Player(0, 0);
     console.log('✅ Playerインスタンス作成テスト成功');
     testPlayer = null; // メモリ解放
 } catch (error) {

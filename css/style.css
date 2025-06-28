@@ -66,6 +66,14 @@ h2 {
 }
 
 /* ステージ選択画面のタイトル専用スタイル */
+#stageSelectScreen.active {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+
 #stageSelectScreen h2 {
     color: #1A252F; /* さらに濃い色 */
     font-size: 2.2rem;
@@ -207,8 +215,12 @@ input[type="text"]:focus {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 15px;
-    margin: 2rem 0;
+    margin: 2rem auto;
     max-width: 500px;
+    justify-items: center;
+    padding: 0 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .stage-button {
@@ -254,9 +266,20 @@ input[type="text"]:focus {
     background: #87CEEB;
 }
 
+/* ゲーム画面がアクティブな時のみフレックス配置 */
+#gameScreen.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ゲーム画面が非アクティブな時は通常の非表示 */
+#gameScreen:not(.active) {
+    display: none;
+}
+
 /* ゲームUI */
 #gameUI {
-    position: absolute;
+    position: relative;
     top: 0;
     left: 0;
     right: 0;
@@ -266,6 +289,8 @@ input[type="text"]:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
+    order: 1;
 }
 
 .ui-top {
@@ -406,18 +431,50 @@ input[type="text"]:focus {
     border-radius: 10px;
     max-width: 100%;
     max-height: calc(100vh - 120px);
+    flex-grow: 1;
+    order: 2;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+/* ゲームキャンバスのレスポンシブ対応 */
+@media (max-width: 768px) {
+    #gameCanvas {
+        max-height: calc(100vh - 100px);
+        border-width: 2px;
+    }
+}
+
+@media (max-width: 480px) {
+    #gameCanvas {
+        max-height: calc(100vh - 80px);
+        border-width: 1px;
+        border-radius: 5px;
+    }
+}
+
+/* ゲーム画面のコンテナ調整 */
+#gameScreen.active {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0;
+    overflow: hidden;
 }
 
 /* タッチコントロール */
 .touch-controls {
-    position: absolute;
+    position: fixed;
     bottom: 20px;
     left: 0;
     right: 0;
     display: none;
     justify-content: space-between;
     padding: 0 20px;
-    z-index: 10;
+    z-index: 15;
+    order: 3;
 }
 
 .control-left, .control-right {
@@ -629,4 +686,1389 @@ input[type="text"]:focus {
     border-color: #FF6B6B;
     box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
     background: white;
+}
+/* 統計・ダッシュボード画面 */
+#statsScreen.active .stats-summary {
+    margin: 25px 15px;
+    padding: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 182, 193, 0.1));
+    border-radius: 20px;
+    border: 2px solid rgba(255, 107, 107, 0.2);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+}
+
+/* タイトル部分を独立したヘッダーとして設計 */
+#statsScreen.active .stats-summary-header {
+    background: linear-gradient(45deg, #FF6B6B, #FFB6C1, #FF69B4);
+    padding: 12px 20px;
+    margin: 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+#statsScreen.active .stats-summary-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: headerShimmer 4s infinite;
+}
+
+#statsScreen.active .score-label {
+    font-size: 18px;
+    color: white;
+    margin: 0;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
+    letter-spacing: 1px;
+}
+
+/* コンテンツ部分 */
+#statsScreen.active .stats-summary-content {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    position: relative;
+}
+
+#statsScreen.active .stats-summary-content::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 107, 107, 0.03), transparent);
+    animation: contentShimmer 5s infinite;
+}
+
+#statsScreen.active .total-score-display {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+#statsScreen.active .score-value {
+    font-size: 36px;
+    color: #FF6B6B;
+    font-weight: bold;
+    margin: 0 0 15px 0;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+    letter-spacing: 2px;
+    position: relative;
+}
+
+#statsScreen.active .score-value::after {
+    content: 'てん';
+    font-size: 14px;
+    color: #666;
+    margin-left: 6px;
+    font-weight: normal;
+    vertical-align: super;
+}
+
+#statsScreen.active .score-progress {
+    margin-top: 15px;
+}
+
+#statsScreen.active .progress-bar {
+    width: 100%;
+    max-width: 320px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 107, 107, 0.3);
+    margin: 0 auto 12px auto;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+#statsScreen.active .progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px 12px 0 0;
+}
+
+#statsScreen.active .progress-fill {
+    height: 100%;
+    background: linear-gradient(45deg, #FF6B6B, #FFB6C1, #FF69B4, #FFB6C1, #FF6B6B);
+    background-size: 200% 100%;
+    border-radius: 10px;
+    transition: width 2s ease-in-out;
+    width: 0%;
+    position: relative;
+    overflow: hidden;
+    animation: progressGradient 3s ease-in-out infinite;
+}
+
+#statsScreen.active .progress-text {
+    font-size: 14px;
+    color: #555;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+#statsScreen.active .progress-text::before {
+    content: '🏆';
+    font-size: 16px;
+}
+
+#statsScreen.active .level-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding: 10px 15px;
+    background: rgba(255, 107, 107, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
+#statsScreen.active .current-level {
+    font-size: 12px;
+    color: #666;
+    font-weight: 600;
+}
+
+#statsScreen.active .next-level {
+    font-size: 11px;
+    color: #999;
+    font-style: italic;
+}
+
+/* 総合スコアエリアのレスポンシブ対応 */
+@media (max-width: 640px) {
+    .stats-summary {
+        min-height: 160px;
+    }
+    
+    .stats-summary-header {
+        padding: 8px 15px;
+    }
+    
+    .score-label {
+        font-size: 15px;
+    }
+    
+    .stats-summary-content {
+        padding: 12px;
+    }
+    
+    .score-value {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+    
+    .progress-bar {
+        max-width: 260px;
+        height: 16px;
+    }
+    
+    .progress-text {
+        font-size: 11px;
+    }
+    
+    .level-info {
+        padding: 6px 10px;
+        margin-top: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-summary {
+        min-height: 140px;
+    }
+    
+    .stats-summary-header {
+        padding: 6px 12px;
+    }
+    
+    .score-label {
+        font-size: 13px;
+    }
+    
+    .stats-summary-content {
+        padding: 10px;
+    }
+    
+    .score-value {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+    
+    .score-value::after {
+        font-size: 11px;
+    }
+    
+    .progress-bar {
+        max-width: 220px;
+        height: 14px;
+    }
+    
+    .progress-text {
+        font-size: 10px;
+    }
+    
+    .progress-text::before {
+        font-size: 12px;
+    }
+    
+    .level-info {
+        flex-direction: column;
+        gap: 3px;
+        text-align: center;
+        padding: 5px 8px;
+        margin-top: 6px;
+    }
+    
+    .current-level,
+    .next-level {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 360px) {
+    .stats-summary {
+        min-height: 120px;
+    }
+    
+    .stats-summary-header {
+        padding: 5px 10px;
+    }
+    
+    .score-label {
+        font-size: 12px;
+    }
+    
+    .stats-summary-content {
+        padding: 8px;
+    }
+    
+    .score-value {
+        font-size: 20px;
+        margin-bottom: 6px;
+    }
+    
+    .progress-bar {
+        max-width: 180px;
+        height: 12px;
+    }
+    
+    .progress-text {
+        font-size: 9px;
+    }
+    
+    .level-info {
+        padding: 4px 6px;
+        margin-top: 4px;
+    }
+    
+    .current-level,
+    .next-level {
+        font-size: 8px;
+    }
+}
+
+/* ステージ別成績 */
+.stage-stats {
+    margin: 20px 15px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    border: 2px solid rgba(46, 139, 87, 0.2);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.stage-stats h3 {
+    color: #2E8B57;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    letter-spacing: 1px;
+}
+
+.stage-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin: 10px 0;
+    padding: 0 3px;
+    justify-items: center;
+}
+
+/* 大きい画面での最大幅制限 */
+@media (min-width: 1200px) {
+    .stage-stats-grid {
+        grid-template-columns: repeat(5, 1fr);
+        max-width: 700px;
+        margin: 10px auto;
+    }
+}
+
+/* タブレット・中程度の画面での調整 */
+@media (max-width: 1024px) {
+    .stage-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 6px;
+    }
+}
+
+/* タブレット・小さい画面での調整 */
+@media (max-width: 768px) {
+    .stage-stats {
+        margin: 15px 10px;
+        padding: 10px;
+    }
+    
+    .stage-stats h3 {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+    
+    .stage-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 5px;
+    }
+}
+
+/* 小さなタブレット・大きなスマートフォン */
+@media (max-width: 640px) {
+    .stage-stats {
+        margin: 12px 8px;
+        padding: 8px;
+    }
+    
+    .stage-stats h3 {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+    
+    .stage-stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+    }
+}
+
+/* スマートフォンでの調整 */
+@media (max-width: 480px) {
+    .stage-stats {
+        margin: 10px 5px;
+        padding: 6px;
+    }
+    
+    .stage-stats h3 {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .stage-stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 3px;
+    }
+}
+
+/* 非常に小さい画面での調整 */
+@media (max-width: 360px) {
+    .stage-stats {
+        margin: 8px 3px;
+        padding: 5px;
+    }
+    
+    .stage-stats h3 {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+    
+    .stage-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 3px;
+        max-width: 200px;
+        margin: 8px auto;
+    }
+}
+
+.stage-stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(46, 139, 87, 0.05));
+    border-radius: 10px;
+    padding: 12px;
+    border: 2px solid rgba(46, 139, 87, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.stage-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(46, 139, 87, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.stage-stat-card:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border-color: rgba(46, 139, 87, 0.4);
+}
+
+.stage-stat-card:hover::before {
+    left: 100%;
+}
+
+.stage-stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(46, 139, 87, 0.1);
+}
+
+.stage-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2E8B57;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.stage-stars {
+    font-size: 18px;
+    flex-shrink: 0;
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.stage-details {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
+    flex-grow: 1;
+}
+
+.stage-details div {
+    margin: 4px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 0;
+}
+
+.stage-details .label {
+    font-weight: 600;
+    color: #666;
+}
+
+.stage-details .value {
+    font-weight: bold;
+    color: #333;
+    text-align: right;
+}
+
+/* スマートフォンでのフォントサイズ調整 */
+@media (max-width: 640px) {
+    .stage-stat-card {
+        padding: 10px;
+        min-height: 110px;
+    }
+    
+    .stage-name {
+        font-size: 14px;
+    }
+    
+    .stage-stars {
+        font-size: 16px;
+    }
+    
+    .stage-details {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stage-stat-card {
+        padding: 8px;
+        min-height: 100px;
+    }
+    
+    .stage-name {
+        font-size: 13px;
+    }
+    
+    .stage-stars {
+        font-size: 15px;
+    }
+    
+    .stage-details {
+        font-size: 10px;
+    }
+    
+    .stage-details div {
+        margin: 2px 0;
+    }
+}
+
+@media (max-width: 360px) {
+    .stage-stat-card {
+        padding: 6px;
+        min-height: 90px;
+    }
+    
+    .stage-name {
+        font-size: 12px;
+    }
+    
+    .stage-stars {
+        font-size: 14px;
+    }
+    
+    .stage-details {
+        font-size: 9px;
+    }
+}
+
+/* 最近の成績グラフ */
+.recent-stats {
+    margin: 20px 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 18px;
+    border: 2px solid rgba(255, 107, 107, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.recent-stats h3 {
+    color: #FF6B6B;
+    margin-bottom: 12px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.stats-chart {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 107, 107, 0.05));
+    border-radius: 12px;
+    padding: 15px;
+    border: 2px solid rgba(255, 107, 107, 0.2);
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.chart-container {
+    width: 100%;
+    height: 120px;
+    position: relative;
+}
+
+.chart-bars {
+    display: flex;
+    align-items: end;
+    justify-content: space-around;
+    height: 90px;
+    margin-bottom: 15px;
+    padding: 0 5px;
+}
+
+.chart-bar {
+    width: 30px;
+    background: linear-gradient(to top, #FF6B6B, #FFB6C1, #FF69B4);
+    border-radius: 3px 3px 0 0;
+    margin: 0 4px;
+    position: relative;
+    transition: all 0.8s ease-in-out;
+    min-height: 4px;
+    box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
+}
+
+.chart-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 3px 3px 0 0;
+}
+
+.chart-bar-label {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #666;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.chart-bar-value {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: #333;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1px 3px;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.no-data-message {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.3;
+}
+/* ステージボタンの改善 */
+.stage-button {
+    background: linear-gradient(45deg, #E8E8E8, #F5F5F5);
+    border: 3px solid #DDD;
+    border-radius: 15px;
+    padding: 15px;
+    margin: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    font-weight: bold;
+    min-width: 120px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stage-button .stage-number {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.stage-button .stage-stars {
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+.stage-button .stage-info {
+    font-size: 11px;
+    color: #666;
+    text-align: center;
+    margin-top: 5px;
+}
+
+.stage-button .stage-score {
+    font-weight: bold;
+    color: #FF6B6B;
+}
+
+.stage-button .stage-time {
+    color: #2E8B57;
+}
+
+.stage-button .lock-icon {
+    font-size: 20px;
+    margin-top: 5px;
+}
+
+.stage-button.unlocked {
+    background: linear-gradient(45deg, #FFE4B5, #FFF8DC);
+    border-color: #FFB6C1;
+    color: #333;
+}
+
+.stage-button.unlocked:hover {
+    background: linear-gradient(45deg, #FFD700, #FFF8DC);
+    border-color: #FF6B6B;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.stage-button.completed {
+    background: linear-gradient(45deg, #98FB98, #90EE90);
+    border-color: #32CD32;
+    color: #2E8B57;
+}
+
+.stage-button.completed:hover {
+    background: linear-gradient(45deg, #90EE90, #98FB98);
+    border-color: #228B22;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.stage-button.locked {
+    background: linear-gradient(45deg, #D3D3D3, #E8E8E8);
+    border-color: #A9A9A9;
+    color: #696969;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+/* ステージ状態の色分け */
+.stage-details .value.completed {
+    color: #2E8B57;
+    font-weight: bold;
+}
+
+.stage-details .value.incomplete {
+    color: #FF6B6B;
+    font-weight: bold;
+}
+
+/* 統計画面全体のレスポンシブ調整 */
+@media (max-width: 768px) {
+    .stats-summary {
+        margin: 15px 0;
+        padding: 15px;
+    }
+    
+    .score-value {
+        font-size: 28px;
+    }
+    
+    .recent-stats {
+        margin: 20px 0;
+    }
+    
+    .stats-chart {
+        padding: 15px;
+        min-height: 150px;
+    }
+    
+    .chart-container {
+        height: 130px;
+    }
+    
+    .chart-bars {
+        height: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-summary {
+        margin: 10px 0;
+        padding: 12px;
+    }
+    
+    .score-label {
+        font-size: 16px;
+    }
+    
+    .score-value {
+        font-size: 24px;
+    }
+    
+    .progress-text {
+        font-size: 12px;
+    }
+    
+    .stage-stats h3,
+    .recent-stats h3 {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+    
+    .stats-chart {
+        padding: 10px;
+        min-height: 120px;
+    }
+    
+    .chart-container {
+        height: 100px;
+    }
+    
+    .chart-bars {
+        height: 80px;
+    }
+    
+    .chart-bar {
+        width: 30px;
+        margin: 0 3px;
+    }
+    
+    .chart-bar-label {
+        font-size: 10px;
+    }
+    
+    .chart-bar-value {
+        font-size: 9px;
+    }
+}
+/* 統計画面の旧スタイルは削除（新しい基本制御システムを使用） */
+
+/* 統計画面専用ヘッダー */
+#statsScreen.active .stats-screen-header {
+    flex-shrink: 0;
+    padding: 60px 0 0 0;
+}
+
+#statsScreen.active .stats-screen-header h2 {
+    background: linear-gradient(45deg, #FF6B6B, #FFB6C1);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    padding: 15px 20px;
+    margin: 0 15px 25px 15px;
+    text-align: center;
+    font-size: 22px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    position: relative;
+    z-index: 1;
+}
+
+/* 統計画面のコンテンツエリア */
+#statsScreen.active .stats-content-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* 統計画面のコンテンツ間隔調整 */
+#statsScreen.active .stats-summary,
+#statsScreen.active .stage-stats,
+#statsScreen.active .recent-stats {
+    margin: 25px 15px;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+/* 中程度の画面サイズ */
+@media (max-width: 1024px) {
+    #statsScreen.active .stats-screen-header {
+        padding: 45px 0 0 0;
+    }
+    
+    #statsScreen.active .stats-screen-header h2 {
+        font-size: 20px;
+        margin: 0 12px 20px 12px;
+    }
+    
+    #statsScreen.active .stats-summary,
+    #statsScreen.active .stage-stats,
+    #statsScreen.active .recent-stats {
+        margin: 20px 12px;
+    }
+}
+
+/* タブレット */
+@media (max-width: 768px) {
+    #statsScreen.active .stats-screen-header {
+        padding: 35px 0 0 0;
+    }
+    
+    #statsScreen.active .stats-screen-header h2 {
+        padding: 12px 15px;
+        margin: 0 10px 18px 10px;
+        font-size: 18px;
+    }
+    
+    #statsScreen.active .stats-summary,
+    #statsScreen.active .stage-stats,
+    #statsScreen.active .recent-stats {
+        margin: 18px 10px;
+    }
+}
+
+/* 小さなタブレット・大きなスマートフォン */
+@media (max-width: 640px) {
+    #statsScreen.active .stats-screen-header {
+        padding: 25px 0 0 0;
+    }
+    
+    #statsScreen.active .stats-screen-header h2 {
+        padding: 10px 12px;
+        margin: 0 8px 15px 8px;
+        font-size: 16px;
+    }
+    
+    #statsScreen.active .stats-summary,
+    #statsScreen.active .stage-stats,
+    #statsScreen.active .recent-stats {
+        margin: 15px 8px;
+    }
+}
+
+/* スマートフォン */
+@media (max-width: 480px) {
+    #statsScreen.active .stats-screen-header {
+        padding: 20px 0 0 0;
+    }
+    
+    #statsScreen.active .stats-screen-header h2 {
+        padding: 8px 10px;
+        margin: 0 5px 12px 5px;
+        font-size: 15px;
+    }
+    
+    #statsScreen.active .stats-summary,
+    #statsScreen.active .stage-stats,
+    #statsScreen.active .recent-stats {
+        margin: 12px 5px;
+    }
+}
+
+/* 非常に小さなスマートフォン */
+@media (max-width: 360px) {
+    #statsScreen.active .stats-screen-header {
+        padding: 15px 0 0 0;
+    }
+    
+    #statsScreen.active .stats-screen-header h2 {
+        padding: 6px 8px;
+        margin: 0 3px 10px 3px;
+        font-size: 14px;
+    }
+    
+    #statsScreen.active .stats-summary,
+    #statsScreen.active .stage-stats,
+    #statsScreen.active .recent-stats {
+        margin: 10px 3px;
+    }
+}
+/* 統計画面の戻るボタン */
+#statsScreen .menu-buttons {
+    margin: 30px 15px 20px 15px;
+    text-align: center;
+    padding: 20px 0;
+}
+
+#statsScreen .game-button {
+    min-width: 150px;
+    font-size: 18px;
+    padding: 15px 30px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+#statsScreen .game-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* レスポンシブ調整の統合 */
+@media (max-width: 1024px) {
+    .stats-summary,
+    .stage-stats,
+    .recent-stats {
+        margin: 20px 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-summary,
+    .stage-stats,
+    .recent-stats {
+        margin: 18px 10px;
+    }
+    
+    .recent-stats {
+        padding: 12px;
+    }
+    
+    .recent-stats h3 {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    
+    .stats-chart {
+        padding: 12px;
+        min-height: 120px;
+    }
+    
+    .chart-container {
+        height: 100px;
+    }
+    
+    .chart-bars {
+        height: 75px;
+        margin-bottom: 12px;
+    }
+    
+    .chart-bar {
+        width: 25px;
+        margin: 0 3px;
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-summary,
+    .stage-stats,
+    .recent-stats {
+        margin: 15px 8px;
+    }
+    
+    .recent-stats {
+        padding: 10px;
+    }
+    
+    .recent-stats h3 {
+        font-size: 15px;
+        margin-bottom: 8px;
+    }
+    
+    .stats-chart {
+        padding: 10px;
+        min-height: 100px;
+    }
+    
+    .chart-container {
+        height: 85px;
+    }
+    
+    .chart-bars {
+        height: 60px;
+        margin-bottom: 10px;
+    }
+    
+    .chart-bar {
+        width: 22px;
+        margin: 0 2px;
+    }
+    
+    .chart-bar-label {
+        font-size: 9px;
+        bottom: -15px;
+    }
+    
+    .chart-bar-value {
+        font-size: 8px;
+        top: -12px;
+        padding: 1px 2px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-summary,
+    .stage-stats,
+    .recent-stats {
+        margin: 12px 5px;
+    }
+    
+    .recent-stats {
+        padding: 8px;
+    }
+    
+    .recent-stats h3 {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+    
+    .stats-chart {
+        padding: 8px;
+        min-height: 90px;
+    }
+    
+    .chart-container {
+        height: 75px;
+    }
+    
+    .chart-bars {
+        height: 50px;
+        margin-bottom: 8px;
+        padding: 0 2px;
+    }
+    
+    .chart-bar {
+        width: 18px;
+        margin: 0 1px;
+    }
+    
+    .chart-bar-label {
+        font-size: 8px;
+        bottom: -12px;
+    }
+    
+    .chart-bar-value {
+        font-size: 7px;
+        top: -10px;
+        padding: 1px;
+    }
+    
+    #statsScreen .menu-buttons {
+        margin: 10px 5px 6px 5px;
+        padding: 8px 0;
+    }
+    
+    #statsScreen .game-button {
+        min-width: 80px;
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .stats-summary,
+    .stage-stats,
+    .recent-stats {
+        margin: 10px 3px;
+    }
+    
+    .recent-stats {
+        padding: 6px;
+    }
+    
+    .recent-stats h3 {
+        font-size: 13px;
+        margin-bottom: 5px;
+    }
+    
+    .stats-chart {
+        padding: 6px;
+        min-height: 80px;
+    }
+    
+    .chart-container {
+        height: 65px;
+    }
+    
+    .chart-bars {
+        height: 40px;
+        margin-bottom: 6px;
+    }
+    
+    .chart-bar {
+        width: 15px;
+        margin: 0 1px;
+    }
+    
+    .chart-bar-label {
+        font-size: 7px;
+        bottom: -10px;
+    }
+    
+    .chart-bar-value {
+        font-size: 6px;
+        top: -8px;
+    }
+    
+    #statsScreen .menu-buttons {
+        margin: 8px 3px 5px 3px;
+        padding: 6px 0;
+    }
+    
+    #statsScreen .game-button {
+        min-width: 70px;
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+}
+/* 基本的な画面制御システム */
+.screen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* 統計画面の特別な制御 */
+#statsScreen {
+    display: none !important;
+}
+
+#statsScreen.active {
+    display: flex !important;
+    flex-direction: column;
+    overflow-y: auto;
+    height: 100vh;
+    padding: 0;
+    position: relative;
+    box-sizing: border-box;
+}
+/* デバッグ機能のスタイル */
+.debug-section {
+    border-top: 2px solid rgba(255, 107, 107, 0.3);
+    margin-top: 20px;
+    padding-top: 20px;
+}
+
+.debug-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.debug-button {
+    background: linear-gradient(45deg, #FF6B6B, #FFB6C1);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
+}
+
+.debug-button:hover {
+    background: linear-gradient(45deg, #FF5252, #FF8A95);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.debug-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
+}
+
+@media (max-width: 480px) {
+    .debug-buttons {
+        flex-direction: column;
+    }
+    
+    .debug-button {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+/* ステージ選択画面のレスポンシブ対応 */
+@media (max-width: 768px) {
+    .stage-grid {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 10px;
+        margin: 1.5rem auto;
+        max-width: 400px;
+        padding: 0 15px;
+    }
+    
+    #stageSelectScreen h2 {
+        font-size: 1.8rem;
+        padding: 10px 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    .stage-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 1rem auto;
+        max-width: 350px;
+        padding: 0 10px;
+    }
+    
+    .stage-button {
+        min-width: 90px;
+        min-height: 90px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stage-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin: 1rem auto;
+        max-width: 280px;
+        padding: 0 10px;
+    }
+    
+    .stage-button {
+        min-width: 110px;
+        min-height: 90px;
+    }
+    
+    #stageSelectScreen h2 {
+        font-size: 1.5rem;
+        padding: 8px 15px;
+    }
+}
+
+@media (max-width: 360px) {
+    .stage-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        margin: 0.8rem auto;
+        max-width: 240px;
+        padding: 0 5px;
+    }
+    
+    .stage-button {
+        min-width: 100px;
+        min-height: 80px;
+    }
+    
+    #stageSelectScreen h2 {
+        font-size: 1.3rem;
+        padding: 6px 12px;
+    }
+}
+/* 基本的な画面制御システム */
+.screen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* タイトル画面の確実な表示 */
+#titleScreen.active {
+    display: block !important;
+    position: relative;
+}
+
+/* ゲーム画面の特別な制御 */
+#gameScreen.active {
+    display: flex !important;
+    flex-direction: column;
+    position: relative;
+}
+
+/* 統計画面の特別な制御 */
+#statsScreen.active {
+    display: flex !important;
+    flex-direction: column;
+    overflow-y: auto;
+    height: 100vh;
+    padding: 0;
+    position: relative;
+    box-sizing: border-box;
 }
