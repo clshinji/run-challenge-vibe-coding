@@ -20,11 +20,11 @@ class Player {
         this.width = 32;
         this.height = 32;
         
-        // 物理
+        // 物理（子ども向けに調整）
         this.velocityX = 0;
         this.velocityY = 0;
         this.speed = 200; // ピクセル/秒
-        this.jumpPower = 400;
+        this.jumpPower = 450; // ジャンプ力を少し強化（子ども向け）
         this.gravity = 1200;
         this.friction = 0.8;
         
