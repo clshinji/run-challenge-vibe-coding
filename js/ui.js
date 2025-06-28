@@ -5,6 +5,7 @@ class UIManager {
     constructor() {
         this.currentScreen = 'titleScreen';
         this.gameData = null;
+        this.storage = new GameStorage();
         this.init();
     }
 
@@ -16,12 +17,33 @@ class UIManager {
         this.setupEventListeners();
         this.updateUI();
         this.showScreen('titleScreen');
+        
+        // 初期化後にプレイヤー名表示を更新
+        setTimeout(() => {
+            this.updatePlayerNameDisplay();
+        }, 100);
     }
 
     /**
      * イベントリスナー設定
      */
     setupEventListeners() {
+        // 既存のイベントリスナーをクリア（重複防止）
+        const confirmEditButton = document.getElementById('confirmEditNameButton');
+        const cancelEditButton = document.getElementById('cancelEditNameButton');
+        const editNameInput = document.getElementById('editPlayerNameInput');
+        
+        // 既存のイベントリスナーを削除
+        if (confirmEditButton) {
+            confirmEditButton.replaceWith(confirmEditButton.cloneNode(true));
+        }
+        if (cancelEditButton) {
+            cancelEditButton.replaceWith(cancelEditButton.cloneNode(true));
+        }
+        if (editNameInput) {
+            editNameInput.replaceWith(editNameInput.cloneNode(true));
+        }
+        
         // タイトル画面
         document.getElementById('startButton').addEventListener('click', () => {
             if (this.gameData.playerName) {
@@ -33,6 +55,11 @@ class UIManager {
 
         document.getElementById('settingsButton').addEventListener('click', () => {
             this.showScreen('settingsScreen');
+        });
+
+        // プレイヤー名編集ボタン
+        document.getElementById('editPlayerNameButton').addEventListener('click', () => {
+            this.showEditNameScreen();
         });
 
         // 名前入力画面
@@ -47,6 +74,24 @@ class UIManager {
         document.getElementById('playerNameInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.handleNameInput();
+            }
+        });
+
+        // プレイヤー名編集画面（新しい要素を取得）
+        document.getElementById('confirmEditNameButton').addEventListener('click', () => {
+            console.log('編集確定ボタンがクリックされました');
+            this.handleEditNameInput();
+        });
+
+        document.getElementById('cancelEditNameButton').addEventListener('click', () => {
+            console.log('編集キャンセルボタンがクリックされました');
+            this.showScreen('titleScreen');
+        });
+
+        document.getElementById('editPlayerNameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                console.log('編集入力フィールドでEnterキーが押されました');
+                this.handleEditNameInput();
             }
         });
 
@@ -239,11 +284,19 @@ class UIManager {
         const nameInput = document.getElementById('playerNameInput');
         const name = nameInput.value.trim();
 
+        console.log('名前入力処理開始:', {
+            rawValue: nameInput.value,
+            trimmedValue: name,
+            length: name.length
+        });
+
         if (name.length > 0) {
+            console.log('有効な名前が入力されました:', name);
             this.gameData.playerName = name;
             gameStorage.savePlayerName(name);
             this.showScreen('stageSelectScreen');
         } else {
+            console.log('空の名前が入力されました');
             alert('なまえをいれてください');
             nameInput.focus();
         }
@@ -542,9 +595,119 @@ class UIManager {
     updateUI() {
         this.gameData = gameStorage.loadGameData();
         
-        // プレイヤー名表示更新など
-        if (this.gameData.playerName) {
-            // 必要に応じてプレイヤー名を表示
+        // プレイヤー名表示更新
+        this.updatePlayerNameDisplay();
+    }
+
+    /**
+     * プレイヤー名表示を更新
+     */
+    updatePlayerNameDisplay() {
+        const currentPlayerNameElement = document.getElementById('currentPlayerName');
+        const editButton = document.getElementById('editPlayerNameButton');
+        
+        if (this.gameData.playerName && this.gameData.playerName.trim() !== '') {
+            currentPlayerNameElement.textContent = this.gameData.playerName;
+            editButton.style.display = 'inline-block';
+        } else {
+            currentPlayerNameElement.textContent = 'なまえがないよ';
+            editButton.style.display = 'inline-block';
+        }
+    }
+
+    /**
+     * プレイヤー名編集画面を表示
+     */
+    showEditNameScreen() {
+        const currentNameInEdit = document.getElementById('currentNameInEdit');
+        const editInput = document.getElementById('editPlayerNameInput');
+        
+        console.log('プレイヤー名編集画面を表示:', {
+            currentPlayerName: this.gameData.playerName,
+            hasPlayerName: !!(this.gameData.playerName && this.gameData.playerName.trim() !== '')
+        });
+        
+        // 現在の名前を表示
+        if (this.gameData.playerName && this.gameData.playerName.trim() !== '') {
+            currentNameInEdit.textContent = this.gameData.playerName;
+            editInput.value = this.gameData.playerName;
+            console.log('既存の名前を入力フィールドに設定:', this.gameData.playerName);
+        } else {
+            currentNameInEdit.textContent = 'なまえがないよ';
+            editInput.value = '';
+            console.log('名前が未設定のため、入力フィールドを空に設定');
+        }
+        
+        this.showScreen('editNameScreen');
+        
+        // 入力フィールドにフォーカス
+        setTimeout(() => {
+            editInput.focus();
+            editInput.select();
+            console.log('入力フィールドにフォーカスを設定');
+        }, 100);
+    }
+
+    /**
+     * プレイヤー名編集処理
+     */
+    handleEditNameInput() {
+        const nameInput = document.getElementById('editPlayerNameInput');
+        const name = nameInput.value.trim();
+        
+        console.log('=== プレイヤー名編集処理開始 ===');
+        console.log('入力値:', {
+            raw: `"${nameInput.value}"`,
+            trimmed: `"${name}"`,
+            length: name.length
+        });
+        
+        // バリデーション
+        if (name.length === 0) {
+            console.log('❌ 空の名前 - エラーメッセージ表示');
+            alert('なまえをいれてください');
+            nameInput.focus();
+            console.log('=== 処理終了（エラー） ===');
+            return;
+        }
+        
+        if (name.length > 10) {
+            console.log('❌ 名前が長すぎる - エラーメッセージ表示');
+            alert('なまえは10もじいないでいれてください');
+            nameInput.focus();
+            console.log('=== 処理終了（エラー） ===');
+            return;
+        }
+        
+        // 正常処理
+        console.log('✅ バリデーション通過 - 保存処理開始');
+        
+        try {
+            // 保存
+            gameStorage.savePlayerName(name);
+            this.gameData = gameStorage.loadGameData();
+            console.log('✅ 名前保存完了:', this.gameData.playerName);
+            
+            // UI更新
+            this.updatePlayerNameDisplay();
+            console.log('✅ UI更新完了');
+            
+            // 画面遷移
+            nameInput.value = '';
+            this.showScreen('titleScreen');
+            console.log('✅ 画面遷移完了');
+            
+            // 成功メッセージ（遅延実行）
+            setTimeout(() => {
+                console.log('✅ 成功メッセージ表示:', name);
+                alert(`なまえを「${name}」にかえました！`);
+                console.log('=== 処理完了（成功） ===');
+            }, 200);
+            
+        } catch (error) {
+            console.error('❌ 保存処理エラー:', error);
+            alert('なまえのほぞんにしっぱいしました');
+            console.log('=== 処理終了（保存エラー） ===');
         }
     }
 }

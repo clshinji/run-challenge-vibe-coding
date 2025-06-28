@@ -14,6 +14,14 @@
         <div id="titleScreen" class="screen active">
             <h1>キッズアドベンチャー</h1>
             <div class="character-preview"></div>
+            
+            <!-- プレイヤー名表示エリア -->
+            <div id="playerNameDisplay" class="player-name-display">
+                <div class="player-name-label">なまえ:</div>
+                <div id="currentPlayerName" class="current-player-name">なまえがないよ</div>
+                <button id="editPlayerNameButton" class="game-button secondary">なまえをかえる</button>
+            </div>
+            
             <div class="menu-buttons">
                 <button id="startButton" class="game-button">ゲームスタート</button>
                 <button id="settingsButton" class="game-button">せってい</button>
@@ -27,6 +35,20 @@
             <div class="menu-buttons">
                 <button id="nameConfirmButton" class="game-button">OK</button>
                 <button id="nameBackButton" class="game-button secondary">もどる</button>
+            </div>
+        </div>
+
+        <!-- プレイヤー名編集画面 -->
+        <div id="editNameScreen" class="screen">
+            <h2>なまえをかえる</h2>
+            <div class="current-name-info">
+                <span>いまのなまえ: </span>
+                <span id="currentNameInEdit" class="current-name-text">未設定</span>
+            </div>
+            <input type="text" id="editPlayerNameInput" placeholder="あたらしいなまえ" maxlength="10">
+            <div class="menu-buttons">
+                <button id="confirmEditNameButton" class="game-button">かえる</button>
+                <button id="cancelEditNameButton" class="game-button secondary">もどる</button>
             </div>
         </div>
 
@@ -129,12 +151,12 @@
     </div>
 
     <!-- JavaScript読み込み（同期・順序保証） -->
-    <script src="js/storage.js?v=38"></script>
-    <script src="js/player.js?v=38"></script>
-    <script src="js/stage.js?v=38"></script>
-    <script src="js/goal-animation.js?v=38"></script>
-    <script src="js/game-simple.js?v=38"></script>
-    <script src="js/ui.js?v=38"></script>
+    <script src="js/storage.js?v=42"></script>
+    <script src="js/player.js?v=42"></script>
+    <script src="js/stage.js?v=42"></script>
+    <script src="js/goal-animation.js?v=42"></script>
+    <script src="js/game-simple.js?v=42"></script>
+    <script src="js/ui.js?v=42"></script>
     
     <!-- UIManager初期化 -->
     <script>

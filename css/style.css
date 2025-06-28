@@ -548,3 +548,85 @@ input[type="text"]:focus {
 #backToStageButton:active {
     transform: scale(0.95);
 }
+
+/* プレイヤー名表示エリア */
+.player-name-display {
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(255, 182, 193, 0.3);
+}
+
+.player-name-label {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.current-player-name {
+    font-size: 22px;
+    color: #2E8B57;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    background: linear-gradient(45deg, rgba(46, 139, 87, 0.1), rgba(46, 139, 87, 0.2));
+    border-radius: 12px;
+    display: inline-block;
+    border: 2px solid rgba(46, 139, 87, 0.3);
+    box-shadow: 0 2px 8px rgba(46, 139, 87, 0.1);
+}
+
+/* プレイヤー名表示エリア内のボタン調整 */
+.player-name-display .game-button {
+    margin: 0;
+    min-width: 120px;
+    font-size: 1rem;
+}
+
+/* プレイヤー名編集画面 */
+.current-name-info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: linear-gradient(45deg, rgba(46, 139, 87, 0.1), rgba(46, 139, 87, 0.2));
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid rgba(46, 139, 87, 0.2);
+}
+
+.current-name-info span:first-child {
+    color: #666;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.current-name-text {
+    color: #2E8B57;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* 入力フィールドの改善 */
+#editPlayerNameInput {
+    width: 100%;
+    max-width: 300px;
+    padding: 15px;
+    font-size: 20px;
+    border: 3px solid #ddd;
+    border-radius: 12px;
+    text-align: center;
+    margin: 15px 0;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+#editPlayerNameInput:focus {
+    outline: none;
+    border-color: #FF6B6B;
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+    background: white;
+}
