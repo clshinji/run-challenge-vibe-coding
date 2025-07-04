@@ -219,9 +219,7 @@ h2 {
     font-size: 3rem;
 }
 
-.character-preview::before {
-    content: "🐱";
-}
+/* アイコンはJavaScriptで動的に設定 */
 
 /* 入力フィールド */
 input[type="text"] {
@@ -1997,11 +1995,12 @@ input[type="text"]:focus {
 #statsScreen.active {
     display: flex !important;
     flex-direction: column;
-    overflow-y: auto;
-    height: 100vh;
-    padding: 0;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
     position: relative;
-    box-sizing: border-box;
+    padding: 10px !important;
+    overflow-y: auto;
 }
 /* デバッグ機能のスタイル */
 .debug-section {
@@ -2115,3 +2114,677 @@ input[type="text"]:focus {
 
 /* タッチコントロール修正完了 - 2024年12月27日 */
 /* 完全レスポンシブグリッド + タッチ操作対応 */
+
+/* プレイヤー一覧画面のスタイル */
+#playerListScreen {
+    padding: 20px !important;
+}
+
+#playerListScreen.active {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    position: relative;
+    overflow-y: auto;
+}
+
+.player-list-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.player-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.player-card {
+    background: linear-gradient(135deg, #FFF 0%, #F8F9FA 100%);
+    border: 3px solid #E3E3E3;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.player-card:hover {
+    transform: translateY(-5px);
+    border-color: #FFB6C1;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.player-card.selected {
+    border-color: #FF6B6B;
+    background: linear-gradient(135deg, #FFE5E5 0%, #FFF0F0 100%);
+}
+
+.player-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    display: block;
+    height: 60px;
+    line-height: 60px;
+}
+
+.player-name {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #2C3E50;
+    margin-bottom: 15px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.player-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #5A6C7D;
+}
+
+.player-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+}
+
+.player-stat-label {
+    font-weight: bold;
+}
+
+.player-stat-value {
+    color: #FF6B6B;
+    font-weight: bold;
+}
+
+/* アイコン選択画面のスタイル */
+#iconSelectScreen {
+    padding: 20px !important;
+}
+
+#iconSelectScreen.active {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    position: relative;
+    overflow-y: auto;
+}
+
+.current-icon-display {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 20px 0;
+    padding: 15px 25px;
+    background: linear-gradient(135deg, #FFF 0%, #F8F9FA 100%);
+    border: 2px solid #E3E3E3;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.current-icon-label {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #2C3E50;
+}
+
+.current-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    padding: 20px;
+    max-width: 800px;
+    width: 100%;
+}
+
+.icon-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #FFF 0%, #F8F9FA 100%);
+    border: 3px solid #E3E3E3;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    min-height: 120px;
+}
+
+.icon-option:hover {
+    transform: translateY(-3px);
+    border-color: #FFB6C1;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.icon-option.selected {
+    border-color: #FF6B6B;
+    background: linear-gradient(135deg, #FFE5E5 0%, #FFF0F0 100%);
+    transform: scale(1.05);
+}
+
+.icon-option-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    line-height: 1;
+}
+
+.icon-option-name {
+    font-size: 0.9rem;
+    color: #2C3E50;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 1024px) {
+    .player-list {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .icon-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .player-list {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        padding: 10px;
+        max-height: 50vh;
+    }
+    
+    .player-card {
+        padding: 15px;
+    }
+    
+    .player-icon {
+        font-size: 2.5rem;
+        height: 50px;
+        line-height: 50px;
+    }
+    
+    .player-name {
+        font-size: 1.2rem;
+    }
+    
+    .icon-grid {
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .icon-option {
+        padding: 15px;
+        min-height: 100px;
+    }
+    
+    .icon-option-emoji {
+        font-size: 2rem;
+    }
+    
+    .current-icon {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .player-list {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 10px;
+        max-height: 45vh;
+    }
+    
+    .player-card {
+        padding: 12px;
+        margin: 0 5px;
+    }
+    
+    .current-icon-display {
+        gap: 10px;
+        padding: 10px 15px;
+        margin: 15px 0;
+    }
+    
+    .current-icon-label {
+        font-size: 1rem;
+    }
+    
+    .current-icon {
+        font-size: 1.8rem;
+    }
+    
+    .icon-grid {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 8px;
+        padding: 10px;
+    }
+    
+    .icon-option {
+        padding: 12px;
+        min-height: 85px;
+    }
+    
+    .icon-option-emoji {
+        font-size: 1.8rem;
+    }
+    
+    .icon-option-name {
+        font-size: 0.8rem;
+    }
+}
+
+/* プレイヤー名編集画面のスタイル */
+.current-player-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.current-icon-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    color: #2C3E50;
+    font-weight: bold;
+}
+
+.current-icon-display-small {
+    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 5px 10px;
+    border-radius: 10px;
+    border: 2px solid #E3E3E3;
+}
+
+.edit-icon-section {
+    margin: 20px auto;
+    width: 100%;
+    max-width: 600px;
+}
+
+.edit-icon-label {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #2C3E50;
+    margin-bottom: 15px;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.edit-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    max-height: 200px;
+    overflow-y: auto;
+    justify-content: center;
+    align-content: start;
+}
+
+.edit-icon-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    background: linear-gradient(135deg, #FFF 0%, #F8F9FA 100%);
+    border: 3px solid #E3E3E3;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 80px;
+}
+
+.edit-icon-option:hover {
+    transform: translateY(-2px);
+    border-color: #FFB6C1;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.edit-icon-option.selected {
+    border-color: #FF6B6B;
+    background: linear-gradient(135deg, #FFE5E5 0%, #FFF0F0 100%);
+    transform: scale(1.02);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.edit-icon-option-emoji {
+    font-size: 2rem;
+    margin-bottom: 5px;
+    line-height: 1;
+}
+
+.edit-icon-option-name {
+    font-size: 0.7rem;
+    color: #2C3E50;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .current-player-info {
+        padding: 12px;
+    }
+    
+    .edit-icon-grid {
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+        gap: 8px;
+        padding: 12px;
+        max-height: 180px;
+        justify-content: center;
+    }
+    
+    .edit-icon-option {
+        padding: 10px 6px;
+        min-height: 70px;
+    }
+    
+    .edit-icon-option-emoji {
+        font-size: 1.6rem;
+    }
+    
+    .edit-icon-option-name {
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .edit-icon-grid {
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 6px;
+        padding: 10px;
+        max-height: 160px;
+        justify-content: center;
+    }
+    
+    .edit-icon-option {
+        padding: 8px 4px;
+        min-height: 60px;
+    }
+    
+    .edit-icon-option-emoji {
+        font-size: 1.4rem;
+    }
+    
+    .edit-icon-option-name {
+        font-size: 0.6rem;
+    }
+    
+    .current-icon-display-small {
+        font-size: 1.3rem;
+        padding: 4px 8px;
+    }
+}
+
+/* プレイヤー削除ボタンのスタイル */
+.player-delete-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 100, 100, 0.8);
+    border: 2px solid #FF6B6B;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.player-delete-button:hover {
+    background: rgba(255, 50, 50, 0.9);
+    border-color: #FF4444;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.player-delete-button:active {
+    transform: scale(0.95);
+    background: rgba(255, 0, 0, 0.9);
+}
+
+/* アイコン変更ボタンのスタイル調整 */
+.icon-change-button {
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid #E3E3E3;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-change-button:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #C0C0C0;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.icon-change-button:active {
+    transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+    .player-delete-button,
+    .icon-change-button {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9rem;
+    }
+    
+    .icon-change-button {
+        right: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .player-delete-button,
+    .icon-change-button {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+    
+    .icon-change-button {
+        right: 35px;
+    }
+}
+
+/* プレイヤー統計ボタンのスタイル */
+.player-stats-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(100, 200, 255, 0.8);
+    border: 2px solid #4A90E2;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    color: #2C3E50;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.player-stats-button:hover {
+    background: rgba(74, 144, 226, 0.9);
+    border-color: #357BE8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+    color: #1A252F;
+}
+
+.player-stats-button:active {
+    transform: translateY(0);
+    background: rgba(53, 123, 232, 0.9);
+}
+
+@media (max-width: 768px) {
+    .player-stats-button {
+        padding: 3px 6px;
+        font-size: 0.65rem;
+        top: 8px;
+        left: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .player-stats-button {
+        padding: 2px 5px;
+        font-size: 0.6rem;
+        top: 6px;
+        left: 6px;
+    }
+}
+
+/* 現在のプレイヤー表示のスタイル */
+.current-player-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.current-player-label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #2C3E50;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.current-player-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border: 2px solid #E3E3E3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.current-player-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.current-player-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #2C3E50;
+    min-width: 80px;
+    text-align: left;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .current-player-display {
+        margin: 15px 0;
+        padding: 12px;
+    }
+    
+    .current-player-label {
+        font-size: 0.9rem;
+    }
+    
+    .current-player-info {
+        padding: 6px 12px;
+    }
+    
+    .current-player-icon {
+        font-size: 1.3rem;
+    }
+    
+    .current-player-name {
+        font-size: 1rem;
+        min-width: 60px;
+    }
+}
+
+@media (max-width: 480px) {
+    .current-player-display {
+        margin: 10px 0;
+        padding: 10px;
+    }
+    
+    .current-player-label {
+        font-size: 0.8rem;
+    }
+    
+    .current-player-info {
+        padding: 5px 10px;
+        gap: 8px;
+    }
+    
+    .current-player-icon {
+        font-size: 1.2rem;
+    }
+    
+    .current-player-name {
+        font-size: 0.9rem;
+        min-width: 50px;
+    }
+}

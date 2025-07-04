@@ -28,6 +28,9 @@
 
         <div class="menu-buttons">
           <button id="startButton" class="game-button">ゲームスタート</button>
+          <button id="playerListButton" class="game-button">
+            プレイヤーいちらん
+          </button>
           <button id="statsButton" class="game-button">せいせき</button>
           <button id="settingsButton" class="game-button">せってい</button>
         </div>
@@ -53,19 +56,89 @@
       <!-- プレイヤー名編集画面 -->
       <div id="editNameScreen" class="screen">
         <h2>なまえをかえる</h2>
-        <div class="current-name-info">
-          <span>いまのなまえ: </span>
-          <span id="currentNameInEdit" class="current-name-text">未設定</span>
+
+        <!-- 現在の情報表示 -->
+        <div class="current-player-info">
+          <div class="current-name-info">
+            <span>いまのなまえ: </span>
+            <span id="currentNameInEdit" class="current-name-text">未設定</span>
+          </div>
+          <div class="current-icon-info">
+            <span>いまのアイコン: </span>
+            <span id="currentIconInEdit" class="current-icon-display-small"
+              >🐱</span
+            >
+          </div>
         </div>
+
+        <!-- 名前入力 -->
         <input
           type="text"
           id="editPlayerNameInput"
           placeholder="あたらしいなまえ"
           maxlength="10"
         />
+
+        <!-- アイコン選択 -->
+        <div class="edit-icon-section">
+          <div class="edit-icon-label">アイコンをえらんでね:</div>
+          <div class="edit-icon-grid" id="editIconGrid">
+            <!-- アイコンは動的に生成 -->
+          </div>
+        </div>
+
         <div class="menu-buttons">
           <button id="confirmEditNameButton" class="game-button">かえる</button>
           <button id="cancelEditNameButton" class="game-button secondary">
+            もどる
+          </button>
+        </div>
+      </div>
+
+      <!-- プレイヤー一覧画面 -->
+      <div id="playerListScreen" class="screen">
+        <h2>プレイヤーいちらん</h2>
+
+        <!-- 現在のプレイヤー表示 -->
+        <div class="current-player-display">
+          <div class="current-player-label">いまのプレイヤー:</div>
+          <div class="current-player-info">
+            <span id="playerListCurrentPlayerIcon" class="current-player-icon"
+              >🐱</span
+            >
+            <span id="playerListCurrentPlayerName" class="current-player-name"
+              >未設定</span
+            >
+          </div>
+        </div>
+
+        <div class="player-list-container">
+          <div id="playerList" class="player-list">
+            <!-- プレイヤーカードは動的に生成 -->
+          </div>
+        </div>
+        <div class="menu-buttons">
+          <button id="addNewPlayerButton" class="game-button">
+            あたらしいプレイヤー
+          </button>
+          <button id="playerListBackButton" class="game-button secondary">
+            もどる
+          </button>
+        </div>
+      </div>
+
+      <!-- アイコン選択画面 -->
+      <div id="iconSelectScreen" class="screen">
+        <h2>アイコンをえらんでね</h2>
+        <div class="current-icon-display">
+          <div class="current-icon-label">いまのアイコン:</div>
+          <div id="currentIconDisplay" class="current-icon">🐱</div>
+        </div>
+        <div class="icon-grid" id="iconGrid">
+          <!-- アイコンは動的に生成 -->
+        </div>
+        <div class="menu-buttons">
+          <button id="iconSelectBackButton" class="game-button secondary">
             もどる
           </button>
         </div>

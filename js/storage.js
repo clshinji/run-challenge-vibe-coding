@@ -1,12 +1,26 @@
 /**
  * ゲームデータ保存・読み込み管理
  */
+
+// プレイヤーアイコン選択肢
+const PLAYER_ICONS = [
+    { id: 'cat', name: '🐱 ねこ', emoji: '🐱' },
+    { id: 'dog', name: '🐶 いぬ', emoji: '🐶' },
+    { id: 'rabbit', name: '🐰 うさぎ', emoji: '🐰' },
+    { id: 'bear', name: '🐻 くま', emoji: '🐻' },
+    { id: 'fox', name: '🦊 きつね', emoji: '🦊' },
+    { id: 'pig', name: '🐷 ぶた', emoji: '🐷' },
+    { id: 'panda', name: '🐼 ぱんだ', emoji: '🐼' },
+    { id: 'koala', name: '🐨 こあら', emoji: '🐨' }
+];
+
 class GameStorage {
     constructor() {
         this.storageKey = 'kidsAdventureGame';
         this.currentPlayer = null;
         this.defaultData = {
             playerName: '',
+            playerIcon: 'cat', // デフォルトアイコン
             settings: {
                 music: true,
                 sound: true
@@ -111,6 +125,7 @@ class GameStorage {
         const merged = { ...this.defaultData };
 
         if (savedData.playerName) merged.playerName = savedData.playerName;
+        if (savedData.playerIcon) merged.playerIcon = savedData.playerIcon;
         if (savedData.settings) merged.settings = { ...merged.settings, ...savedData.settings };
         if (savedData.progress) merged.progress = { ...merged.progress, ...savedData.progress };
         if (savedData.totalStats) merged.totalStats = { ...merged.totalStats, ...savedData.totalStats };
@@ -157,7 +172,168 @@ class GameStorage {
      */
     getAllPlayerNames() {
         const allData = this.loadAllPlayersData();
-        return Object.keys(allData);
+        const validPlayerNames = [];
+
+        for (const [playerName, data] of Object.entries(allData)) {
+            if (this.isValidPlayerData(playerName, data)) {
+                validPlayerNames.push(playerName);
+            }
+        }
+
+        return validPlayerNames;
+    }
+
+    /**
+     * 全プレイヤーの統計情報を取得（一覧表示用）
+     */
+    getAllPlayersWithStats() {
+        const allData = this.loadAllPlayersData();
+        const playersWithStats = [];
+
+        for (const [playerName, data] of Object.entries(allData)) {
+            // 有効なプレイヤーデータかチェック
+            if (!this.isValidPlayerData(playerName, data)) {
+                console.warn('無効なプレイヤーデータをスキップ:', playerName);
+                continue;
+            }
+
+            const playerData = this.mergeWithDefault(data);
+
+            // 総合統計を計算
+            const totalScore = playerData.totalStats.totalScore || 0;
+            const totalPlayTime = playerData.totalStats.totalPlayTime || 0;
+            const completedStagesCount = playerData.progress.completedStages.length;
+            const maxStageCleared = completedStagesCount > 0 ?
+                Math.max(...playerData.progress.completedStages) : 0;
+
+            playersWithStats.push({
+                name: playerName,
+                icon: playerData.playerIcon || 'cat',
+                totalScore: totalScore,
+                completedStagesCount: completedStagesCount,
+                maxStageCleared: maxStageCleared,
+                totalPlayTime: totalPlayTime,
+                totalItemsCollected: playerData.totalStats.totalItemsCollected || 0
+            });
+        }
+
+        // あいうえお順でソート
+        return this.sortPlayersByName(playersWithStats);
+    }
+
+    /**
+     * 有効なプレイヤーデータかチェック
+     */
+    isValidPlayerData(playerName, data) {
+        // プレイヤー名が無効な場合
+        if (!playerName || typeof playerName !== 'string') {
+            return false;
+        }
+
+        // システム予約語を除外
+        const systemKeys = ['playerName', 'progress', 'settings', 'totalStats', 'stages', 'data', 'game'];
+        if (systemKeys.includes(playerName)) {
+            return false;
+        }
+
+        // データが空またはnull
+        if (!data || typeof data !== 'object') {
+            return false;
+        }
+
+        // 必要なプロパティが存在しない場合は自動補完を試みる
+        // プレイヤー名が文字列で、データがオブジェクトなら有効とみなす
+        return true;
+    }
+
+    /**
+     * 無効なプレイヤーデータをクリーンアップ
+     */
+    cleanupInvalidPlayerData() {
+        const allData = this.loadAllPlayersData();
+        const cleanedData = {};
+        let hasChanges = false;
+
+        for (const [playerName, data] of Object.entries(allData)) {
+            if (this.isValidPlayerData(playerName, data)) {
+                cleanedData[playerName] = data;
+            } else {
+                console.log('無効なプレイヤーデータを削除:', playerName);
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges) {
+            console.log('プレイヤーデータをクリーンアップしました');
+            this.saveAllPlayersData(cleanedData);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * プレイヤー一覧をあいうえお順でソート
+     */
+    sortPlayersByName(players) {
+        return players.sort((a, b) => {
+            return a.name.localeCompare(b.name, 'ja', {
+                sensitivity: 'base',
+                numeric: true
+            });
+        });
+    }
+
+    /**
+     * プレイヤーアイコンを更新
+     */
+    updatePlayerIcon(playerName, iconId) {
+        // アイコンIDが有効かチェック
+        const validIcon = PLAYER_ICONS.find(icon => icon.id === iconId);
+        if (!validIcon) {
+            console.error('無効なアイコンID:', iconId);
+            return false;
+        }
+
+        const allData = this.loadAllPlayersData();
+        if (!allData[playerName]) {
+            console.error('プレイヤーが見つかりません:', playerName);
+            return false;
+        }
+
+        allData[playerName].playerIcon = iconId;
+        const success = this.saveAllPlayersData(allData);
+
+        if (success) {
+            console.log(`プレイヤー "${playerName}" のアイコンを "${iconId}" に更新しました`);
+        }
+
+        return success;
+    }
+
+    /**
+     * プレイヤーのアイコンを取得
+     */
+    getPlayerIcon(playerName) {
+        const allData = this.loadAllPlayersData();
+        if (allData[playerName]) {
+            return allData[playerName].playerIcon || 'cat';
+        }
+        return 'cat'; // デフォルト
+    }
+
+    /**
+     * 利用可能なアイコン一覧を取得
+     */
+    getAvailableIcons() {
+        return [...PLAYER_ICONS]; // コピーを返す
+    }
+
+    /**
+     * アイコン情報をIDで取得
+     */
+    getIconById(iconId) {
+        return PLAYER_ICONS.find(icon => icon.id === iconId) || PLAYER_ICONS[0];
     }
 
     /**
@@ -287,3 +463,6 @@ class GameStorage {
 
 // グローバルインスタンス
 const gameStorage = new GameStorage();
+
+// グローバルアクセス用の定数
+window.PLAYER_ICONS = PLAYER_ICONS;

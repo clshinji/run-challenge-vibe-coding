@@ -4,6 +4,7 @@
 class UIManager {
     constructor() {
         this.currentScreen = 'titleScreen';
+        this.previousScreen = null; // 前の画面を記録
         this.gameData = null;
         this.storage = new GameStorage();
         this.init();
@@ -19,6 +20,9 @@ class UIManager {
             gameStorage.setCurrentPlayer(lastPlayer);
             console.log('最後のプレイヤーを復元:', lastPlayer);
         }
+
+        // 現在のプレイヤーが存在することを確認
+        this.ensureCurrentPlayerExists();
 
         this.gameData = gameStorage.loadGameData();
         this.setupEventListeners();
@@ -53,11 +57,23 @@ class UIManager {
 
         // タイトル画面
         document.getElementById('startButton').addEventListener('click', () => {
-            if (this.gameData.playerName) {
+            // 現在のプレイヤーが存在することを確認
+            this.ensureCurrentPlayerExists();
+
+            // 更新されたゲームデータを再取得
+            this.gameData = gameStorage.loadGameData();
+
+            // プレイヤーが設定されているかチェック
+            if (this.gameData.playerName && this.gameData.playerName.trim() !== '') {
                 this.showScreen('stageSelectScreen');
             } else {
+                // プレイヤーが設定されていない場合は名前入力画面へ
                 this.showScreen('nameInputScreen');
             }
+        });
+
+        document.getElementById('playerListButton').addEventListener('click', () => {
+            this.showPlayerListScreen();
         });
 
         document.getElementById('settingsButton').addEventListener('click', () => {
@@ -66,12 +82,29 @@ class UIManager {
 
         // 統計ボタン
         document.getElementById('statsButton').addEventListener('click', () => {
+            // タイトル画面から統計画面に遷移する場合は前の画面をリセット
+            this.previousScreen = null;
             this.showStatsScreen();
         });
 
         // プレイヤー名編集ボタン
         document.getElementById('editPlayerNameButton').addEventListener('click', () => {
             this.showEditNameScreen();
+        });
+
+        // プレイヤー一覧画面
+
+        document.getElementById('addNewPlayerButton').addEventListener('click', () => {
+            this.showScreen('nameInputScreen');
+        });
+
+        document.getElementById('playerListBackButton').addEventListener('click', () => {
+            this.showScreen('titleScreen');
+        });
+
+        // アイコン選択画面
+        document.getElementById('iconSelectBackButton').addEventListener('click', () => {
+            this.showPlayerListScreen();
         });
 
         // 名前入力画面
@@ -109,7 +142,7 @@ class UIManager {
 
         // 統計画面
         document.getElementById('statsBackButton').addEventListener('click', () => {
-            this.showScreen('titleScreen');
+            this.handleStatsBack();
         });
 
         // デバッグボタン
@@ -377,6 +410,8 @@ class UIManager {
      * 画面表示
      */
     showScreen(screenId) {
+        console.log(`showScreen: ${screenId} 表示開始`);
+
         // 全ての画面を非表示
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
@@ -388,8 +423,12 @@ class UIManager {
             screen.classList.add('active');
             this.currentScreen = screenId;
 
+            console.log(`showScreen: ${screenId} 表示完了、初期化開始`);
+
             // 画面固有の初期化処理
             this.initScreen(screenId);
+
+            console.log(`showScreen: ${screenId} 初期化完了`);
         } else {
             console.error(`画面要素が見つかりません: ${screenId}`);
         }
@@ -409,17 +448,33 @@ class UIManager {
      * 画面固有の初期化
      */
     initScreen(screenId) {
+        console.log(`initScreen: ${screenId} 初期化開始`);
+
         switch (screenId) {
             case 'nameInputScreen':
                 document.getElementById('playerNameInput').focus();
                 break;
             case 'stageSelectScreen':
                 this.updateStageButtons();
+                this.updatePlayerNameDisplay();
                 break;
             case 'settingsScreen':
                 this.updateSettingsUI();
                 break;
+            case 'playerListScreen':
+                console.log('プレイヤー一覧画面の初期化処理実行');
+                // 現在のプレイヤー表示を確実に更新
+                this.updateCurrentPlayerDisplay();
+
+                // DOM描画後の遅延更新（タイミング問題の解決）
+                setTimeout(() => {
+                    console.log('遅延更新: 現在のプレイヤー表示を再更新');
+                    this.updateCurrentPlayerDisplay();
+                }, 100);
+                break;
         }
+
+        console.log(`initScreen: ${screenId} 初期化完了`);
     }
 
     /**
@@ -805,8 +860,8 @@ class UIManager {
     }
 
     /**
-     * プレイヤー名表示を更新
-     */
+ * プレイヤー名表示を更新
+ */
     updatePlayerNameDisplay() {
         const currentPlayerNameElement = document.getElementById('currentPlayerName');
         const editButton = document.getElementById('editPlayerNameButton');
@@ -818,6 +873,28 @@ class UIManager {
             currentPlayerNameElement.textContent = 'なまえがないよ';
             editButton.style.display = 'inline-block';
         }
+
+        // キャラクタープレビューアイコンも更新
+        this.updateCharacterPreview();
+    }
+
+    /**
+ * キャラクタープレビューアイコンを更新
+ */
+    updateCharacterPreview() {
+        const characterPreview = document.querySelector('.character-preview');
+        if (!characterPreview) return;
+
+        if (this.gameData.playerName && this.gameData.playerName.trim() !== '') {
+            // プレイヤーのアイコンを表示
+            const playerIcon = this.gameData?.playerIcon || 'cat';
+            const iconInfo = gameStorage.getIconById(playerIcon);
+            characterPreview.textContent = iconInfo.emoji;
+        } else {
+            // デフォルトアイコンを表示
+            const defaultIconInfo = gameStorage.getIconById('cat');
+            characterPreview.textContent = defaultIconInfo.emoji;
+        }
     }
 
     /**
@@ -825,23 +902,28 @@ class UIManager {
      */
     showEditNameScreen() {
         const currentNameInEdit = document.getElementById('currentNameInEdit');
+        const currentIconInEdit = document.getElementById('currentIconInEdit');
         const editInput = document.getElementById('editPlayerNameInput');
 
-        console.log('プレイヤー名編集画面を表示:', {
-            currentPlayerName: this.gameData.playerName,
-            hasPlayerName: !!(this.gameData.playerName && this.gameData.playerName.trim() !== '')
-        });
+
 
         // 現在の名前を表示
         if (this.gameData.playerName && this.gameData.playerName.trim() !== '') {
             currentNameInEdit.textContent = this.gameData.playerName;
             editInput.value = this.gameData.playerName;
-            console.log('既存の名前を入力フィールドに設定:', this.gameData.playerName);
         } else {
             currentNameInEdit.textContent = 'なまえがないよ';
             editInput.value = '';
-            console.log('名前が未設定のため、入力フィールドを空に設定');
         }
+
+        // 現在のアイコンを表示
+        const currentIcon = this.gameData?.playerIcon || 'cat';
+        const currentIconInfo = gameStorage.getIconById(currentIcon);
+        currentIconInEdit.textContent = currentIconInfo.emoji;
+
+        // アイコングリッドを設定
+        this.selectedEditIcon = currentIcon; // 編集中の選択アイコンを記録
+        this.updateEditIconGrid();
 
         this.showScreen('editNameScreen');
 
@@ -849,8 +931,67 @@ class UIManager {
         setTimeout(() => {
             editInput.focus();
             editInput.select();
-            console.log('入力フィールドにフォーカスを設定');
         }, 100);
+    }
+
+    /**
+     * 編集画面のアイコングリッドを更新
+     */
+    updateEditIconGrid() {
+        const editIconGrid = document.getElementById('editIconGrid');
+        if (!editIconGrid) return;
+
+        // 既存のアイコンをクリア
+        editIconGrid.innerHTML = '';
+
+        // 利用可能なアイコンを表示
+        const availableIcons = gameStorage.getAvailableIcons();
+        availableIcons.forEach(iconInfo => {
+            const iconOption = this.createEditIconOption(iconInfo);
+            editIconGrid.appendChild(iconOption);
+        });
+    }
+
+    /**
+     * 編集画面用のアイコンオプションを作成
+     */
+    createEditIconOption(iconInfo) {
+        const option = document.createElement('div');
+        option.className = 'edit-icon-option';
+
+        if (iconInfo.id === this.selectedEditIcon) {
+            option.classList.add('selected');
+        }
+
+        option.innerHTML = `
+            <div class="edit-icon-option-emoji">${iconInfo.emoji}</div>
+            <div class="edit-icon-option-name">${iconInfo.name}</div>
+        `;
+
+        // クリックイベントを追加
+        option.addEventListener('click', () => {
+            this.handleEditIconSelection(iconInfo.id);
+        });
+
+        return option;
+    }
+
+    /**
+     * 編集画面でのアイコン選択処理
+     */
+    handleEditIconSelection(iconId) {
+        // 選択状態を更新
+        this.selectedEditIcon = iconId;
+
+        // アイコングリッドの表示を更新
+        this.updateEditIconGrid();
+
+        // 現在のアイコン表示を更新
+        const currentIconInEdit = document.getElementById('currentIconInEdit');
+        if (currentIconInEdit) {
+            const iconInfo = gameStorage.getIconById(iconId);
+            currentIconInEdit.textContent = iconInfo.emoji;
+        }
     }
 
     /**
@@ -860,16 +1001,10 @@ class UIManager {
         const nameInput = document.getElementById('editPlayerNameInput');
         const name = nameInput.value.trim();
 
-        console.log('=== プレイヤー名編集処理開始 ===');
-        console.log('入力値:', {
-            raw: `"${nameInput.value}"`,
-            trimmed: `"${name}"`,
-            length: name.length
-        });
+
 
         // バリデーション
         if (name.length === 0) {
-            console.log('❌ 空の名前 - エラーメッセージ表示');
             alert('なまえをいれてください');
             nameInput.focus();
             return;
@@ -884,17 +1019,23 @@ class UIManager {
             gameStorage.setCurrentPlayer(name);
 
             // プレイヤー名を保存（新規プレイヤーの場合は新しいデータが作成される）
-            const success = gameStorage.savePlayerName(name);
+            const nameSuccess = gameStorage.savePlayerName(name);
 
-            if (success) {
+            if (nameSuccess) {
+                // アイコンも更新（編集画面で選択されたアイコン）
+                const selectedIcon = this.selectedEditIcon || 'cat';
+                const iconSuccess = gameStorage.updatePlayerIcon(name, selectedIcon);
+
+                if (!iconSuccess) {
+                    console.warn('アイコン保存失敗（名前は保存済み）');
+                }
+
                 // 最新データを読み込み
                 this.gameData = gameStorage.loadGameData();
 
                 // UI更新
                 this.updatePlayerNameDisplay();
                 this.updateUI();
-
-                console.log('✅ プレイヤー名変更成功:', name);
 
                 if (isExistingPlayer) {
                     alert(`プレイヤー "${name}" に切り替えました`);
@@ -908,11 +1049,9 @@ class UIManager {
                 throw new Error('保存に失敗しました');
             }
 
-            console.log('=== 処理完了 ===');
         } catch (error) {
-            console.error('❌ 保存処理エラー:', error);
+            console.error('保存処理エラー:', error);
             alert('なまえのほぞんにしっぱいしました');
-            console.log('=== 処理終了（保存エラー） ===');
         }
     }
 
@@ -1551,8 +1690,8 @@ class UIManager {
     }
 
     /**
- * マウス移動アクション開始
- */
+     * マウス移動アクション開始
+     */
     startMouseMoveAction(action) {
         // 相反する移動アクションのみ停止（左右の移動、立ち/しゃがみ）
         this.stopConflictingMouseMoveActions(action);
@@ -1688,8 +1827,8 @@ class UIManager {
     }
 
     /**
- * 移動アクション開始
- */
+     * 移動アクション開始
+     */
     startMoveAction(action) {
         // 相反する移動アクションのみ停止（左右の移動、立ち/しゃがみ）
         this.stopConflictingMoveActions(action);
@@ -1742,6 +1881,553 @@ class UIManager {
             }
 
             this.touchState.currentMoveActions.clear();
+        }
+    }
+
+    /**
+     * プレイヤー一覧画面を表示
+     */
+    showPlayerListScreen() {
+        console.log('=== プレイヤー一覧画面を表示開始 ===');
+
+        // 無効なプレイヤーデータをクリーンアップ
+        gameStorage.cleanupInvalidPlayerData();
+
+        // 現在のプレイヤーが設定されていない、または存在しない場合は最初のプレイヤーを設定
+        this.ensureCurrentPlayerExists();
+
+        // プレイヤー一覧を更新
+        console.log('プレイヤー一覧を更新中...');
+        this.updatePlayerListDisplay();
+
+        // 現在のプレイヤー表示を更新
+        console.log('現在のプレイヤー表示を更新中...');
+        this.updateCurrentPlayerDisplay();
+
+        // 画面を表示
+        console.log('画面を表示中...');
+        this.showScreen('playerListScreen');
+
+        console.log('=== プレイヤー一覧画面を表示完了 ===');
+    }
+
+    /**
+     * プレイヤー一覧表示を更新
+     */
+    updatePlayerListDisplay() {
+        const playerList = document.getElementById('playerList');
+        if (!playerList) {
+            console.error('プレイヤー一覧要素が見つかりません');
+            return;
+        }
+
+        // 全プレイヤーの統計情報を取得
+        const playersWithStats = gameStorage.getAllPlayersWithStats();
+        console.log('プレイヤー一覧データ:', playersWithStats);
+        console.log('有効なプレイヤー数:', playersWithStats.length);
+
+        // 既存のプレイヤーカードをクリア
+        playerList.innerHTML = '';
+
+        if (playersWithStats.length === 0) {
+            // プレイヤーがいない場合
+            const noPlayersMessage = document.createElement('div');
+            noPlayersMessage.className = 'no-players-message';
+            noPlayersMessage.innerHTML = `
+                <div style="
+                    text-align: center; 
+                    color: #7F8C8D; 
+                    font-size: 1.2rem; 
+                    margin: 50px 0;
+                ">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🎮</div>
+                    <div>まだプレイヤーがいません</div>
+                    <div style="font-size: 0.9rem; margin-top: 10px;">「あたらしいプレイヤー」でプレイヤーを作成してください</div>
+                </div>
+            `;
+            playerList.appendChild(noPlayersMessage);
+            return;
+        }
+
+        // プレイヤーカードを作成
+        playersWithStats.forEach(player => {
+            const playerCard = this.createPlayerCard(player);
+            if (playerCard) {
+                playerList.appendChild(playerCard);
+            }
+        });
+    }
+
+    /**
+     * 現在のプレイヤーが存在することを確認し、存在しない場合は適切なプレイヤーを設定
+     */
+    ensureCurrentPlayerExists() {
+        const currentPlayer = gameStorage.getCurrentPlayer();
+        const allPlayers = gameStorage.getAllPlayerNames();
+
+        console.log('現在のプレイヤー確認:', {
+            currentPlayer: currentPlayer,
+            allPlayers: allPlayers,
+            playersCount: allPlayers.length
+        });
+
+        // プレイヤーが存在しない場合は何もしない
+        if (allPlayers.length === 0) {
+            console.log('プレイヤーが存在しません');
+            return;
+        }
+
+        // 現在のプレイヤーが設定されていない、または存在しない場合
+        if (!currentPlayer || !allPlayers.includes(currentPlayer)) {
+            console.log('現在のプレイヤーが無効です。最初のプレイヤーを設定します:', allPlayers[0]);
+
+            // 最初のプレイヤーを現在のプレイヤーに設定
+            gameStorage.setCurrentPlayer(allPlayers[0]);
+
+            // ゲームデータを更新
+            this.gameData = gameStorage.loadGameData();
+
+            // 注意: updatePlayerNameDisplay() はタイトル画面専用のため、ここでは呼び出さない
+            console.log('プレイヤー設定完了:', allPlayers[0]);
+        }
+    }
+
+    /**
+ * 現在のプレイヤー表示を更新
+ */
+    updateCurrentPlayerDisplay() {
+        const currentPlayerIcon = document.getElementById('playerListCurrentPlayerIcon');
+        const currentPlayerName = document.getElementById('playerListCurrentPlayerName');
+
+        console.log('DOM要素の確認:', {
+            currentPlayerIcon: currentPlayerIcon,
+            currentPlayerName: currentPlayerName,
+            iconExists: !!currentPlayerIcon,
+            nameExists: !!currentPlayerName,
+            iconElement: currentPlayerIcon ? currentPlayerIcon.tagName : 'なし',
+            nameElement: currentPlayerName ? currentPlayerName.tagName : 'なし'
+        });
+
+        if (!currentPlayerIcon || !currentPlayerName) {
+            console.error('現在のプレイヤー表示要素が見つかりません');
+            return;
+        }
+
+        const currentPlayer = gameStorage.getCurrentPlayer();
+
+        console.log('現在のプレイヤー表示更新:', {
+            currentPlayer: currentPlayer,
+            isEmpty: !currentPlayer,
+            isTrimEmpty: currentPlayer && currentPlayer.trim() === ''
+        });
+
+        if (currentPlayer && currentPlayer.trim() !== '') {
+            // アイコンを取得
+            const playerIcon = gameStorage.getPlayerIcon(currentPlayer);
+            const iconInfo = gameStorage.getIconById(playerIcon);
+
+            // 設定前の値を記録
+            const oldIconText = currentPlayerIcon.textContent;
+            const oldNameText = currentPlayerName.textContent;
+
+            currentPlayerIcon.textContent = iconInfo.emoji;
+            currentPlayerName.textContent = currentPlayer;
+
+            // 設定後の値を確認
+            console.log('DOM要素への設定結果:', {
+                player: currentPlayer,
+                playerIcon: playerIcon,
+                iconInfo: iconInfo,
+                emoji: iconInfo.emoji,
+                設定前: {
+                    icon: oldIconText,
+                    name: oldNameText
+                },
+                設定後: {
+                    icon: currentPlayerIcon.textContent,
+                    name: currentPlayerName.textContent
+                },
+                DOM要素確認: {
+                    iconElement: currentPlayerIcon.outerHTML,
+                    nameElement: currentPlayerName.outerHTML
+                }
+            });
+        } else {
+            // プレイヤーが設定されていない場合
+            currentPlayerIcon.textContent = '❓';
+            currentPlayerName.textContent = '未設定';
+            console.log('現在のプレイヤーが未設定または空です');
+        }
+    }
+
+    /**
+     * プレイヤーカードを作成
+     */
+    createPlayerCard(playerData) {
+        // プレイヤーデータの妥当性チェック
+        if (!playerData || !playerData.name || typeof playerData.name !== 'string') {
+            console.error('無効なプレイヤーデータ:', playerData);
+            return null;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'player-card';
+
+        // 現在のプレイヤーの場合は選択状態にする
+        const currentPlayer = gameStorage.getCurrentPlayer();
+        if (playerData.name === currentPlayer) {
+            card.classList.add('selected');
+        }
+
+        // アイコン情報を取得
+        const iconInfo = gameStorage.getIconById(playerData.icon);
+
+        // 時間をフォーマット
+        const playTimeMinutes = Math.floor(playerData.totalPlayTime / 60);
+        const playTimeDisplay = playTimeMinutes > 0 ? `${playTimeMinutes}分` : '0分';
+
+        card.innerHTML = `
+            <div class="player-icon">${iconInfo.emoji}</div>
+            <div class="player-name">${playerData.name}</div>
+            <div class="player-stats">
+                <div class="player-stat-item">
+                    <span class="player-stat-label">スコア:</span>
+                    <span class="player-stat-value">${playerData.totalScore.toLocaleString()}</span>
+                </div>
+                <div class="player-stat-item">
+                    <span class="player-stat-label">クリア:</span>
+                    <span class="player-stat-value">${playerData.completedStagesCount}/20</span>
+                </div>
+                <div class="player-stat-item">
+                    <span class="player-stat-label">最新:</span>
+                    <span class="player-stat-value">ステージ${playerData.maxStageCleared || 0}</span>
+                </div>
+                <div class="player-stat-item">
+                    <span class="player-stat-label">プレイ時間:</span>
+                    <span class="player-stat-value">${playTimeDisplay}</span>
+                </div>
+            </div>
+        `;
+
+        // クリックイベントを追加
+        card.addEventListener('click', () => {
+            this.handlePlayerSelection(playerData.name);
+        });
+
+        // アイコン変更ボタンを追加
+        const iconChangeButton = document.createElement('button');
+        iconChangeButton.className = 'icon-change-button';
+        iconChangeButton.innerHTML = '🎨';
+        iconChangeButton.title = 'アイコンを変更';
+        iconChangeButton.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 50px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #E3E3E3;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        `;
+
+        iconChangeButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // カード選択イベントを防ぐ
+            this.showIconSelectScreen(playerData.name);
+        });
+
+        card.appendChild(iconChangeButton);
+
+        // プレイヤー削除ボタンを追加
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'player-delete-button';
+        deleteButton.innerHTML = '🗑️';
+        deleteButton.title = 'プレイヤーを削除';
+        deleteButton.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 100, 100, 0.8);
+            border: 2px solid #FF6B6B;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        `;
+
+        deleteButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // カード選択イベントを防ぐ
+            this.handlePlayerDelete(playerData.name);
+        });
+
+        card.appendChild(deleteButton);
+
+        // せいせきボタンを追加
+        const statsButton = document.createElement('button');
+        statsButton.className = 'player-stats-button';
+        statsButton.innerHTML = 'せいせき';
+        statsButton.title = 'せいせきを見る';
+        statsButton.style.cssText = `
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(100, 200, 255, 0.8);
+            border: 2px solid #4A90E2;
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            color: #2C3E50;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        `;
+
+        statsButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // カード選択イベントを防ぐ
+            this.handlePlayerStats(playerData.name);
+        });
+
+        card.appendChild(statsButton);
+
+        return card;
+    }
+
+    /**
+     * プレイヤー選択処理
+     */
+    handlePlayerSelection(playerName) {
+        console.log('プレイヤー選択:', playerName);
+
+        // 現在のプレイヤーを設定
+        gameStorage.setCurrentPlayer(playerName);
+
+        // UIを更新
+        this.gameData = gameStorage.loadGameData();
+
+        // 現在の画面に応じて適切なメソッドを呼び出す
+        if (this.currentScreen === 'playerListScreen') {
+            // プレイヤー一覧画面では専用のメソッドを使用
+            this.updateCurrentPlayerDisplay();
+        } else {
+            // その他の画面ではタイトル画面用のメソッドを使用
+            this.updatePlayerNameDisplay();
+        }
+
+        // プレイヤー一覧を更新（選択状態の変更を反映）
+        this.updatePlayerListDisplay();
+    }
+
+    /**
+     * プレイヤー統計画面表示処理
+     */
+    handlePlayerStats(playerName) {
+        console.log('プレイヤー統計表示:', playerName);
+
+        // 前の画面を記録（プレイヤー一覧画面から来た場合）
+        this.previousScreen = 'playerListScreen';
+
+        // 指定されたプレイヤーを現在のプレイヤーに設定
+        gameStorage.setCurrentPlayer(playerName);
+
+        // UIを更新
+        this.gameData = gameStorage.loadGameData();
+
+        // 現在の画面に応じて適切なメソッドを呼び出す
+        if (this.currentScreen === 'playerListScreen') {
+            // プレイヤー一覧画面では専用のメソッドを使用
+            this.updateCurrentPlayerDisplay();
+        } else {
+            // その他の画面ではタイトル画面用のメソッドを使用
+            this.updatePlayerNameDisplay();
+        }
+
+        // 統計画面に遷移
+        this.showStatsScreen();
+    }
+
+    /**
+     * 統計画面の戻る処理
+     */
+    handleStatsBack() {
+        console.log('統計画面の戻る処理:', {
+            previousScreen: this.previousScreen,
+            currentScreen: this.currentScreen
+        });
+
+        // 前の画面が記録されていればそこに戻る
+        if (this.previousScreen) {
+            this.showScreen(this.previousScreen);
+            this.previousScreen = null; // リセット
+        } else {
+            // 前の画面が記録されていなければタイトル画面に戻る
+            this.showScreen('titleScreen');
+        }
+    }
+
+    /**
+     * プレイヤー削除処理
+     */
+    handlePlayerDelete(playerName) {
+        console.log('プレイヤー削除要求:', playerName);
+
+        // 削除確認ダイアログ
+        if (!confirm(`プレイヤー「${playerName}」を削除しますか？\n\n⚠️ この操作は取り消せません。\n・ゲームの進捗データ\n・スコア記録\n・すべての設定\nが完全に削除されます。`)) {
+            console.log('プレイヤー削除がキャンセルされました');
+            return;
+        }
+
+        const currentPlayer = gameStorage.getCurrentPlayer();
+        const isCurrentPlayer = (playerName === currentPlayer);
+
+        try {
+            // プレイヤーデータを削除
+            console.log('プレイヤーデータ削除実行:', playerName);
+            const deleteSuccess = gameStorage.deletePlayerData(playerName);
+
+            if (!deleteSuccess) {
+                alert('削除に失敗しました。もう一度お試しください。');
+                return;
+            }
+
+            // 削除されたプレイヤーが現在のプレイヤーだった場合
+            if (isCurrentPlayer) {
+                console.log('現在のプレイヤーが削除されました。別のプレイヤーを設定します。');
+
+                // 他のプレイヤーがいるか確認
+                const allPlayers = gameStorage.getAllPlayerNames();
+                if (allPlayers.length > 0) {
+                    // 最初のプレイヤーを現在のプレイヤーに設定
+                    const newCurrentPlayer = allPlayers[0];
+                    gameStorage.setCurrentPlayer(newCurrentPlayer);
+                    console.log('新しい現在のプレイヤー:', newCurrentPlayer);
+                } else {
+                    // プレイヤーが一人もいない場合
+                    gameStorage.setCurrentPlayer(null);
+                    console.log('すべてのプレイヤーが削除されました');
+                }
+
+                // UIを更新
+                this.gameData = gameStorage.loadGameData();
+
+                // 現在の画面に応じて適切なメソッドを呼び出す
+                if (this.currentScreen === 'playerListScreen') {
+                    // プレイヤー一覧画面では専用のメソッドを使用
+                    this.updateCurrentPlayerDisplay();
+                } else {
+                    // その他の画面ではタイトル画面用のメソッドを使用
+                    this.updatePlayerNameDisplay();
+                }
+            }
+
+            // プレイヤー一覧を更新
+            this.updatePlayerListDisplay();
+            this.updateCurrentPlayerDisplay();
+
+            // 削除完了メッセージ
+            alert(`プレイヤー「${playerName}」を削除しました。`);
+
+        } catch (error) {
+            console.error('プレイヤー削除エラー:', error);
+            alert('削除中にエラーが発生しました。もう一度お試しください。');
+        }
+    }
+
+    /**
+     * アイコン選択画面を表示
+     */
+    showIconSelectScreen(playerName = null) {
+        this.selectedPlayerForIcon = playerName || gameStorage.getCurrentPlayer();
+        this.updateIconGridDisplay();
+        this.showScreen('iconSelectScreen');
+    }
+
+    /**
+     * アイコングリッド表示を更新
+     */
+    updateIconGridDisplay() {
+        const iconGrid = document.getElementById('iconGrid');
+        const currentIconDisplay = document.getElementById('currentIconDisplay');
+
+        if (!iconGrid || !currentIconDisplay) {
+            console.error('アイコン選択要素が見つかりません');
+            return;
+        }
+
+        // 現在のアイコンを表示
+        const currentIcon = gameStorage.getPlayerIcon(this.selectedPlayerForIcon);
+        const currentIconInfo = gameStorage.getIconById(currentIcon);
+        currentIconDisplay.textContent = currentIconInfo.emoji;
+
+        // アイコングリッドをクリア
+        iconGrid.innerHTML = '';
+
+        // 利用可能なアイコンを表示
+        const availableIcons = gameStorage.getAvailableIcons();
+        availableIcons.forEach(iconInfo => {
+            const iconOption = this.createIconOption(iconInfo, currentIcon);
+            iconGrid.appendChild(iconOption);
+        });
+    }
+
+    /**
+     * アイコンオプションを作成
+     */
+    createIconOption(iconInfo, currentIcon) {
+        const option = document.createElement('div');
+        option.className = 'icon-option';
+
+        if (iconInfo.id === currentIcon) {
+            option.classList.add('selected');
+        }
+
+        option.innerHTML = `
+            <div class="icon-option-emoji">${iconInfo.emoji}</div>
+            <div class="icon-option-name">${iconInfo.name}</div>
+        `;
+
+        // クリックイベントを追加
+        option.addEventListener('click', () => {
+            this.handleIconSelection(iconInfo.id);
+        });
+
+        return option;
+    }
+
+    /**
+     * アイコン選択処理
+     */
+    handleIconSelection(iconId) {
+        console.log('アイコン選択:', iconId, 'プレイヤー:', this.selectedPlayerForIcon);
+
+        // アイコンを更新
+        const success = gameStorage.updatePlayerIcon(this.selectedPlayerForIcon, iconId);
+
+        if (success) {
+            // アイコングリッドの表示を更新
+            this.updateIconGridDisplay();
+
+            // プレイヤーがゲーム中のプレイヤーの場合、UIを更新
+            if (this.selectedPlayerForIcon === gameStorage.getCurrentPlayer()) {
+                // 現在の画面に応じて適切なメソッドを呼び出す
+                if (this.currentScreen === 'playerListScreen') {
+                    // プレイヤー一覧画面では専用のメソッドを使用
+                    this.updateCurrentPlayerDisplay();
+                } else {
+                    // その他の画面ではタイトル画面用のメソッドを使用
+                    this.updatePlayerNameDisplay();
+                }
+            }
+
+            // 少し遅れてプレイヤー一覧に戻る
+            setTimeout(() => {
+                this.showPlayerListScreen();
+            }, 1000);
+        } else {
+            console.error('アイコン更新に失敗しました');
         }
     }
 }
