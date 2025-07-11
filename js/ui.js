@@ -26,6 +26,7 @@ class UIManager {
 
         this.gameData = gameStorage.loadGameData();
         this.setupEventListeners();
+        this.setupDebugFeatures();
         this.updateUI();
         this.showScreen('titleScreen');
 
@@ -80,6 +81,11 @@ class UIManager {
             this.showScreen('settingsScreen');
         });
 
+        // デバッグ情報設定切り替え
+        document.getElementById('debugInfoToggle').addEventListener('click', () => {
+            this.toggleSetting('debugInfo');
+        });
+
         // 統計ボタン
         document.getElementById('statsButton').addEventListener('click', () => {
             // タイトル画面から統計画面に遷移する場合は前の画面をリセット
@@ -99,6 +105,12 @@ class UIManager {
         });
 
         document.getElementById('playerListBackButton').addEventListener('click', () => {
+            console.log('プレイヤー一覧画面から戻る処理開始');
+
+            // タイトル画面に戻る前に、プレイヤー情報を更新
+            this.gameData = gameStorage.loadGameData();
+            console.log('プレイヤー情報更新完了:', this.gameData.playerName);
+
             this.showScreen('titleScreen');
         });
 
@@ -248,133 +260,357 @@ class UIManager {
     }
 
     /**
-     * タッチコントロール設定
+     * デバッグ機能の設定
      */
-    setupTouchControls() {
-        const touchButtons = {
-            leftButton: 'left',
-            rightButton: 'right',
-            jumpButton: 'jump',
-            crouchButton: 'crouch'
+    setupDebugFeatures() {
+        // ウィンドウリサイズ時のデバッグ情報更新
+        window.addEventListener('resize', () => {
+            setTimeout(() => {
+                this.updateGridDebugInfo();
+            }, 100);
+        });
+
+        // グローバルデバッグ機能
+        window.toggleStageGridDebug = () => {
+            window.stageGridDebug = !window.stageGridDebug;
+            const stageGrid = document.getElementById('stageButtons');
+
+            if (window.stageGridDebug) {
+                stageGrid?.classList.add('debug');
+                console.log('🔧 ステージグリッドデバッグモード: 有効');
+                console.log('📱 使用方法:');
+                console.log('  - ブラウザ幅を変更してレスポンシブ動作を確認');
+                console.log('  - toggleStageGridDebug() で無効化');
+                this.updateGridDebugInfo();
+            } else {
+                stageGrid?.classList.remove('debug');
+                console.log('🔧 ステージグリッドデバッグモード: 無効');
+            }
+
+            return window.stageGridDebug;
         };
 
-        console.log('タッチコントロール設定開始...');
+        // 初期化時に使用方法を表示
+        console.log('🎮 UIManager初期化完了');
+        console.log('🔧 デバッグ機能: toggleStageGridDebug() でグリッドデバッグモードを切り替え');
+    }
 
-        // デバッグ: ボタンの存在確認
-        console.log('ボタンの存在確認:');
-        Object.keys(touchButtons).forEach(buttonId => {
-            const button = document.getElementById(buttonId);
-            console.log(`${buttonId}: ${button ? '見つかった' : '見つからない'}`, button);
+    /**
+     * タッチコントロール設定（バーチャルパッド + ジャンプボタン）
+     */
+    setupTouchControls() {
+        console.log('🎮 バーチャルパッド + ジャンプボタン設定開始...');
+
+        // バーチャルパッド設定
+        this.setupVirtualPad();
+
+        // ジャンプボタンのみ設定
+        this.setupJumpButton();
+
+        console.log('✅ タッチコントロール設定完了');
+    }
+
+    /**
+     * バーチャルパッド設定
+     */
+    setupVirtualPad() {
+        const virtualPad = document.getElementById('virtualPad');
+        const padStick = virtualPad.querySelector('.pad-stick');
+
+        if (!virtualPad || !padStick) {
+            console.error('❌ バーチャルパッドの要素が見つかりません');
+            return;
+        }
+
+        // バーチャルパッド状態管理
+        this.padState = {
+            isActive: false,
+            startPos: { x: 0, y: 0 },
+            currentPos: { x: 0, y: 0 },
+            centerPos: { x: 0, y: 0 },
+            maxDistance: 35, // スティックの最大移動距離
+            deadZone: 8,     // デッドゾーン（反応しない範囲）
+            currentDirection: null
+        };
+
+        console.log('🕹️ バーチャルパッド要素確認:', { virtualPad, padStick });
+
+        // バーチャルパッドの中心位置を計算
+        this.updatePadCenterPosition = () => {
+            const rect = virtualPad.getBoundingClientRect();
+            this.padState.centerPos = {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+        };
+
+        // 初期化時に中心位置を計算
+        this.updatePadCenterPosition();
+
+        // リサイズ時に中心位置を再計算
+        window.addEventListener('resize', this.updatePadCenterPosition);
+
+        // タッチイベント
+        virtualPad.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.handlePadTouchStart(e);
         });
 
-        Object.entries(touchButtons).forEach(([buttonId, action]) => {
-            const button = document.getElementById(buttonId);
+        virtualPad.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            this.handlePadTouchMove(e);
+        });
 
-            if (!button) {
-                console.error(`タッチボタンが見つかりません: ${buttonId}`);
-                return;
-            }
+        virtualPad.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.handlePadTouchEnd(e);
+        });
 
-            console.log(`${buttonId} ボタンにイベントリスナーを追加`);
+        // マウスイベント（PC用）
+        virtualPad.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            this.handlePadMouseStart(e);
+        });
 
-            // タッチイベント（モバイル用）
-            button.addEventListener('touchstart', (e) => {
+        document.addEventListener('mousemove', (e) => {
+            if (this.padState.isActive) {
                 e.preventDefault();
-                e.stopPropagation();
-                console.log(`タッチ開始: ${action}`);
-                this.handleButtonInput(action, true);
-            });
-
-            button.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log(`タッチ終了: ${action}`);
-                this.handleButtonInput(action, false);
-            });
-
-            button.addEventListener('touchcancel', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log(`タッチキャンセル: ${action}`);
-                this.handleButtonInput(action, false);
-            });
-
-            // クリックイベント（マウス用 - シンプルで確実）
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log(`[BUTTON_DEBUG] クリック: ${action}`);
-
-                // すべての動作を handleButtonInput 経由で処理（連続押下防止統一）
-                console.log(`[BUTTON_DEBUG] handleButtonInput経由でジャンプ実行: ${action}`);
-                this.handleButtonInput(action, true);
-                setTimeout(() => {
-                    this.handleButtonInput(action, false);
-                }, 100);
-            });
-
-            // マウスイベント（長押し対応用 - ジャンプ以外）
-            if (action !== 'jump') {
-                button.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log(`[BUTTON_DEBUG] マウス押下: ${action}`);
-                    this.handleButtonInput(action, true);
-                });
-
-                button.addEventListener('mouseup', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log(`[BUTTON_DEBUG] マウス離上: ${action}`);
-                    this.handleButtonInput(action, false);
-                });
-
-                button.addEventListener('mouseleave', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log(`[BUTTON_DEBUG] マウス離脱: ${action}`);
-                    this.handleButtonInput(action, false);
-                });
-            }
-
-            // ビジュアルフィードバック - タッチ
-            button.addEventListener('touchstart', () => {
-                button.classList.add('pressed');
-            });
-
-            button.addEventListener('touchend', () => {
-                button.classList.remove('pressed');
-            });
-
-            button.addEventListener('touchcancel', () => {
-                button.classList.remove('pressed');
-            });
-
-            // ビジュアルフィードバック - クリック（全ボタン共通）
-            button.addEventListener('click', () => {
-                button.classList.add('pressed');
-                setTimeout(() => {
-                    button.classList.remove('pressed');
-                }, 150);
-            });
-
-            // ビジュアルフィードバック - マウス（ジャンプ以外の長押し対応）
-            if (action !== 'jump') {
-                button.addEventListener('mousedown', () => {
-                    button.classList.add('pressed');
-                });
-
-                button.addEventListener('mouseup', () => {
-                    button.classList.remove('pressed');
-                });
-
-                button.addEventListener('mouseleave', () => {
-                    button.classList.remove('pressed');
-                });
+                this.handlePadMouseMove(e);
             }
         });
 
-        console.log('タッチコントロール設定完了');
+        document.addEventListener('mouseup', (e) => {
+            if (this.padState.isActive) {
+                e.preventDefault();
+                this.handlePadMouseEnd(e);
+            }
+        });
+
+        console.log('✅ バーチャルパッド設定完了');
+    }
+
+    /**
+     * ジャンプボタン設定
+     */
+    setupJumpButton() {
+        const jumpButton = document.getElementById('jumpButton');
+
+        if (!jumpButton) {
+            console.error('❌ ジャンプボタンが見つかりません');
+            return;
+        }
+
+        console.log('🦘 ジャンプボタン設定中...');
+
+        // タッチイベント
+        jumpButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🦘 ジャンプタッチ開始');
+            this.handleButtonInput('jump', true);
+            jumpButton.classList.add('pressed');
+        });
+
+        jumpButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🦘 ジャンプタッチ終了');
+            this.handleButtonInput('jump', false);
+            jumpButton.classList.remove('pressed');
+        });
+
+        // クリックイベント（マウス用）
+        jumpButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🦘 ジャンプクリック');
+            this.handleButtonInput('jump', true);
+            jumpButton.classList.add('pressed');
+            setTimeout(() => {
+                this.handleButtonInput('jump', false);
+                jumpButton.classList.remove('pressed');
+            }, 100);
+        });
+
+        console.log('✅ ジャンプボタン設定完了');
+    }
+
+    /**
+     * バーチャルパッド - タッチ開始処理
+     */
+    handlePadTouchStart(e) {
+        const touch = e.touches[0];
+        this.updatePadCenterPosition();
+
+        this.padState.isActive = true;
+        this.padState.startPos = {
+            x: touch.clientX,
+            y: touch.clientY
+        };
+        this.padState.currentPos = { ...this.padState.startPos };
+
+        const padStick = document.querySelector('.pad-stick');
+        padStick.classList.add('active');
+
+        console.log('🕹️ バーチャルパッド タッチ開始:', this.padState.startPos);
+    }
+
+    /**
+     * バーチャルパッド - タッチ移動処理
+     */
+    handlePadTouchMove(e) {
+        if (!this.padState.isActive) return;
+
+        const touch = e.touches[0];
+        this.padState.currentPos = {
+            x: touch.clientX,
+            y: touch.clientY
+        };
+
+        this.updatePadStick();
+        this.calculateDirection();
+    }
+
+    /**
+     * バーチャルパッド - タッチ終了処理
+     */
+    handlePadTouchEnd(e) {
+        console.log('🕹️ バーチャルパッド タッチ終了');
+        this.resetPadPosition();
+    }
+
+    /**
+     * バーチャルパッド - マウス開始処理
+     */
+    handlePadMouseStart(e) {
+        this.updatePadCenterPosition();
+
+        this.padState.isActive = true;
+        this.padState.startPos = {
+            x: e.clientX,
+            y: e.clientY
+        };
+        this.padState.currentPos = { ...this.padState.startPos };
+
+        const padStick = document.querySelector('.pad-stick');
+        padStick.classList.add('active');
+
+        console.log('🕹️ バーチャルパッド マウス開始:', this.padState.startPos);
+    }
+
+    /**
+     * バーチャルパッド - マウス移動処理
+     */
+    handlePadMouseMove(e) {
+        if (!this.padState.isActive) return;
+
+        this.padState.currentPos = {
+            x: e.clientX,
+            y: e.clientY
+        };
+
+        this.updatePadStick();
+        this.calculateDirection();
+    }
+
+    /**
+     * バーチャルパッド - マウス終了処理
+     */
+    handlePadMouseEnd(e) {
+        console.log('🕹️ バーチャルパッド マウス終了');
+        this.resetPadPosition();
+    }
+
+    /**
+     * スティック位置の更新
+     */
+    updatePadStick() {
+        const deltaX = this.padState.currentPos.x - this.padState.centerPos.x;
+        const deltaY = this.padState.currentPos.y - this.padState.centerPos.y;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // 最大距離を制限
+        const clampedDistance = Math.min(distance, this.padState.maxDistance);
+        const angle = Math.atan2(deltaY, deltaX);
+
+        const stickX = Math.cos(angle) * clampedDistance;
+        const stickY = Math.sin(angle) * clampedDistance;
+
+        const padStick = document.querySelector('.pad-stick');
+        padStick.style.transform = `translate(calc(-50% + ${stickX}px), calc(-50% + ${stickY}px))`;
+
+        console.log('🕹️ スティック位置更新:', {
+            deltaX: deltaX.toFixed(1),
+            deltaY: deltaY.toFixed(1),
+            distance: distance.toFixed(1),
+            clampedDistance: clampedDistance.toFixed(1),
+            stickX: stickX.toFixed(1),
+            stickY: stickY.toFixed(1)
+        });
+    }
+
+    /**
+     * 移動方向の計算と入力送信
+     */
+    calculateDirection() {
+        const deltaX = this.padState.currentPos.x - this.padState.centerPos.x;
+        const distance = Math.abs(deltaX);
+
+        // デッドゾーン内なら何もしない
+        if (distance < this.padState.deadZone) {
+            if (this.padState.currentDirection) {
+                console.log('🕹️ デッドゾーン - 移動停止');
+                this.handleButtonInput(this.padState.currentDirection, false);
+                this.padState.currentDirection = null;
+            }
+            return;
+        }
+
+        // 移動方向を判定
+        let newDirection = null;
+        if (deltaX < -this.padState.deadZone) {
+            newDirection = 'left';
+        } else if (deltaX > this.padState.deadZone) {
+            newDirection = 'right';
+        }
+
+        // 方向が変わった場合のみ処理
+        if (newDirection !== this.padState.currentDirection) {
+            // 前の方向を停止
+            if (this.padState.currentDirection) {
+                console.log(`🕹️ 移動停止: ${this.padState.currentDirection}`);
+                this.handleButtonInput(this.padState.currentDirection, false);
+            }
+
+            // 新しい方向を開始
+            if (newDirection) {
+                console.log(`🕹️ 移動開始: ${newDirection}`);
+                this.handleButtonInput(newDirection, true);
+            }
+
+            this.padState.currentDirection = newDirection;
+        }
+    }
+
+    /**
+     * スティック位置のリセット
+     */
+    resetPadPosition() {
+        this.padState.isActive = false;
+
+        // 現在の移動を停止
+        if (this.padState.currentDirection) {
+            console.log(`🕹️ リセット時移動停止: ${this.padState.currentDirection}`);
+            this.handleButtonInput(this.padState.currentDirection, false);
+            this.padState.currentDirection = null;
+        }
+
+        // スティックを中心に戻す
+        const padStick = document.querySelector('.pad-stick');
+        padStick.style.transform = 'translate(-50%, -50%)';
+        padStick.classList.remove('active');
+
+        console.log('🕹️ バーチャルパッド リセット完了');
     }
 
     /**
@@ -451,6 +687,11 @@ class UIManager {
         console.log(`initScreen: ${screenId} 初期化開始`);
 
         switch (screenId) {
+            case 'titleScreen':
+                console.log('タイトル画面の初期化処理実行');
+                // プレイヤー情報の表示を更新
+                this.updatePlayerNameDisplay();
+                break;
             case 'nameInputScreen':
                 document.getElementById('playerNameInput').focus();
                 break;
@@ -539,6 +780,9 @@ class UIManager {
         const stageStats = this.gameData.progress.stageStats || {};
         stageButtonsContainer.innerHTML = '';
 
+        // デバッグ機能: 現在の列数を表示
+        this.updateGridDebugInfo();
+
         for (let i = 1; i <= 20; i++) {
             const button = document.createElement('button');
             button.className = 'stage-button';
@@ -576,6 +820,36 @@ class UIManager {
             }
 
             stageButtonsContainer.appendChild(button);
+        }
+    }
+
+    /**
+     * グリッドデバッグ情報更新
+     */
+    updateGridDebugInfo() {
+        const stageGrid = document.getElementById('stageButtons');
+        if (!stageGrid) return;
+
+        // 現在の画面幅に基づく列数を計算
+        const width = window.innerWidth;
+        let columns = 5; // デフォルト
+
+        if (width >= 1024) {
+            columns = 5;
+        } else if (width >= 768) {
+            columns = 4;
+        } else if (width >= 480) {
+            columns = 3;
+        } else {
+            columns = 2;
+        }
+
+        // デバッグ情報を設定
+        stageGrid.setAttribute('data-columns', columns);
+
+        // デバッグモードが有効な場合、コンソールに情報を出力
+        if (window.stageGridDebug) {
+            console.log(`🔧 Grid Debug: 画面幅=${width}px, 列数=${columns}`);
         }
     }
 
@@ -688,6 +962,21 @@ class UIManager {
                 }
             }, 200);
 
+            // デバッグ情報設定をゲームインスタンスとプレイヤーに反映
+            setTimeout(() => {
+                if (window.simpleGame) {
+                    // ゲームインスタンスに反映
+                    window.simpleGame.showDebugInfo = this.gameData.settings.debugInfo;
+
+                    // プレイヤーにも反映
+                    if (window.simpleGame.player) {
+                        window.simpleGame.player.showDebugInfo = this.gameData.settings.debugInfo;
+                    }
+
+                    console.log('🐛 デバッグ情報設定をゲームに反映:', this.gameData.settings.debugInfo);
+                }
+            }, 300);
+
         } catch (error) {
             console.error('❌ ゲーム開始エラー:', error);
             console.error('エラースタック:', error.stack);
@@ -731,6 +1020,22 @@ class UIManager {
         this.gameData.settings[setting] = !this.gameData.settings[setting];
         gameStorage.saveSettings(this.gameData.settings);
         this.updateSettingsUI();
+
+        // デバッグ情報設定の場合、プレイヤーとゲームインスタンスにも反映
+        if (setting === 'debugInfo') {
+            const currentGame = window.simpleGame || window.game;
+            if (currentGame) {
+                // ゲームインスタンスに反映
+                currentGame.showDebugInfo = this.gameData.settings.debugInfo;
+
+                // プレイヤーにも反映
+                if (currentGame.player) {
+                    currentGame.player.showDebugInfo = this.gameData.settings.debugInfo;
+                }
+
+                console.log(`デバッグ情報表示: ${this.gameData.settings.debugInfo ? 'ON' : 'OFF'}`);
+            }
+        }
     }
 
     /**
@@ -739,12 +1044,16 @@ class UIManager {
     updateSettingsUI() {
         const musicButton = document.getElementById('musicToggle');
         const soundButton = document.getElementById('soundToggle');
+        const debugInfoButton = document.getElementById('debugInfoToggle');
 
         musicButton.textContent = this.gameData.settings.music ? 'ON' : 'OFF';
         musicButton.className = this.gameData.settings.music ? 'toggle-button' : 'toggle-button off';
 
         soundButton.textContent = this.gameData.settings.sound ? 'ON' : 'OFF';
         soundButton.className = this.gameData.settings.sound ? 'toggle-button' : 'toggle-button off';
+
+        debugInfoButton.textContent = this.gameData.settings.debugInfo ? 'ON' : 'OFF';
+        debugInfoButton.className = this.gameData.settings.debugInfo ? 'toggle-button' : 'toggle-button off';
     }
 
     /**
@@ -821,15 +1130,35 @@ class UIManager {
         const currentGame = window.simpleGame || window.game;
         const nextButton = document.getElementById('nextStageButton');
 
-        if (currentGame && currentGame.currentStage < 5) {
+        console.log('次のステージボタン表示判定:', {
+            currentGame: !!currentGame,
+            currentStage: currentGame ? currentGame.currentStage : 'なし',
+            maxStage: 20
+        });
+
+        if (currentGame && currentGame.currentStage < 20) {
             const nextStage = currentGame.currentStage + 1;
-            if (gameStorage.isStageUnlocked(nextStage)) {
+            const isNextStageUnlocked = gameStorage.isStageUnlocked(nextStage);
+
+            console.log('次のステージ詳細:', {
+                nextStage: nextStage,
+                isUnlocked: isNextStageUnlocked
+            });
+
+            if (isNextStageUnlocked) {
                 nextButton.style.display = 'block';
+                console.log('✅ 次のステージボタンを表示');
             } else {
                 nextButton.style.display = 'none';
+                console.log('❌ 次のステージが未解放のためボタンを非表示');
             }
         } else {
             nextButton.style.display = 'none';
+            if (currentGame && currentGame.currentStage >= 20) {
+                console.log('❌ 最終ステージのためボタンを非表示');
+            } else {
+                console.log('❌ ゲームが見つからないためボタンを非表示');
+            }
         }
 
         this.showScreen('clearScreen');
@@ -1713,8 +2042,7 @@ class UIManager {
     stopConflictingMouseMoveActions(newAction) {
         const conflictMap = {
             'left': ['right'],     // 左移動は右移動と相反
-            'right': ['left'],     // 右移動は左移動と相反
-            'crouch': []           // しゃがみは他と相反しない（移動しながらしゃがめる）
+            'right': ['left']      // 右移動は左移動と相反
         };
 
         const conflicting = conflictMap[newAction] || [];
@@ -1850,8 +2178,7 @@ class UIManager {
     stopConflictingMoveActions(newAction) {
         const conflictMap = {
             'left': ['right'],     // 左移動は右移動と相反
-            'right': ['left'],     // 右移動は左移動と相反
-            'crouch': []           // しゃがみは他と相反しない（移動しながらしゃがめる）
+            'right': ['left']      // 右移動は左移動と相反
         };
 
         const conflicting = conflictMap[newAction] || [];
@@ -2205,6 +2532,9 @@ class UIManager {
         // 現在のプレイヤーを設定
         gameStorage.setCurrentPlayer(playerName);
 
+        // 最後にプレイしたプレイヤーとして保存
+        gameStorage.saveLastPlayer(playerName);
+
         // UIを更新
         this.gameData = gameStorage.loadGameData();
 
@@ -2219,6 +2549,8 @@ class UIManager {
 
         // プレイヤー一覧を更新（選択状態の変更を反映）
         this.updatePlayerListDisplay();
+
+        console.log('プレイヤー選択完了:', playerName);
     }
 
     /**

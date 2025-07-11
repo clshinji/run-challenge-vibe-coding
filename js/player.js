@@ -31,7 +31,6 @@ class Player {
         // 状態（初期状態は地面にいる）
         this.isGrounded = true; // 初期状態で地面にいる
         this.isJumping = false;
-        this.isCrouching = false;
         this.facingRight = true;
 
         // 無敵状態（既存システムと統合）
@@ -56,14 +55,21 @@ class Player {
         this.inputState = {
             left: false,
             right: false,
-            jump: false,
-            crouch: false
+            jump: false
         };
 
         // アニメーション
         this.animationState = 'idle';
         this.animationTime = 0;
         this.frameIndex = 0;
+
+        // 二段ジャンプエフェクト
+        this.isSpinning = false;
+        this.spinStartTime = 0;
+        this.spinDuration = 300;
+
+        // デバッグ表示設定
+        this.showDebugInfo = false; // デフォルトでオフ（将来的に設定画面で切り替え可能）
 
         // 無敵時間（ダメージ後）
         this.invulnerable = false;
@@ -192,6 +198,14 @@ class Player {
         this.isJumping = true;
         this.isGrounded = false;
         this.animationState = 'jump';
+
+        // 二段ジャンプの視覚エフェクトを発動
+        this.applyDoubleJumpSpin();
+
+        console.log('[JUMP_DEBUG] ✨ 二段ジャンプ実行完了:', {
+            spinning: this.isSpinning,
+            velocityY: this.velocityY
+        });
     }
 
     /**
@@ -240,12 +254,7 @@ class Player {
             }
         }
 
-        // しゃがみ
-        this.isCrouching = this.inputState.crouch;
-        if (this.isCrouching && this.isGrounded) {
-            this.animationState = 'crouch';
-            this.velocityX *= 0.5; // しゃがみ時は移動速度半減
-        }
+
     }
 
     /**
@@ -613,7 +622,7 @@ class Player {
             case 'idle': return 4;
             case 'walk': return 6;
             case 'jump': return 1;
-            case 'crouch': return 1;
+
             default: return 1;
         }
     }
@@ -668,7 +677,6 @@ class Player {
         this.velocityY = 0;
         this.isGrounded = false;
         this.isJumping = false;
-        this.isCrouching = false;
         this.animationState = 'idle';
         this.invulnerable = true;
         this.invulnerableTime = 1.0;
@@ -686,25 +694,25 @@ class Player {
      * ダメージを受ける（ノックバック付き）
      */
     takeDamage(obstacleX, obstacleY) {
-        console.log('プレイヤーがダメージエフェクトを受けました');
+        console.log('プレイヤーがウニからダメージエフェクトを受けました');
 
         // ダメージ状態を設定
         this.isDamaged = true;
         this.damageTime = 0;
 
-        // 障害物の位置に基づいてノックバック方向を計算（放物線軌道用に調整）
+        // ウニ障害物の位置に基づいてノックバック方向を計算（放物線軌道用に調整）
         const knockbackForce = 400; // 水平方向の力
         const knockbackUpForce = 350; // 上方向の力（重力と組み合わせて自然な弧を描く）
 
-        // プレイヤーと障害物の位置関係からノックバック方向を決定
+        // プレイヤーとウニの中心位置関係からノックバック方向を決定
         const playerCenterX = this.x + this.width / 2;
-        const obstacleCenterX = obstacleX + 15; // 障害物の中心（仮定）
+        const obstacleCenterX = obstacleX + 15; // ウニの中心（推定値）
 
         if (playerCenterX < obstacleCenterX) {
-            // プレイヤーが障害物の左側にいる場合、左に弾く
+            // プレイヤーがウニの左側にいる場合、左に弾く
             this.knockbackVelocityX = -knockbackForce;
         } else {
-            // プレイヤーが障害物の右側にいる場合、右に弾く
+            // プレイヤーがウニの右側にいる場合、右に弾く
             this.knockbackVelocityX = knockbackForce;
         }
 
@@ -721,13 +729,13 @@ class Player {
         // 無敵状態にする
         this.makeInvincible(2000);
 
-        console.log('放物線軌道ノックバック設定:', {
+        console.log('ウニからの放物線軌道ノックバック設定:', {
             knockbackX: this.knockbackVelocityX,
             knockbackY: this.knockbackVelocityY,
             initialVelocityX: this.velocityX,
             initialVelocityY: this.velocityY,
             playerX: playerCenterX,
-            obstacleX: obstacleCenterX,
+            urchinX: obstacleCenterX,
             isGrounded: this.isGrounded
         });
     }
@@ -766,21 +774,29 @@ class Player {
                 shakeY = (Math.random() - 0.5) * shakeIntensity;
             }
 
-            // 向きに応じて反転
-            if (!this.facingRight) {
-                ctx.scale(-1, 1);
-                ctx.translate(-(drawX + this.width + shakeX), shakeY);
-            } else {
-                ctx.translate(drawX + shakeX, shakeY);
+            // スピン効果の適用
+            const spinRotation = this.getSpinRotation();
+
+            // 向きに応じて反転とスピン
+            ctx.translate(drawX + this.width / 2 + shakeX, drawY + this.height / 2 + shakeY);
+
+            if (spinRotation !== 0) {
+                ctx.rotate(spinRotation);
             }
 
-            // キャラクター描画（現在は矩形、後で画像に置き換え）
-            this.renderCharacter(ctx, 0, drawY);
+            if (!this.facingRight) {
+                ctx.scale(-1, 1);
+            }
+
+            // キャラクター描画（中心を原点として描画）
+            this.renderCharacter(ctx, -this.width / 2, -this.height / 2);
 
             ctx.restore();
 
-            // デバッグ情報
-            this.renderDebugInfo(ctx, drawX, drawY);
+            // デバッグ情報（設定で切り替え可能）
+            if (this.showDebugInfo) {
+                this.renderDebugInfo(ctx, drawX, drawY);
+            }
         } catch (error) {
             console.error('プレイヤー描画エラー:', error);
             // 簡易描画でフォールバック
@@ -790,8 +806,8 @@ class Player {
     }
 
     /**
-     * キャラクター描画
-     */
+ * キャラクター描画（可愛い丸みを帯びたキャラクター）
+ */
     renderCharacter(ctx, x, y) {
         // 無敵状態の場合は点滅効果
         if (this.invulnerable) {
@@ -800,31 +816,88 @@ class Player {
             ctx.globalAlpha = alpha;
         }
 
-        // 現在は簡単な矩形で描画
-        // 後でスプライト画像に置き換え予定
+        // 歩行アニメーションの上下動
+        const walkBounce = this.animationState === 'walk' ?
+            Math.abs(Math.sin(this.animationTime * 10)) * 2 : 0;
 
-        // 体
-        ctx.fillStyle = this.getCharacterColor();
-        ctx.fillRect(x, y, this.width, this.height);
+        // 現在の高さ
+        const currentHeight = this.height;
+        const bodyY = y - walkBounce; // 歩行時の上下動
 
-        // 顔
-        ctx.fillStyle = '#FFB6C1';
-        ctx.fillRect(x + 4, y + 4, this.width - 8, 12);
+        // 影を描画
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.beginPath();
+        ctx.ellipse(x + this.width / 2, y + currentHeight + 2, this.width / 2 - 2, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
 
-        // 目
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x + 8, y + 7, 3, 3);
-        ctx.fillRect(x + this.width - 11, y + 7, 3, 3);
+        // 体（丸みを帯びた楕円）
+        const bodyColor = this.getCharacterColor();
 
-        // 鼻
-        ctx.fillStyle = '#FF69B4';
-        ctx.fillRect(x + this.width / 2 - 1, y + 10, 2, 2);
+        // 歩行時の体の傾き
+        const bodyTilt = this.animationState === 'walk' ?
+            Math.sin(this.animationTime * 10) * 0.1 : 0;
 
-        // しゃがみ時は高さを調整
-        if (this.isCrouching) {
-            ctx.fillStyle = this.getCharacterColor();
-            ctx.fillRect(x, y + this.height / 2, this.width, this.height / 2);
-        }
+        ctx.save();
+        ctx.translate(x + this.width / 2, bodyY + currentHeight / 2 + 6);
+        ctx.rotate(bodyTilt);
+
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.width / 2 - 2, currentHeight / 2 - 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 体の輪郭線
+        ctx.strokeStyle = this.getDarkerColor(bodyColor);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.restore();
+
+        // 頭（円形）
+        const headRadius = 12;
+        const headY = bodyY + headRadius + 2;
+
+        // 歩行時の頭の軽い揺れ
+        const headBob = this.animationState === 'walk' ?
+            Math.sin(this.animationTime * 10) * 1 : 0;
+
+        // 頭の影
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.beginPath();
+        ctx.arc(x + this.width / 2 + 1 + headBob, headY + 1, headRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 頭
+        ctx.fillStyle = '#FFE4E1'; // 肌色（薄いピンク）
+        ctx.beginPath();
+        ctx.arc(x + this.width / 2 + headBob, headY, headRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 頭の輪郭線
+        ctx.strokeStyle = '#FFB6C1';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 髪の毛
+        ctx.fillStyle = '#8B4513'; // 茶色
+        ctx.beginPath();
+        ctx.arc(x + this.width / 2 + headBob, headY - 2, headRadius - 1, Math.PI, Math.PI * 2);
+        ctx.fill();
+
+        // 髪の毛のハイライト
+        ctx.fillStyle = '#CD853F';
+        ctx.beginPath();
+        ctx.arc(x + this.width / 2 - 3 + headBob, headY - 4, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 表情を描画
+        this.drawFacialExpression(ctx, x + this.width / 2 + headBob, headY);
+
+        // 手足を描画
+        this.drawLimbs(ctx, x, bodyY, currentHeight);
+
+        // 二段ジャンプ可能時のエフェクト
+        this.drawDoubleJumpEffect(ctx, x + this.width / 2, bodyY + currentHeight / 2);
 
         // 無敵状態の場合はアルファ値をリセット
         if (this.invulnerable) {
@@ -833,19 +906,315 @@ class Player {
     }
 
     /**
-     * キャラクター色取得
+     * キャラクター色取得（統一されたパステルカラー）
      */
     getCharacterColor() {
-        switch (this.animationState) {
-            case 'walk':
-                return this.frameIndex % 2 === 0 ? '#FF6B6B' : '#FF8E8E';
-            case 'jump':
-                return '#FFB347';
-            case 'crouch':
-                return '#DDA0DD';
-            default:
-                return '#FF6B6B';
+        // 統一されたキャラクター色（明るい青系）
+        return '#87CEEB'; // 薄い青（スカイブルー）
+    }
+
+    /**
+     * 暗い色を生成
+     */
+    getDarkerColor(color) {
+        const colorMap = {
+            '#FFB6C1': '#FF69B4',
+            '#FFC0CB': '#FF1493',
+            '#FFE4B5': '#FFB347',
+            '#DDA0DD': '#9370DB',
+            '#87CEEB': '#4682B4'
+        };
+        return colorMap[color] || '#696969';
+    }
+
+    /**
+     * 表情描画
+     */
+    drawFacialExpression(ctx, centerX, centerY) {
+        // 状態に応じた表情
+        const expression = this.getFacialExpression();
+
+        // 目
+        ctx.fillStyle = '#000';
+
+        if (expression.eyeType === 'normal') {
+            // 通常の目
+            ctx.beginPath();
+            ctx.arc(centerX - 4, centerY - 2, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + 4, centerY - 2, 2, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (expression.eyeType === 'surprised') {
+            // 驚いた目
+            ctx.beginPath();
+            ctx.arc(centerX - 4, centerY - 2, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + 4, centerY - 2, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (expression.eyeType === 'focused') {
+            // 集中した目
+            ctx.fillRect(centerX - 6, centerY - 3, 4, 2);
+            ctx.fillRect(centerX + 2, centerY - 3, 4, 2);
         }
+
+        // 目のハイライト
+        ctx.fillStyle = '#FFF';
+        ctx.beginPath();
+        ctx.arc(centerX - 4.5, centerY - 2.5, 0.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(centerX + 3.5, centerY - 2.5, 0.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 鼻（小さな点）
+        ctx.fillStyle = '#FFB6C1';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 1, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 口
+        ctx.strokeStyle = '#FF69B4';
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+
+        if (expression.mouthType === 'smile') {
+            // 笑顔
+            ctx.beginPath();
+            ctx.arc(centerX, centerY + 1, 3, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+        } else if (expression.mouthType === 'open') {
+            // 開いた口
+            ctx.fillStyle = '#8B0000';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY + 3, 2, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (expression.mouthType === 'determined') {
+            // 決意の口
+            ctx.beginPath();
+            ctx.moveTo(centerX - 2, centerY + 3);
+            ctx.lineTo(centerX + 2, centerY + 3);
+            ctx.stroke();
+        }
+
+        // 頬の赤み（動いている時）
+        if (this.animationState === 'walk' || this.animationState === 'jump') {
+            ctx.fillStyle = 'rgba(255, 182, 193, 0.6)';
+            ctx.beginPath();
+            ctx.arc(centerX - 8, centerY + 2, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + 8, centerY + 2, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    /**
+     * 状態に応じた表情を取得
+     */
+    getFacialExpression() {
+        if (this.animationState === 'jump') {
+            return {
+                eyeType: 'surprised',
+                mouthType: 'open'
+            };
+        } else if (this.animationState === 'walk') {
+            return {
+                eyeType: 'normal',
+                mouthType: 'smile'
+            };
+
+        } else {
+            return {
+                eyeType: 'normal',
+                mouthType: 'smile'
+            };
+        }
+    }
+
+    /**
+ * 手足描画（改良版歩行アニメーション）
+ */
+    drawLimbs(ctx, x, y, currentHeight) {
+        const bodyColor = this.getCharacterColor();
+        const limbColor = this.getDarkerColor(bodyColor);
+
+        // 歩行アニメーションの計算
+        const walkCycle = this.animationState === 'walk' ? this.animationTime * 10 : 0;
+        const armSwing = this.animationState === 'walk' ? Math.sin(walkCycle) * 0.4 : 0;
+        const legSwing = this.animationState === 'walk' ? Math.sin(walkCycle) * 0.3 : 0;
+
+        // 腕の描画
+        ctx.fillStyle = '#FFE4E1'; // 肌色
+        ctx.strokeStyle = limbColor;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+
+        // 左腕（右足と連動）
+        const leftArmAngle = armSwing;
+        const leftArmX = x + 6 + Math.sin(leftArmAngle) * 4;
+        const leftArmY = y + 16 + Math.cos(leftArmAngle) * 2;
+
+        ctx.beginPath();
+        ctx.moveTo(x + 6, y + 16);
+        ctx.lineTo(leftArmX, leftArmY + 8);
+        ctx.stroke();
+
+        // 右腕（左足と連動）
+        const rightArmAngle = -armSwing;
+        const rightArmX = x + this.width - 6 + Math.sin(rightArmAngle) * 4;
+        const rightArmY = y + 16 + Math.cos(rightArmAngle) * 2;
+
+        ctx.beginPath();
+        ctx.moveTo(x + this.width - 6, y + 16);
+        ctx.lineTo(rightArmX, rightArmY + 8);
+        ctx.stroke();
+
+        // 手
+        ctx.fillStyle = '#FFE4E1';
+        ctx.beginPath();
+        ctx.arc(leftArmX, leftArmY + 8, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(rightArmX, rightArmY + 8, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 足の描画
+        ctx.strokeStyle = limbColor;
+        ctx.lineWidth = 3;
+
+        // 左足（腕と逆位相）- 当たり判定内に収める
+        const leftLegAngle = -legSwing;
+        const leftLegX = x + 8 + Math.sin(leftLegAngle) * 4; // 横の動きを縮小
+        const leftLegY = y + currentHeight - 2 + Math.abs(Math.cos(leftLegAngle)) * 2; // 下に出ないよう調整
+
+        ctx.beginPath();
+        ctx.moveTo(x + 8, y + currentHeight - 6);
+        ctx.lineTo(leftLegX, leftLegY);
+        ctx.stroke();
+
+        // 右足（腕と逆位相）- 当たり判定内に収める
+        const rightLegAngle = legSwing;
+        const rightLegX = x + this.width - 8 + Math.sin(rightLegAngle) * 4; // 横の動きを縮小
+        const rightLegY = y + currentHeight - 2 + Math.abs(Math.cos(rightLegAngle)) * 2; // 下に出ないよう調整
+
+        ctx.beginPath();
+        ctx.moveTo(x + this.width - 8, y + currentHeight - 6);
+        ctx.lineTo(rightLegX, rightLegY);
+        ctx.stroke();
+
+        // 足先（靴）- 当たり判定内に収める
+        ctx.fillStyle = '#8B4513'; // 茶色の靴
+
+        // 左足の靴
+        const leftShoeSize = this.animationState === 'walk' && Math.cos(leftLegAngle) > 0 ? 3.5 : 2.5;
+        ctx.beginPath();
+        ctx.ellipse(leftLegX, leftLegY, leftShoeSize, 1.5, leftLegAngle * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 右足の靴
+        const rightShoeSize = this.animationState === 'walk' && Math.cos(rightLegAngle) > 0 ? 3.5 : 2.5;
+        ctx.beginPath();
+        ctx.ellipse(rightLegX, rightLegY, rightShoeSize, 1.5, rightLegAngle * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 靴のハイライト
+        ctx.fillStyle = '#A0522D';
+        ctx.beginPath();
+        ctx.ellipse(leftLegX - 0.5, leftLegY - 0.5, 1.2, 0.8, leftLegAngle * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(rightLegX - 0.5, rightLegY - 0.5, 1.2, 0.8, rightLegAngle * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    /**
+     * 二段ジャンプエフェクト描画
+     */
+    drawDoubleJumpEffect(ctx, centerX, centerY) {
+        // 二段ジャンプ可能でない場合は描画しない
+        if (this.jumpCount === 0 || this.jumpCount >= this.maxJumps) {
+            return;
+        }
+
+        const currentTime = performance.now();
+
+        // 二段ジャンプ可能時のオーラエフェクト
+        if (!this.isGrounded && this.jumpCount === 1) {
+            // キラキラオーラ
+            ctx.save();
+
+            const auraRadius = 25;
+            const sparkleCount = 8;
+
+            for (let i = 0; i < sparkleCount; i++) {
+                const angle = (i / sparkleCount) * Math.PI * 2 + currentTime * 0.005;
+                const sparkleX = centerX + Math.cos(angle) * auraRadius;
+                const sparkleY = centerY + Math.sin(angle) * (auraRadius * 0.6);
+                const sparkleSize = 2 + Math.sin(currentTime * 0.01 + i) * 1;
+                const alpha = 0.5 + Math.sin(currentTime * 0.008 + i * 0.5) * 0.3;
+
+                // 小さな光る粒子
+                ctx.fillStyle = `rgba(255, 255, 100, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(sparkleX, sparkleY, sparkleSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                // より小さなハイライト
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
+                ctx.beginPath();
+                ctx.arc(sparkleX, sparkleY, sparkleSize * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 中央のオーラ
+            const auraAlpha = 0.1 + Math.sin(currentTime * 0.01) * 0.05;
+            const auraGradient = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 20);
+            auraGradient.addColorStop(0, `rgba(173, 216, 230, ${auraAlpha})`);
+            auraGradient.addColorStop(1, 'rgba(173, 216, 230, 0)');
+
+            ctx.fillStyle = auraGradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+    }
+
+    /**
+     * 二段ジャンプ実行時のスピンエフェクト
+     */
+    applyDoubleJumpSpin() {
+        // 二段ジャンプ実行時のスピン情報を記録
+        this.isSpinning = true;
+        this.spinStartTime = performance.now();
+        this.spinDuration = 300; // 300ms
+    }
+
+    /**
+     * スピンアニメーションの描画
+     */
+    getSpinRotation() {
+        if (!this.isSpinning) return 0;
+
+        const currentTime = performance.now();
+        const elapsed = currentTime - this.spinStartTime;
+
+        if (elapsed >= this.spinDuration) {
+            this.isSpinning = false;
+            return 0;
+        }
+
+        // スピンの進行度（0-1）
+        const progress = elapsed / this.spinDuration;
+
+        // イージングアウト効果でスピンを減速
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
+
+        // 1回転（2π）
+        return easedProgress * Math.PI * 2;
     }
 
     /**
@@ -889,7 +1258,7 @@ class Player {
             x: this.x,
             y: this.y,
             width: this.width,
-            height: this.isCrouching ? this.height / 2 : this.height
+            height: this.height
         };
     }
 }

@@ -27,6 +27,7 @@ class Stage {
         this.walls = [];
         this.items = [];
         this.obstacles = [];
+        this.platformObstacles = []; // 足場上の障害物（Phase 2の新機能）
         this.goal = null;
 
         // 背景
@@ -125,246 +126,194 @@ class Stage {
     }
 
     /**
-     * ステージ2: 基本アクション
+     * ステージ2: 初級レベル - 基本プラットフォーム
      */
     createStage2() {
-        // より複雑なプラットフォーム
+        // 初級: 1段ジャンプ圏内（最大80px）、大きな足場（100px以上）
         this.platforms = [
-            { x: 200, y: 450, width: 80, height: 20 },
-            { x: 350, y: 400, width: 60, height: 20 },
-            { x: 480, y: 350, width: 80, height: 20 },
-            { x: 650, y: 300, width: 100, height: 20 },
-            { x: 850, y: 380, width: 80, height: 20 },
-            { x: 1000, y: 320, width: 120, height: 20 },
-            { x: 1200, y: 400, width: 80, height: 20 },
-            { x: 1400, y: 350, width: 100, height: 20 },
-            { x: 1650, y: 300, width: 80, height: 20 },
-            { x: 1850, y: 380, width: 100, height: 20 }
+            { x: 200, y: this.groundLevel - 50, width: 110, height: 20 },
+            { x: 400, y: this.groundLevel - 60, width: 105, height: 20 },
+            { x: 600, y: this.groundLevel - 40, width: 115, height: 20 },
+            { x: 850, y: this.groundLevel - 70, width: 120, height: 20 },
+            { x: 1100, y: this.groundLevel - 55, width: 110, height: 20 },
+            { x: 1350, y: this.groundLevel - 65, width: 115, height: 20 },
+            { x: 1600, y: this.groundLevel - 45, width: 125, height: 20 },
+            { x: 1850, y: this.groundLevel - 75, width: 120, height: 20 }
         ];
 
-        // アイテム
+        // アイテム（足場の上に配置）
         this.items = [
-            { x: 230, y: 410, width: 20, height: 20, type: 'coin', active: true },
-            { x: 380, y: 360, width: 20, height: 20, type: 'star', active: true },
-            { x: 510, y: 310, width: 20, height: 20, type: 'coin', active: true },
-            { x: 680, y: 260, width: 20, height: 20, type: 'fruit', active: true },
-            { x: 880, y: 340, width: 20, height: 20, type: 'star', active: true },
-            { x: 1030, y: 280, width: 20, height: 20, type: 'coin', active: true },
-            { x: 1230, y: 360, width: 20, height: 20, type: 'star', active: true },
-            { x: 1430, y: 310, width: 20, height: 20, type: 'fruit', active: true },
-            { x: 1680, y: 260, width: 20, height: 20, type: 'coin', active: true },
-            { x: 1880, y: 340, width: 20, height: 20, type: 'star', active: true }
+            { x: 250, y: this.groundLevel - 75, width: 20, height: 20, type: 'coin', active: true },
+            { x: 450, y: this.groundLevel - 85, width: 20, height: 20, type: 'star', active: true },
+            { x: 650, y: this.groundLevel - 65, width: 20, height: 20, type: 'coin', active: true },
+            { x: 900, y: this.groundLevel - 95, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 1150, y: this.groundLevel - 80, width: 20, height: 20, type: 'star', active: true },
+            { x: 1400, y: this.groundLevel - 90, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1650, y: this.groundLevel - 70, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 1900, y: this.groundLevel - 100, width: 20, height: 20, type: 'star', active: true },
+            // 地面のアイテム
+            { x: 300, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1000, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true }
         ];
 
-        // 障害物（全て三角形のスパイクに統一）
+        // 障害物：初級レベルなので最小限（1個のみ）
         this.obstacles = [
-            { x: 300, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 600, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 800, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' },
-            { x: 1150, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 1550, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' }
+            { x: 750, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }
         ];
 
-        // 壁
-        this.walls = [
-            { x: 750, y: 400, width: 20, height: 150 },
-            { x: 1300, y: 450, width: 20, height: 100 }
-        ];
+        // 壁：初級レベルなので削除
+        this.walls = [];
 
         this.goal = { x: 2200, y: this.groundLevel - 60, width: 40, height: 60, type: 'flag' };
     }
 
     /**
-     * ステージ3: ジャンプチャレンジ
+     * ステージ3: 初級レベル - ジャンプ練習
      */
     createStage3() {
-        // 高いプラットフォーム
+        // 初級: 1段ジャンプ圏内（最大80px）、大きな足場（100px以上）
         this.platforms = [
-            { x: 150, y: 500, width: 60, height: 20 },
-            { x: 280, y: 420, width: 60, height: 20 },
-            { x: 410, y: 340, width: 60, height: 20 },
-            { x: 540, y: 260, width: 80, height: 20 },
-            { x: 700, y: 200, width: 100, height: 20 },
-            { x: 900, y: 280, width: 80, height: 20 },
-            { x: 1050, y: 360, width: 60, height: 20 },
-            { x: 1200, y: 280, width: 80, height: 20 },
-            { x: 1350, y: 200, width: 100, height: 20 },
-            { x: 1550, y: 320, width: 80, height: 20 },
-            { x: 1700, y: 240, width: 80, height: 20 },
-            { x: 1900, y: 380, width: 100, height: 20 }
+            { x: 150, y: this.groundLevel - 50, width: 105, height: 20 },
+            { x: 320, y: this.groundLevel - 70, width: 110, height: 20 },
+            { x: 500, y: this.groundLevel - 40, width: 115, height: 20 },
+            { x: 700, y: this.groundLevel - 80, width: 120, height: 20 },
+            { x: 900, y: this.groundLevel - 60, width: 110, height: 20 },
+            { x: 1100, y: this.groundLevel - 45, width: 115, height: 20 },
+            { x: 1300, y: this.groundLevel - 75, width: 120, height: 20 },
+            { x: 1500, y: this.groundLevel - 55, width: 110, height: 20 },
+            { x: 1700, y: this.groundLevel - 65, width: 115, height: 20 },
+            { x: 1900, y: this.groundLevel - 50, width: 125, height: 20 }
         ];
 
         this.items = [
-            { x: 180, y: 460, width: 20, height: 20, type: 'coin', active: true },
-            { x: 310, y: 380, width: 20, height: 20, type: 'star', active: true },
-            { x: 440, y: 300, width: 20, height: 20, type: 'coin', active: true },
-            { x: 570, y: 220, width: 20, height: 20, type: 'fruit', active: true },
-            { x: 730, y: 160, width: 20, height: 20, type: 'star', active: true },
-            { x: 930, y: 240, width: 20, height: 20, type: 'coin', active: true },
-            { x: 1080, y: 320, width: 20, height: 20, type: 'star', active: true },
-            { x: 1230, y: 240, width: 20, height: 20, type: 'fruit', active: true },
-            { x: 1380, y: 160, width: 20, height: 20, type: 'star', active: true },
-            { x: 1580, y: 280, width: 20, height: 20, type: 'coin', active: true },
-            { x: 1730, y: 200, width: 20, height: 20, type: 'star', active: true },
-            { x: 1930, y: 340, width: 20, height: 20, type: 'fruit', active: true }
+            { x: 200, y: this.groundLevel - 75, width: 20, height: 20, type: 'coin', active: true },
+            { x: 370, y: this.groundLevel - 95, width: 20, height: 20, type: 'star', active: true },
+            { x: 550, y: this.groundLevel - 65, width: 20, height: 20, type: 'coin', active: true },
+            { x: 750, y: this.groundLevel - 105, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 950, y: this.groundLevel - 85, width: 20, height: 20, type: 'star', active: true },
+            { x: 1150, y: this.groundLevel - 70, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1350, y: this.groundLevel - 100, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 1550, y: this.groundLevel - 80, width: 20, height: 20, type: 'star', active: true },
+            { x: 1750, y: this.groundLevel - 90, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1950, y: this.groundLevel - 75, width: 20, height: 20, type: 'fruit', active: true },
+            // 地面のアイテム
+            { x: 400, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1000, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true }
         ];
 
+        // 障害物：初級レベルなので最小限（2個）
         this.obstacles = [
-            { x: 250, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 380, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 650, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 850, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 1100, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 1450, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 1800, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }
+            { x: 600, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
+            { x: 1400, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }
         ];
 
         this.goal = { x: 2200, y: this.groundLevel - 60, width: 40, height: 60, type: 'flag' };
     }
 
     /**
-     * ステージ4: 複雑な構造
+     * ステージ4: 初級レベル - 複雑な構造
      */
     createStage4() {
-        // 複雑なレイアウト
+        // 初級: 1段ジャンプ圏内（最大80px）、大きな足場（100px以上）
         this.platforms = [
-            { x: 100, y: 480, width: 80, height: 20 },
-            { x: 250, y: 420, width: 60, height: 20 },
-            { x: 380, y: 360, width: 80, height: 20 },
-            { x: 530, y: 300, width: 100, height: 20 },
-            { x: 700, y: 240, width: 80, height: 20 },
-            { x: 850, y: 320, width: 60, height: 20 },
-            { x: 980, y: 260, width: 80, height: 20 },
-            { x: 1130, y: 200, width: 100, height: 20 },
-            { x: 1300, y: 280, width: 80, height: 20 },
-            { x: 1450, y: 220, width: 60, height: 20 },
-            { x: 1580, y: 360, width: 100, height: 20 },
-            { x: 1750, y: 300, width: 80, height: 20 },
-            { x: 1900, y: 240, width: 80, height: 20 },
-            { x: 2050, y: 380, width: 100, height: 20 }
+            { x: 100, y: this.groundLevel - 50, width: 105, height: 20 },
+            { x: 280, y: this.groundLevel - 70, width: 110, height: 20 },
+            { x: 460, y: this.groundLevel - 40, width: 115, height: 20 },
+            { x: 650, y: this.groundLevel - 80, width: 120, height: 20 },
+            { x: 850, y: this.groundLevel - 60, width: 110, height: 20 },
+            { x: 1050, y: this.groundLevel - 45, width: 115, height: 20 },
+            { x: 1250, y: this.groundLevel - 75, width: 120, height: 20 },
+            { x: 1450, y: this.groundLevel - 55, width: 110, height: 20 },
+            { x: 1650, y: this.groundLevel - 65, width: 115, height: 20 },
+            { x: 1850, y: this.groundLevel - 50, width: 125, height: 20 },
+            { x: 2050, y: this.groundLevel - 70, width: 120, height: 20 }
         ];
 
         this.items = [
-            { x: 130, y: 440, width: 20, height: 20, type: 'coin', active: true },
-            { x: 280, y: 380, width: 20, height: 20, type: 'star', active: true },
-            { x: 410, y: 320, width: 20, height: 20, type: 'coin', active: true },
-            { x: 560, y: 260, width: 20, height: 20, type: 'fruit', active: true },
-            { x: 730, y: 200, width: 20, height: 20, type: 'star', active: true },
-            { x: 880, y: 280, width: 20, height: 20, type: 'coin', active: true },
-            { x: 1010, y: 220, width: 20, height: 20, type: 'star', active: true },
-            { x: 1160, y: 160, width: 20, height: 20, type: 'fruit', active: true },
-            { x: 1330, y: 240, width: 20, height: 20, type: 'coin', active: true },
-            { x: 1480, y: 180, width: 20, height: 20, type: 'star', active: true },
-            { x: 1610, y: 320, width: 20, height: 20, type: 'fruit', active: true },
-            { x: 1780, y: 260, width: 20, height: 20, type: 'coin', active: true },
-            { x: 1930, y: 200, width: 20, height: 20, type: 'star', active: true },
-            { x: 2080, y: 340, width: 20, height: 20, type: 'fruit', active: true }
+            { x: 150, y: this.groundLevel - 75, width: 20, height: 20, type: 'coin', active: true },
+            { x: 330, y: this.groundLevel - 95, width: 20, height: 20, type: 'star', active: true },
+            { x: 510, y: this.groundLevel - 65, width: 20, height: 20, type: 'coin', active: true },
+            { x: 700, y: this.groundLevel - 105, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 900, y: this.groundLevel - 85, width: 20, height: 20, type: 'star', active: true },
+            { x: 1100, y: this.groundLevel - 70, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1300, y: this.groundLevel - 100, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 1500, y: this.groundLevel - 80, width: 20, height: 20, type: 'star', active: true },
+            { x: 1700, y: this.groundLevel - 90, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1900, y: this.groundLevel - 75, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 2100, y: this.groundLevel - 95, width: 20, height: 20, type: 'star', active: true },
+            // 地面のアイテム
+            { x: 380, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 750, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1150, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true }
         ];
 
+        // 障害物：初級レベルなので最小限（2個）
         this.obstacles = [
-            { x: 200, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 350, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 500, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' },
-            { x: 650, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 800, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 950, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' },
-            { x: 1100, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 1250, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 1400, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' },
-            { x: 1650, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 1850, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }
+            { x: 600, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
+            { x: 1400, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }
         ];
 
-        this.walls = [
-            { x: 320, y: 360, width: 20, height: 190 },
-            { x: 640, y: 240, width: 20, height: 310 },
-            { x: 920, y: 260, width: 20, height: 290 },
-            { x: 1270, y: 280, width: 20, height: 270 },
-            { x: 1520, y: 220, width: 20, height: 330 },
-            { x: 1820, y: 300, width: 20, height: 250 }
-        ];
+        // 壁：初級レベルなので削除
+        this.walls = [];
 
         this.goal = { x: 2200, y: this.groundLevel - 60, width: 40, height: 60, type: 'flag' };
     }
 
     /**
-     * ステージ5: 最終ステージ
+     * ステージ5: 中級レベル - 複雑な構造
      */
     createStage5() {
-        // 最も複雑で長いステージ
-        this.width = 3000; // より長いステージ
-
-        // 足場と壁の重なりを完全に回避して配置
+        // 中級: 1段ジャンプ圏内（最大80px）、標準の足場（60-100px）
         this.platforms = [
-            { x: 80, y: 500, width: 60, height: 20 },    // 範囲: x: 80-140
-            { x: 200, y: 450, width: 50, height: 20 },   // 範囲: x: 200-250
-            { x: 320, y: 400, width: 60, height: 20 },   // 範囲: x: 320-380
-            { x: 450, y: 350, width: 70, height: 20 },   // 範囲: x: 450-520 (幅を80→70に縮小)
-            { x: 600, y: 300, width: 70, height: 20 },   // 範囲: x: 600-670
-            { x: 750, y: 250, width: 80, height: 20 },   // 範囲: x: 750-830 (幅を90→80に縮小)
-            { x: 900, y: 200, width: 80, height: 20 },   // 範囲: x: 900-980
-            { x: 1050, y: 280, width: 60, height: 20 },  // 範囲: x: 1050-1110
-            { x: 1200, y: 240, width: 80, height: 20 },  // 範囲: x: 1200-1280
-            { x: 1320, y: 180, width: 90, height: 20 },  // 範囲: x: 1320-1410 (x: 1350→1320に移動)
-            { x: 1500, y: 260, width: 70, height: 20 },  // 範囲: x: 1500-1570
-            { x: 1620, y: 200, width: 80, height: 20 },  // 範囲: x: 1620-1700 (x: 1650→1620に移動)
-            { x: 1800, y: 340, width: 90, height: 20 },  // 範囲: x: 1800-1890
-            { x: 1970, y: 280, width: 80, height: 20 },  // 範囲: x: 1970-2050
-            { x: 2120, y: 220, width: 100, height: 20 }, // 範囲: x: 2120-2220
-            { x: 2300, y: 300, width: 80, height: 20 },  // 範囲: x: 2300-2380
-            { x: 2420, y: 240, width: 80, height: 20 },  // 範囲: x: 2420-2500 (x: 2450→2420, 幅90→80)
-            { x: 2650, y: 380, width: 100, height: 20 }  // 範囲: x: 2650-2750 (x: 2620→2650に移動)
+            { x: 150, y: this.groundLevel - 50, width: 80, height: 20 },
+            { x: 320, y: this.groundLevel - 70, width: 85, height: 20 },
+            { x: 500, y: this.groundLevel - 40, width: 90, height: 20 },
+            { x: 700, y: this.groundLevel - 80, width: 95, height: 20 },
+            { x: 900, y: this.groundLevel - 60, width: 80, height: 20 },
+            { x: 1100, y: this.groundLevel - 45, width: 85, height: 20 },
+            { x: 1300, y: this.groundLevel - 75, width: 90, height: 20 },
+            { x: 1500, y: this.groundLevel - 55, width: 95, height: 20 },
+            { x: 1700, y: this.groundLevel - 65, width: 80, height: 20 },
+            { x: 1900, y: this.groundLevel - 50, width: 85, height: 20 },
+            { x: 2100, y: this.groundLevel - 70, width: 90, height: 20 }
         ];
 
-        // 多数のアイテム（足場の上に配置）
-        this.items = [];
-        for (let i = 0; i < this.platforms.length; i++) {
-            const platform = this.platforms[i];
-            this.items.push({
-                x: platform.x + platform.width / 2 - 10,
-                y: platform.y - 30,
-                width: 20,
-                height: 20,
-                type: i % 3 === 0 ? 'fruit' : (i % 2 === 0 ? 'star' : 'coin'),
-                active: true
-            });
-        }
+        // アイテム（足場の上に配置）
+        this.items = [
+            { x: 190, y: this.groundLevel - 75, width: 20, height: 20, type: 'coin', active: true },
+            { x: 360, y: this.groundLevel - 95, width: 20, height: 20, type: 'star', active: true },
+            { x: 540, y: this.groundLevel - 65, width: 20, height: 20, type: 'coin', active: true },
+            { x: 740, y: this.groundLevel - 105, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 940, y: this.groundLevel - 85, width: 20, height: 20, type: 'star', active: true },
+            { x: 1140, y: this.groundLevel - 70, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1340, y: this.groundLevel - 100, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 1540, y: this.groundLevel - 80, width: 20, height: 20, type: 'star', active: true },
+            { x: 1740, y: this.groundLevel - 90, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1940, y: this.groundLevel - 75, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 2140, y: this.groundLevel - 95, width: 20, height: 20, type: 'star', active: true },
+            // 地面のアイテム
+            { x: 250, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 600, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1000, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1400, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1800, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true }
+        ];
 
-        // 多数の障害物（全て三角形のスパイクに統一、壁との重なりを回避）
+        // 障害物：中級レベルなので適度（4個）
         this.obstacles = [
-            { x: 150, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 300, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }, // x: 280→300に移動
-            { x: 400, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' },
-            { x: 580, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }, // x: 550→580に移動
-            { x: 700, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 800, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' }, // x: 880→800に移動
-            { x: 1000, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 1150, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 1300, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' },
-            { x: 1480, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }, // x: 1450→1480に移動
-            { x: 1600, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 1800, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' }, // x: 1750→1800に移動
-            { x: 1920, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
-            { x: 2100, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }, // x: 2070→2100に移動
-            { x: 2250, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' },
-            { x: 2430, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }, // x: 2400→2430に移動
-            { x: 2570, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }
+            { x: 400, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
+            { x: 800, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
+            { x: 1200, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
+            { x: 1600, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' }
         ];
 
-        // 壁の配置（足場との重なりを完全に回避）
+        // 壁：中級レベルなので最小限
         this.walls = [
-            { x: 270, y: 450, width: 20, height: 100 },  // 範囲: x: 270-290
-            { x: 540, y: 350, width: 20, height: 200 },  // 範囲: x: 540-560
-            { x: 850, y: 250, width: 20, height: 300 },  // 範囲: x: 850-870
-            { x: 1120, y: 220, width: 20, height: 330 }, // 範囲: x: 1120-1140
-            { x: 1450, y: 160, width: 20, height: 390 }, // 範囲: x: 1450-1470
-            { x: 1750, y: 180, width: 20, height: 370 }, // 範囲: x: 1750-1770
-            { x: 2070, y: 200, width: 20, height: 350 }, // 範囲: x: 2070-2090 (x: 2020→2070に移動)
-            { x: 2400, y: 220, width: 20, height: 330 }, // 範囲: x: 2400-2420 (x: 2370→2400に移動)
-            { x: 2520, y: 360, width: 20, height: 190 }  // 範囲: x: 2520-2540
+            { x: 650, y: this.groundLevel - 120, width: 20, height: 120 },
+            { x: 1450, y: this.groundLevel - 100, width: 20, height: 100 }
         ];
 
-        this.goal = { x: 2800, y: this.groundLevel - 60, width: 40, height: 60, type: 'flag' };
+        this.goal = { x: 2300, y: this.groundLevel - 60, width: 40, height: 60, type: 'flag' };
     }
 
     /**
@@ -461,25 +410,25 @@ class Stage {
     }
 
     /**
- * ステージ6: 基本応用1 - 高低差のあるプラットフォーム
+ * ステージ6: 中級レベル - 高低差のあるプラットフォーム
  */
     createStage6() {
         this.width = 2600;
 
-        // 地面から最大100ピクセル以内の高さに配置（二段ジャンプで到達可能）
+        // 中級: 1段ジャンプ圏内（最大80px）、標準の足場（60-100px）
         this.platforms = [
             { x: 150, y: this.groundLevel - 60, width: 80, height: 20 },
             { x: 300, y: this.groundLevel - 80, width: 70, height: 20 },
-            { x: 500, y: this.groundLevel - 100, width: 60, height: 20 },
-            { x: 700, y: this.groundLevel - 90, width: 80, height: 20 },
-            { x: 900, y: this.groundLevel - 70, width: 70, height: 20 },
-            { x: 1100, y: this.groundLevel - 110, width: 90, height: 20 },
-            { x: 1320, y: this.groundLevel - 85, width: 75, height: 20 },
-            { x: 1520, y: this.groundLevel - 95, width: 65, height: 20 },
+            { x: 500, y: this.groundLevel - 50, width: 75, height: 20 },
+            { x: 700, y: this.groundLevel - 70, width: 80, height: 20 },
+            { x: 900, y: this.groundLevel - 40, width: 85, height: 20 },
+            { x: 1100, y: this.groundLevel - 60, width: 90, height: 20 },
+            { x: 1320, y: this.groundLevel - 80, width: 75, height: 20 },
+            { x: 1520, y: this.groundLevel - 45, width: 65, height: 20 },
             { x: 1720, y: this.groundLevel - 75, width: 85, height: 20 },
-            { x: 1920, y: this.groundLevel - 105, width: 80, height: 20 },
+            { x: 1920, y: this.groundLevel - 55, width: 80, height: 20 },
             { x: 2150, y: this.groundLevel - 65, width: 90, height: 20 },
-            { x: 2350, y: this.groundLevel - 90, width: 100, height: 20 }
+            { x: 2350, y: this.groundLevel - 50, width: 100, height: 20 }
         ];
 
         this.items = [];
@@ -1065,14 +1014,120 @@ class Stage {
      */
     createStage13() {
         this.width = 4000;
-        this.createAdvancedStage(13, {
-            platformCount: 30,
-            platformMinWidth: 35,
-            platformMaxWidth: 65,
-            obstacleCount: 25,
-            wallCount: 15,
-            maxHeight: 80,
-            gapMultiplier: 1.3
+
+        // 固定された足場配置（二段ジャンプ練習用）
+        this.platforms = [
+            // 序盤エリア - 基本的な足場
+            { x: 120, y: this.groundLevel - 70, width: 60, height: 20 },
+            { x: 280, y: this.groundLevel - 100, width: 55, height: 20 },
+            { x: 450, y: this.groundLevel - 80, width: 65, height: 20 },
+            { x: 620, y: this.groundLevel - 120, width: 50, height: 20 },
+
+            // 中盤エリア - 高い足場で二段ジャンプ必須
+            { x: 850, y: this.groundLevel - 90, width: 60, height: 20 },
+            { x: 1020, y: this.groundLevel - 130, width: 55, height: 20 },
+            { x: 1200, y: this.groundLevel - 110, width: 65, height: 20 },
+            { x: 1400, y: this.groundLevel - 140, width: 50, height: 20 },
+
+            // ジャンプチャレンジエリア
+            { x: 1650, y: this.groundLevel - 95, width: 60, height: 20 },
+            { x: 1850, y: this.groundLevel - 125, width: 55, height: 20 },
+            { x: 2080, y: this.groundLevel - 105, width: 65, height: 20 },
+            { x: 2300, y: this.groundLevel - 135, width: 50, height: 20 },
+
+            // 終盤エリア - 複雑な配置
+            { x: 2550, y: this.groundLevel - 85, width: 60, height: 20 },
+            { x: 2750, y: this.groundLevel - 115, width: 55, height: 20 },
+            { x: 2950, y: this.groundLevel - 95, width: 65, height: 20 },
+            { x: 3150, y: this.groundLevel - 125, width: 50, height: 20 },
+            { x: 3350, y: this.groundLevel - 105, width: 60, height: 20 },
+            { x: 3550, y: this.groundLevel - 90, width: 55, height: 20 }
+        ];
+
+        // 固定されたアイテム配置
+        this.items = [
+            // 足場上のアイテム
+            { x: 150, y: this.groundLevel - 95, width: 20, height: 20, type: 'coin', active: true },
+            { x: 300, y: this.groundLevel - 125, width: 20, height: 20, type: 'star', active: true },
+            { x: 480, y: this.groundLevel - 105, width: 20, height: 20, type: 'coin', active: true },
+            { x: 640, y: this.groundLevel - 145, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 880, y: this.groundLevel - 115, width: 20, height: 20, type: 'star', active: true },
+            { x: 1040, y: this.groundLevel - 155, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 1230, y: this.groundLevel - 135, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1420, y: this.groundLevel - 165, width: 20, height: 20, type: 'star', active: true },
+            { x: 1680, y: this.groundLevel - 120, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 1870, y: this.groundLevel - 150, width: 20, height: 20, type: 'coin', active: true },
+            { x: 2110, y: this.groundLevel - 130, width: 20, height: 20, type: 'star', active: true },
+            { x: 2320, y: this.groundLevel - 160, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 2580, y: this.groundLevel - 110, width: 20, height: 20, type: 'coin', active: true },
+            { x: 2770, y: this.groundLevel - 140, width: 20, height: 20, type: 'star', active: true },
+            { x: 2980, y: this.groundLevel - 120, width: 20, height: 20, type: 'fruit', active: true },
+            { x: 3170, y: this.groundLevel - 150, width: 20, height: 20, type: 'coin', active: true },
+            { x: 3370, y: this.groundLevel - 130, width: 20, height: 20, type: 'star', active: true },
+            { x: 3570, y: this.groundLevel - 115, width: 20, height: 20, type: 'fruit', active: true },
+
+            // 地面のアイテム
+            { x: 200, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 500, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 800, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1100, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1500, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 1900, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 2200, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 2600, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 3000, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true },
+            { x: 3400, y: this.groundLevel - 25, width: 20, height: 20, type: 'coin', active: true }
+        ];
+
+        // 固定された障害物配置
+        this.obstacles = [
+            { x: 350, y: this.groundLevel - 35, width: 35, height: 35, type: 'spike' },
+            { x: 750, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' },
+            { x: 1150, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
+            { x: 1550, y: this.groundLevel - 45, width: 45, height: 45, type: 'spike' },
+            { x: 1950, y: this.groundLevel - 35, width: 35, height: 35, type: 'spike' },
+            { x: 2350, y: this.groundLevel - 40, width: 40, height: 40, type: 'spike' },
+            { x: 2750, y: this.groundLevel - 30, width: 30, height: 30, type: 'spike' },
+            { x: 3150, y: this.groundLevel - 45, width: 45, height: 45, type: 'spike' },
+            { x: 3550, y: this.groundLevel - 35, width: 35, height: 35, type: 'spike' }
+        ];
+
+        // 固定された足場上の障害物
+        this.platformObstacles = [
+            { x: 300, y: this.groundLevel - 125, width: 20, height: 20, type: 'spike' },
+            { x: 1040, y: this.groundLevel - 155, width: 20, height: 20, type: 'spike' },
+            { x: 1420, y: this.groundLevel - 165, width: 20, height: 20, type: 'spike' },
+            { x: 2110, y: this.groundLevel - 130, width: 20, height: 20, type: 'spike' },
+            { x: 2780, y: this.groundLevel - 140, width: 20, height: 20, type: 'spike' },
+            { x: 3380, y: this.groundLevel - 130, width: 20, height: 20, type: 'spike' }
+        ];
+
+        // 固定された壁配置（二段ジャンプで越えられる高さ）
+        this.walls = [
+            { x: 400, y: this.groundLevel - 95, width: 20, height: 95 },
+            { x: 700, y: this.groundLevel - 110, width: 20, height: 110 },
+            { x: 1000, y: this.groundLevel - 105, width: 20, height: 105 },
+            { x: 1300, y: this.groundLevel - 120, width: 20, height: 120 },
+            { x: 1700, y: this.groundLevel - 100, width: 20, height: 100 },
+            { x: 2000, y: this.groundLevel - 115, width: 20, height: 115 },
+            { x: 2400, y: this.groundLevel - 110, width: 20, height: 110 },
+            { x: 2700, y: this.groundLevel - 125, width: 20, height: 125 },
+            { x: 3000, y: this.groundLevel - 105, width: 20, height: 105 },
+            { x: 3300, y: this.groundLevel - 120, width: 20, height: 120 }
+        ];
+
+        // ゴール
+        this.goal = { x: 3800, y: this.groundLevel - 60, width: 40, height: 60, type: 'flag' };
+
+        console.log('🎮 ステージ13: 固定レイアウト生成完了 - 2024版');
+        console.log('🎮 ステージ13詳細:', {
+            platforms: this.platforms.length,
+            items: this.items.length,
+            obstacles: this.obstacles.length,
+            platformObstacles: this.platformObstacles.length,
+            walls: this.walls.length,
+            firstPlatform: this.platforms[0],
+            lastPlatform: this.platforms[this.platforms.length - 1]
         });
     }
 
@@ -1085,7 +1140,9 @@ class Stage {
             obstacleCount: 28,
             wallCount: 16,
             maxHeight: 90,
-            gapMultiplier: 1.4
+            gapMultiplier: 1.4,
+            wallMinHeight: 95,
+            wallMaxHeight: 135
         });
     }
 
@@ -1098,7 +1155,9 @@ class Stage {
             obstacleCount: 30,
             wallCount: 18,
             maxHeight: 100,
-            gapMultiplier: 1.5
+            gapMultiplier: 1.5,
+            wallMinHeight: 100,
+            wallMaxHeight: 140
         });
     }
 
@@ -1106,12 +1165,14 @@ class Stage {
         this.width = 4600;
         this.createAdvancedStage(16, {
             platformCount: 38,
-            platformMinWidth: 25,
+            platformMinWidth: 20,
             platformMaxWidth: 50,
-            obstacleCount: 32,
+            obstacleCount: 33,
             wallCount: 20,
-            maxHeight: 110,
-            gapMultiplier: 1.6
+            maxHeight: 120,
+            gapMultiplier: 1.6,
+            wallMinHeight: 105,
+            wallMaxHeight: 145
         });
     }
 
@@ -1119,12 +1180,14 @@ class Stage {
         this.width = 4800;
         this.createAdvancedStage(17, {
             platformCount: 40,
-            platformMinWidth: 20,
+            platformMinWidth: 18,
             platformMaxWidth: 45,
             obstacleCount: 35,
             wallCount: 22,
-            maxHeight: 120,
-            gapMultiplier: 1.7
+            maxHeight: 130,
+            gapMultiplier: 1.7,
+            wallMinHeight: 110,
+            wallMaxHeight: 150
         });
     }
 
@@ -1132,12 +1195,14 @@ class Stage {
         this.width = 5000;
         this.createAdvancedStage(18, {
             platformCount: 42,
-            platformMinWidth: 20,
+            platformMinWidth: 15,
             platformMaxWidth: 40,
             obstacleCount: 38,
             wallCount: 24,
-            maxHeight: 130,
-            gapMultiplier: 1.8
+            maxHeight: 140,
+            gapMultiplier: 1.8,
+            wallMinHeight: 115,
+            wallMaxHeight: 155
         });
     }
 
@@ -1145,12 +1210,14 @@ class Stage {
         this.width = 5200;
         this.createAdvancedStage(19, {
             platformCount: 45,
-            platformMinWidth: 15,
+            platformMinWidth: 12,
             platformMaxWidth: 35,
             obstacleCount: 40,
             wallCount: 26,
-            maxHeight: 140,
-            gapMultiplier: 1.9
+            maxHeight: 150,
+            gapMultiplier: 1.9,
+            wallMinHeight: 120,
+            wallMaxHeight: 160
         });
     }
 
@@ -1158,12 +1225,14 @@ class Stage {
         this.width = 5400; // 最も長いステージ
         this.createAdvancedStage(20, {
             platformCount: 50,
-            platformMinWidth: 15,
+            platformMinWidth: 10,
             platformMaxWidth: 30,
             obstacleCount: 45,
             wallCount: 30,
-            maxHeight: 150,
-            gapMultiplier: 2.0
+            maxHeight: 160,
+            gapMultiplier: 2.0,
+            wallMinHeight: 125,
+            wallMaxHeight: 165
         });
     }
 
@@ -1178,7 +1247,9 @@ class Stage {
             obstacleCount,
             wallCount,
             maxHeight,
-            gapMultiplier
+            gapMultiplier,
+            wallMinHeight = 90,  // デフォルト値を設定
+            wallMaxHeight = 130  // デフォルト値を設定
         } = config;
 
         // より複雑なプラットフォーム配置
@@ -1248,11 +1319,40 @@ class Stage {
             });
         }
 
-        // より多くの壁
+        // 足場上の障害物（ステージ13以降の新機能）
+        this.platformObstacles = [];
+        if (stageNumber >= 13) {
+            const platformObstacleCount = Math.floor(platformCount * 0.3); // プラットフォームの30%に障害物配置
+
+            // ランダムに選択されたプラットフォームに障害物を配置
+            const selectedPlatforms = this.platforms
+                .filter(platform => platform.width >= 40) // 十分な幅があるプラットフォームのみ
+                .sort(() => Math.random() - 0.5) // ランダムソート
+                .slice(0, platformObstacleCount); // 必要な数だけ選択
+
+            selectedPlatforms.forEach(platform => {
+                // プラットフォームの端から少し内側に配置
+                const obstacleX = platform.x + 15 + Math.random() * (platform.width - 30);
+                const obstacleY = platform.y - 25; // プラットフォームの上に配置
+
+                this.platformObstacles.push({
+                    x: obstacleX,
+                    y: obstacleY,
+                    width: 20,
+                    height: 20,
+                    type: 'spike',
+                    platformIndex: this.platforms.indexOf(platform) // デバッグ用
+                });
+            });
+
+            console.log(`ステージ${stageNumber}: 足場上の障害物を${this.platformObstacles.length}個配置しました`);
+        }
+
+        // 二段ジャンプで越えられる適切な高さの壁
         this.walls = [];
         for (let i = 0; i < wallCount; i++) {
             const x = (this.width / wallCount) * i + Math.random() * 150;
-            const height = 200 + Math.random() * 300;
+            const height = wallMinHeight + Math.random() * (wallMaxHeight - wallMinHeight);
             const y = this.groundLevel - height;
 
             this.walls.push({
@@ -1265,12 +1365,21 @@ class Stage {
 
         // ゴール
         this.goal = {
-            x: this.width - 150,
+            x: this.width - 100,
             y: this.groundLevel - 60,
             width: 40,
             height: 60,
             type: 'flag'
         };
+
+        console.log(`ステージ${stageNumber}生成完了:`, {
+            platforms: this.platforms.length,
+            obstacles: this.obstacles.length,
+            platformObstacles: this.platformObstacles.length,
+            walls: this.walls.length,
+            wallHeightRange: `${wallMinHeight}-${wallMaxHeight}px`,
+            maxPlayerReach: '約138px（二段ジャンプ）'
+        });
     }
 
     /**
@@ -1335,10 +1444,12 @@ class Stage {
         const drawStartY = cameraY - 100;
         const drawEndY = cameraY + canvasHeight + 100;
 
-        // 空の背景（上部）
+        // 空の背景（上部）- ステージに応じた色彩変化
+        const skyColors = this.getSkyColors();
         const skyGradient = ctx.createLinearGradient(0, drawStartY, 0, this.groundLevel);
-        skyGradient.addColorStop(0, '#87CEEB');  // 薄い空色
-        skyGradient.addColorStop(1, '#98E4FF');  // 少し濃い空色
+        skyGradient.addColorStop(0, skyColors.top);
+        skyGradient.addColorStop(0.5, skyColors.middle);
+        skyGradient.addColorStop(1, skyColors.bottom);
 
         ctx.fillStyle = skyGradient;
         ctx.fillRect(drawStartX, drawStartY, drawEndX - drawStartX, this.groundLevel - drawStartY);
@@ -1352,81 +1463,153 @@ class Stage {
         ctx.fillRect(drawStartX, this.groundLevel, drawEndX - drawStartX, drawEndY - this.groundLevel);
 
         // 雲の描画（カメラ位置を考慮）
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
         for (let i = 0; i < 15; i++) {
             const x = (i * 300) % (this.width + 600) - 300; // 範囲を拡張
             const y = 50 + (i % 3) * 30;
 
             // カメラ範囲内の雲のみ描画
             if (x > drawStartX - 100 && x < drawEndX + 100) {
-                this.drawCloud(ctx, x, y);
+                this.drawFluffyCloud(ctx, x, y, i);
             }
         }
+
+        // 遠景の山々を描画
+        this.drawMountains(ctx, drawStartX, drawEndX, this.groundLevel);
     }
 
     /**
-     * 雲描画
+     * ふわふわ雲描画
      */
-    drawCloud(ctx, x, y) {
+    drawFluffyCloud(ctx, x, y, index) {
+        ctx.save();
+
+        // 雲の種類による大きさと透明度の変化
+        const cloudScale = 0.8 + (index % 3) * 0.2;
+        const cloudOpacity = 0.7 + (index % 4) * 0.1;
+
+        // 雲の色とシャドウ
+        ctx.globalAlpha = cloudOpacity;
+
+        // 雲の影
+        ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+        this.drawCloudShape(ctx, x + 3, y + 3, cloudScale);
+
+        // 雲本体
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        this.drawCloudShape(ctx, x, y, cloudScale);
+
+        // 雲のハイライト
+        ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+        this.drawCloudShape(ctx, x - 2, y - 2, cloudScale * 0.7);
+
+        ctx.restore();
+    }
+
+    /**
+     * 雲の形状描画
+     */
+    drawCloudShape(ctx, x, y, scale) {
         ctx.beginPath();
-        ctx.arc(x, y, 20, 0, Math.PI * 2);
-        ctx.arc(x + 25, y, 25, 0, Math.PI * 2);
-        ctx.arc(x + 50, y, 20, 0, Math.PI * 2);
-        ctx.arc(x + 25, y - 15, 15, 0, Math.PI * 2);
+        // より多くの円で自然な雲の形を作る
+        ctx.arc(x, y, 15 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 20 * scale, y, 25 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 45 * scale, y, 18 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 60 * scale, y - 5 * scale, 20 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 25 * scale, y - 8 * scale, 15 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 10 * scale, y - 12 * scale, 12 * scale, 0, Math.PI * 2);
+        ctx.arc(x + 40 * scale, y - 15 * scale, 10 * scale, 0, Math.PI * 2);
         ctx.fill();
     }
 
     /**
-     * プラットフォーム描画
+     * 山々の描画
+     */
+    drawMountains(ctx, drawStartX, drawEndX, groundLevel) {
+        const mountainColors = [
+            'rgba(139, 69, 19, 0.3)',   // 茶色（一番遠い）
+            'rgba(34, 139, 34, 0.4)',   // 緑（中間）
+            'rgba(107, 142, 35, 0.5)'   // オリーブ（一番近い）
+        ];
+
+        // 3層の山を描画
+        for (let layer = 0; layer < 3; layer++) {
+            ctx.fillStyle = mountainColors[layer];
+            ctx.beginPath();
+
+            const mountainHeight = 80 + layer * 20;
+            const peakCount = 5 + layer;
+            const peakWidth = (drawEndX - drawStartX) / peakCount;
+
+            // 山の基準線から開始
+            const baseY = groundLevel - mountainHeight;
+            ctx.moveTo(drawStartX, baseY);
+
+            // 山のピークを描画
+            for (let i = 0; i <= peakCount; i++) {
+                const peakX = drawStartX + i * peakWidth;
+                const peakY = baseY - Math.sin(i * 0.8 + layer) * 40 - 20;
+
+                if (i === 0) {
+                    ctx.lineTo(peakX, peakY);
+                } else {
+                    // 滑らかな曲線でピークを結ぶ
+                    const prevPeakX = drawStartX + (i - 1) * peakWidth;
+                    const midX = prevPeakX + peakWidth / 2;
+                    const midY = (baseY + peakY) / 2;
+                    ctx.quadraticCurveTo(midX, midY, peakX, peakY);
+                }
+            }
+
+            // 山の基準線で閉じる
+            ctx.lineTo(drawEndX, baseY);
+            ctx.lineTo(drawEndX, groundLevel);
+            ctx.lineTo(drawStartX, groundLevel);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
+    /**
+     * プラットフォーム描画（木製風）
      */
     renderPlatforms(ctx) {
-        ctx.fillStyle = '#8B4513';
         this.platforms.forEach(platform => {
-            ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-
-            // 上面のハイライト
-            ctx.fillStyle = '#A0522D';
-            ctx.fillRect(platform.x, platform.y, platform.width, 5);
-            ctx.fillStyle = '#8B4513';
+            this.drawWoodenPlatform(ctx, platform);
         });
     }
 
     /**
-     * 壁描画
+     * 壁描画（石ブロック風）
      */
     renderWalls(ctx) {
-        ctx.fillStyle = '#696969';
         this.walls.forEach(wall => {
-            ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+            this.drawStoneBrick(ctx, wall);
         });
     }
 
     /**
-     * アイテム描画
+     * アイテム描画（改良版）
      */
     renderItems(ctx) {
+        const currentTime = performance.now();
+
         this.items.forEach(item => {
             if (!item.active) return;
 
+            // アイテムの浮遊アニメーション
+            const floatOffset = Math.sin(currentTime * 0.003 + item.x * 0.01) * 3;
+            const centerX = item.x + item.width / 2;
+            const centerY = item.y + item.height / 2 + floatOffset;
+
             switch (item.type) {
                 case 'coin':
-                    ctx.fillStyle = '#FFD700';
-                    ctx.beginPath();
-                    ctx.arc(item.x + item.width / 2, item.y + item.height / 2, item.width / 2, 0, Math.PI * 2);
-                    ctx.fill();
+                    this.drawMagicalCoin(ctx, centerX, centerY, item.width / 2, currentTime);
                     break;
                 case 'star':
-                    ctx.fillStyle = '#FF69B4';
-                    this.drawStar(ctx, item.x + item.width / 2, item.y + item.height / 2, item.width / 2);
+                    this.drawMagicalStar(ctx, centerX, centerY, item.width / 2, currentTime);
                     break;
                 case 'fruit':
-                    ctx.fillStyle = '#FF6347';
-                    ctx.beginPath();
-                    ctx.arc(item.x + item.width / 2, item.y + item.height / 2, item.width / 2, 0, Math.PI * 2);
-                    ctx.fill();
-                    // 葉っぱ
-                    ctx.fillStyle = '#32CD32';
-                    ctx.fillRect(item.x + item.width / 2 - 2, item.y, 4, 6);
+                    this.drawMagicalFruit(ctx, centerX, centerY, item.width / 2, currentTime);
                     break;
             }
         });
@@ -1461,57 +1644,842 @@ class Stage {
      * 障害物描画
      */
     renderObstacles(ctx) {
+        // 地面の障害物を描画
         this.obstacles.forEach(obstacle => {
-            // 全て三角形のスパイクとして描画
-            ctx.fillStyle = '#DC143C'; // 赤色
-            ctx.strokeStyle = '#8B0000'; // 濃い赤色の縁取り
-            ctx.lineWidth = 2;
-
-            // 三角形のスパイク
-            ctx.beginPath();
-            ctx.moveTo(obstacle.x, obstacle.y + obstacle.height); // 左下
-            ctx.lineTo(obstacle.x + obstacle.width / 2, obstacle.y); // 上の頂点
-            ctx.lineTo(obstacle.x + obstacle.width, obstacle.y + obstacle.height); // 右下
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
+            this.drawSpikeObstacle(ctx, obstacle, '#2C2C2C', '#000000'); // 濃い灰色ベース、黒いトゲ
         });
+
+        // 足場上の障害物を描画（Phase 2の新機能）
+        if (this.platformObstacles && this.platformObstacles.length > 0) {
+            this.platformObstacles.forEach(obstacle => {
+                this.drawSpikeObstacle(ctx, obstacle, '#404040', '#1C1C1C'); // 少し明るい灰色ベース、濃い灰色のトゲ
+            });
+        }
     }
 
     /**
-     * ゴール描画
+     * ウニのようなトゲトゲ障害物を描画
+     */
+    drawSpikeObstacle(ctx, obstacle, bodyColor, spikeColor) {
+        const centerX = obstacle.x + obstacle.width / 2;
+        const centerY = obstacle.y + obstacle.height / 2;
+        const radius = Math.min(obstacle.width, obstacle.height) / 3; // ベースの円のサイズ
+        const spikeLength = radius * 1.8; // トゲの長さ（少し長めに）
+        const spikeCount = 12; // トゲの数
+
+        // 影は省略（ウニ自体の立体感で十分な視覚効果を持つため）
+
+        // トゲを三角形で描画（ベースより先に描画して重なりを自然に）
+        ctx.fillStyle = spikeColor;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < spikeCount; i++) {
+            const angle = (i / spikeCount) * Math.PI * 2;
+            const spikeBaseX = centerX + Math.cos(angle) * radius;
+            const spikeBaseY = centerY + Math.sin(angle) * radius;
+            const spikeTipX = centerX + Math.cos(angle) * (radius + spikeLength);
+            const spikeTipY = centerY + Math.sin(angle) * (radius + spikeLength);
+
+            // トゲの幅を変化させて自然な見た目に
+            const spikeWidth = 6 + Math.sin(i * 0.5) * 2; // 4-8pxの範囲で変化
+
+            // トゲの左右の基点を計算（三角形の底辺）
+            const perpAngle = angle + Math.PI / 2;
+            const leftBaseX = spikeBaseX + Math.cos(perpAngle) * spikeWidth / 2;
+            const leftBaseY = spikeBaseY + Math.sin(perpAngle) * spikeWidth / 2;
+            const rightBaseX = spikeBaseX - Math.cos(perpAngle) * spikeWidth / 2;
+            const rightBaseY = spikeBaseY - Math.sin(perpAngle) * spikeWidth / 2;
+
+            // 鋭利な三角形のトゲを描画
+            ctx.beginPath();
+            ctx.moveTo(leftBaseX, leftBaseY);   // 左の基点
+            ctx.lineTo(spikeTipX, spikeTipY);   // 先端
+            ctx.lineTo(rightBaseX, rightBaseY); // 右の基点
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // トゲの先端にハイライト（より鋭利に見せる）
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(spikeTipX, spikeTipY, 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = spikeColor; // 色をリセット
+        }
+
+        // ベースの円を描画（トゲの上に重ねる）
+        ctx.fillStyle = bodyColor;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // 中心部の濃い部分（立体感を演出）
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ハイライト（左上に白い小さな円）
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.arc(centerX - radius * 0.3, centerY - radius * 0.3, radius * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    /**
+     * ゴール描画（改良版）
      */
     renderGoal(ctx) {
         if (!this.goal) return;
 
-        // 旗竿
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(this.goal.x, this.goal.y, 5, this.goal.height);
-
-        // 旗
-        ctx.fillStyle = '#FF1493';
-        ctx.fillRect(this.goal.x + 5, this.goal.y, 30, 20);
-
-        // 旗の模様
-        ctx.fillStyle = '#FFD700';
-        ctx.fillRect(this.goal.x + 10, this.goal.y + 5, 20, 10);
+        const currentTime = performance.now();
+        this.drawMagicalGoal(ctx, this.goal, currentTime);
     }
 
     /**
-     * 地面描画
+     * 地面描画（改良版）
      */
     renderGround(ctx) {
-        ctx.fillStyle = '#228B22';
+        // 地面の基本色（グラデーション）
+        const groundGradient = ctx.createLinearGradient(0, this.groundLevel, 0, this.height);
+        groundGradient.addColorStop(0, '#228B22');  // 上部：明るい緑
+        groundGradient.addColorStop(0.3, '#1E7B1E'); // 中間：やや暗い緑
+        groundGradient.addColorStop(1, '#196619');   // 下部：暗い緑
+
+        ctx.fillStyle = groundGradient;
         ctx.fillRect(0, this.groundLevel, this.width, this.height - this.groundLevel);
 
-        // 草のテクスチャ（簡易）
-        ctx.fillStyle = '#32CD32';
-        for (let x = 0; x < this.width; x += 20) {
-            ctx.fillRect(x, this.groundLevel, 2, 10);
-            ctx.fillRect(x + 5, this.groundLevel, 2, 8);
-            ctx.fillRect(x + 10, this.groundLevel, 2, 12);
-            ctx.fillRect(x + 15, this.groundLevel, 2, 9);
+        // 土の層（地面の一番上）
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(0, this.groundLevel, this.width, 5);
+
+        // 草のテクスチャ（改良版）
+        this.drawGrassTexture(ctx);
+
+        // 小さな花や装飾
+        this.drawGroundDecorations(ctx);
+    }
+
+    /**
+     * 草テクスチャの描画（背景と統一された描画範囲）
+     */
+    drawGrassTexture(ctx) {
+        // 背景描画と同じ範囲計算を使用
+        const canvas = ctx.canvas;
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+
+        // カメラ位置を考慮した描画範囲を計算
+        const game = window.simpleGame || window.game;
+        const cameraX = game ? game.camera.x : 0;
+        const cameraY = game ? game.camera.y : 0;
+
+        // 描画範囲を拡張（カメラ移動を考慮） - 背景と同じ計算
+        const drawStartX = cameraX - 100;
+        const drawEndX = cameraX + canvasWidth + 100;
+
+        // 全体の草パターンを描画（固定シードベース）
+        for (let x = 0; x < this.width; x += 12) {
+            // カメラ範囲内の草のみ描画（効率化）
+            if (x >= drawStartX && x <= drawEndX) {
+                // 固定シードで一貫した草を生成
+                const seed = Math.floor(x / 12);
+                const grassX = x + this.getFixedRandom(seed * 1.1) * 8;
+                const grassHeight = 6 + this.getFixedRandom(seed * 1.2) * 10;
+                const grassType = Math.floor(this.getFixedRandom(seed * 1.3) * 3);
+                const grassBend = this.getFixedRandom(seed * 1.4) * 0.6 - 0.3; // -0.3 to 0.3
+
+                // 草の色を決定
+                let grassColor;
+                switch (grassType) {
+                    case 0:
+                        grassColor = '#32CD32'; // 通常の草
+                        break;
+                    case 1:
+                        grassColor = '#228B22'; // 少し暗い草
+                        break;
+                    case 2:
+                        grassColor = '#7CFC00'; // 明るい草
+                        break;
+                }
+
+                this.drawStaticGrassBlade(ctx, grassX, this.groundLevel, grassHeight, grassColor, grassBend);
+            }
         }
+    }
+
+    /**
+     * 静的な草の描画（動かない）
+     */
+    drawStaticGrassBlade(ctx, x, y, height, color, bend) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+
+        // 固定された曲がり具合
+        const bendX = bend * height * 0.3;
+        const bendY = height * 0.8;
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.quadraticCurveTo(x + bendX, y - bendY, x + bendX * 1.2, y - height);
+        ctx.stroke();
+
+        // 草の先端をより明るく
+        ctx.strokeStyle = this.lightenColor(color, 0.3);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x + bendX * 1.2, y - height);
+        ctx.lineTo(x + bendX * 1.2 + 1, y - height + 1.5);
+        ctx.stroke();
+    }
+
+    /**
+ * 地面の装飾（花など）- 背景と統一された描画範囲
+ */
+    drawGroundDecorations(ctx) {
+        // 背景描画と同じ範囲計算を使用
+        const canvas = ctx.canvas;
+        const canvasWidth = canvas.width;
+
+        // カメラ位置を考慮した描画範囲を計算
+        const game = window.simpleGame || window.game;
+        const cameraX = game ? game.camera.x : 0;
+
+        // 描画範囲を拡張（カメラ移動を考慮） - 背景と同じ計算
+        const drawStartX = cameraX - 100;
+        const drawEndX = cameraX + canvasWidth + 100;
+
+        // 小さな花を散らす（固定位置）
+        for (let x = 0; x < this.width; x += 80) {
+            // カメラ範囲内の花のみ描画（効率化）
+            if (x >= drawStartX && x <= drawEndX) {
+                const seed = Math.floor(x / 80);
+                const flowerX = x + this.getFixedRandom(seed * 2.1) * 60;
+                const flowerY = this.groundLevel - 2 - this.getFixedRandom(seed * 2.2) * 4;
+
+                if (this.getFixedRandom(seed * 2.3) < 0.6) { // 60%の確率で花を描画
+                    const flowerColor = this.getFlowerColor(seed);
+                    this.drawStaticFlower(ctx, flowerX, flowerY, flowerColor);
+                }
+            }
+        }
+
+        // 時々キノコも描画（固定位置）
+        for (let x = 0; x < this.width; x += 200) {
+            // カメラ範囲内のキノコのみ描画（効率化）
+            if (x >= drawStartX && x <= drawEndX) {
+                const seed = Math.floor(x / 200);
+                const mushroomX = x + this.getFixedRandom(seed * 3.1) * 150;
+                const mushroomY = this.groundLevel - 8;
+
+                if (this.getFixedRandom(seed * 3.2) < 0.25) { // 25%の確率でキノコを描画
+                    this.drawStaticMushroom(ctx, mushroomX, mushroomY, seed);
+                }
+            }
+        }
+    }
+
+    /**
+     * 花の色を取得（固定）
+     */
+    getFlowerColor(seed) {
+        const flowerColors = ['#FF69B4', '#FFB6C1', '#FFA07A', '#FF6347', '#FFFF00', '#DDA0DD', '#98FB98'];
+        const colorIndex = Math.floor(this.getFixedRandom(seed * 4.1) * flowerColors.length);
+        return flowerColors[colorIndex];
+    }
+
+    /**
+     * 静的な花の描画
+     */
+    drawStaticFlower(ctx, x, y, color) {
+        // 花の中心
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 花びら
+        ctx.fillStyle = color;
+        for (let i = 0; i < 5; i++) {
+            const angle = (i / 5) * Math.PI * 2;
+            const petalX = x + Math.cos(angle) * 2.5;
+            const petalY = y + Math.sin(angle) * 2.5;
+            ctx.beginPath();
+            ctx.arc(petalX, petalY, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 花びらのハイライト
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        for (let i = 0; i < 5; i++) {
+            const angle = (i / 5) * Math.PI * 2;
+            const petalX = x + Math.cos(angle) * 2.5;
+            const petalY = y + Math.sin(angle) * 2.5;
+            ctx.beginPath();
+            ctx.arc(petalX - 0.3, petalY - 0.3, 0.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    /**
+     * 静的なキノコの描画
+     */
+    drawStaticMushroom(ctx, x, y, seed) {
+        // キノコの種類を決定
+        const mushroomType = Math.floor(this.getFixedRandom(seed * 5.1) * 3);
+
+        let stemColor, capColor, spotColor;
+        switch (mushroomType) {
+            case 0:
+                stemColor = '#F5F5DC'; // ベージュ
+                capColor = '#FF6B6B';  // 赤
+                spotColor = '#FFF';    // 白
+                break;
+            case 1:
+                stemColor = '#DEB887'; // バーリーウッド
+                capColor = '#8B4513';  // 茶色
+                spotColor = '#CD853F'; // ペルー
+                break;
+            case 2:
+                stemColor = '#F0E68C'; // カーキ
+                capColor = '#9370DB';  // 紫
+                spotColor = '#FFB6C1'; // ライトピンク
+                break;
+        }
+
+        // キノコの軸
+        ctx.fillStyle = stemColor;
+        ctx.fillRect(x - 1.5, y, 3, 7);
+
+        // 軸のハイライト
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(x - 1.5, y, 1, 7);
+
+        // キノコの傘
+        ctx.fillStyle = capColor;
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI);
+        ctx.fill();
+
+        // 傘の縁のグラデーション
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI);
+        ctx.stroke();
+
+        // 傘の斑点（固定位置）
+        ctx.fillStyle = spotColor;
+        const spotPositions = [
+            { dx: -1.5, dy: -1.5 },
+            { dx: 1, dy: -2 },
+            { dx: 0, dy: -0.5 },
+            { dx: -2.5, dy: -0.5 },
+            { dx: 2.5, dy: -1 }
+        ];
+
+        spotPositions.forEach((spot, index) => {
+            if (this.getFixedRandom(seed * 5.2 + index) < 0.8) { // 80%の確率で斑点を描画
+                ctx.beginPath();
+                ctx.arc(x + spot.dx, y + spot.dy, 0.6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+    }
+
+    /**
+     * 色を明るくする
+     */
+    lightenColor(color, factor) {
+        const colorMap = {
+            '#32CD32': '#7CFC00',
+            '#228B22': '#32CD32',
+            '#7CFC00': '#ADFF2F'
+        };
+        return colorMap[color] || color;
+    }
+
+    /**
+     * 木製プラットフォームの描画
+     */
+    drawWoodenPlatform(ctx, platform) {
+        ctx.save();
+
+        // 木の基本色
+        const woodColor = '#8B4513';
+        const lightWoodColor = '#A0522D';
+        const darkWoodColor = '#654321';
+
+        // プラットフォームの背景
+        ctx.fillStyle = woodColor;
+        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+
+        // 木の板の線を描画
+        const plankWidth = 40;
+        for (let x = platform.x; x < platform.x + platform.width; x += plankWidth) {
+            const currentPlankWidth = Math.min(plankWidth, platform.x + platform.width - x);
+
+            // 板の境界線
+            ctx.strokeStyle = darkWoodColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, platform.y);
+            ctx.lineTo(x, platform.y + platform.height);
+            ctx.stroke();
+
+            // 木目の模様
+            ctx.strokeStyle = 'rgba(101, 67, 33, 0.3)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 3; i++) {
+                const woodGrainY = platform.y + (platform.height / 4) * (i + 1);
+                ctx.beginPath();
+                ctx.moveTo(x + 2, woodGrainY);
+                ctx.lineTo(x + currentPlankWidth - 2, woodGrainY);
+                ctx.stroke();
+            }
+        }
+
+        // 上面のハイライト
+        ctx.fillStyle = lightWoodColor;
+        ctx.fillRect(platform.x, platform.y, platform.width, 4);
+
+        // 下面の影
+        ctx.fillStyle = darkWoodColor;
+        ctx.fillRect(platform.x, platform.y + platform.height - 2, platform.width, 2);
+
+        // 金属の留め具（両端）
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(platform.x + 5, platform.y + 2, 3, platform.height - 4);
+        ctx.fillRect(platform.x + platform.width - 8, platform.y + 2, 3, platform.height - 4);
+
+        // 留め具のハイライト
+        ctx.fillStyle = '#A9A9A9';
+        ctx.fillRect(platform.x + 5, platform.y + 2, 1, platform.height - 4);
+        ctx.fillRect(platform.x + platform.width - 8, platform.y + 2, 1, platform.height - 4);
+
+        ctx.restore();
+    }
+
+    /**
+     * 石ブロック風の壁の描画
+     */
+    drawStoneBrick(ctx, wall) {
+        ctx.save();
+
+        // 石の基本色
+        const stoneColor = '#696969';
+        const lightStoneColor = '#A9A9A9';
+        const darkStoneColor = '#2F2F2F';
+
+        // 壁の背景
+        ctx.fillStyle = stoneColor;
+        ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+
+        // 石ブロックのパターン
+        const blockHeight = 20;
+        const blockWidth = 30;
+
+        for (let y = wall.y; y < wall.y + wall.height; y += blockHeight) {
+            for (let x = wall.x; x < wall.x + wall.width; x += blockWidth) {
+                const currentBlockWidth = Math.min(blockWidth, wall.x + wall.width - x);
+                const currentBlockHeight = Math.min(blockHeight, wall.y + wall.height - y);
+
+                // 石ブロックの境界線
+                ctx.strokeStyle = darkStoneColor;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, currentBlockWidth, currentBlockHeight);
+
+                // 石の質感（小さな点々）
+                ctx.fillStyle = 'rgba(169, 169, 169, 0.5)';
+                for (let i = 0; i < 3; i++) {
+                    const dotX = x + Math.random() * currentBlockWidth;
+                    const dotY = y + Math.random() * currentBlockHeight;
+                    ctx.beginPath();
+                    ctx.arc(dotX, dotY, 0.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // ブロックのハイライト（上と左）
+                ctx.strokeStyle = lightStoneColor;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + currentBlockWidth, y);
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y + currentBlockHeight);
+                ctx.stroke();
+
+                // ブロックの影（下と右）
+                ctx.strokeStyle = darkStoneColor;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x, y + currentBlockHeight);
+                ctx.lineTo(x + currentBlockWidth, y + currentBlockHeight);
+                ctx.moveTo(x + currentBlockWidth, y);
+                ctx.lineTo(x + currentBlockWidth, y + currentBlockHeight);
+                ctx.stroke();
+            }
+        }
+
+        // 全体の影（右側）
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(wall.x + wall.width, wall.y + 2, 3, wall.height);
+
+        ctx.restore();
+    }
+
+    /**
+     * 魔法のコインを描画
+     */
+    drawMagicalCoin(ctx, x, y, radius, currentTime) {
+        ctx.save();
+
+        // キラキラエフェクト
+        this.drawSparkles(ctx, x, y, radius * 2, currentTime);
+
+        // コインの影
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.beginPath();
+        ctx.arc(x + 2, y + 2, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // コイン本体（グラデーション）
+        const coinGradient = ctx.createRadialGradient(x - 3, y - 3, 0, x, y, radius);
+        coinGradient.addColorStop(0, '#FFFF00');
+        coinGradient.addColorStop(0.7, '#FFD700');
+        coinGradient.addColorStop(1, '#B8860B');
+
+        ctx.fillStyle = coinGradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // コインの縁
+        ctx.strokeStyle = '#B8860B';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // コインの模様（$マーク）
+        ctx.fillStyle = '#B8860B';
+        ctx.font = `${radius}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('$', x, y);
+
+        // ハイライト
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    /**
+     * 魔法の星を描画
+     */
+    drawMagicalStar(ctx, x, y, radius, currentTime) {
+        ctx.save();
+
+        // 星の回転
+        const rotation = currentTime * 0.002;
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+
+        // キラキラエフェクト
+        this.drawSparkles(ctx, 0, 0, radius * 2, currentTime);
+
+        // 星の影
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        this.drawStarShape(ctx, 2, 2, radius);
+
+        // 星のグラデーション
+        const starGradient = ctx.createRadialGradient(-3, -3, 0, 0, 0, radius);
+        starGradient.addColorStop(0, '#FFB6C1');
+        starGradient.addColorStop(0.5, '#FF69B4');
+        starGradient.addColorStop(1, '#C71585');
+
+        ctx.fillStyle = starGradient;
+        this.drawStarShape(ctx, 0, 0, radius);
+
+        // 星の輪郭
+        ctx.strokeStyle = '#C71585';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 星の中心のキラキラ
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    /**
+     * 魔法のフルーツを描画
+     */
+    drawMagicalFruit(ctx, x, y, radius, currentTime) {
+        ctx.save();
+
+        // キラキラエフェクト
+        this.drawSparkles(ctx, x, y, radius * 2, currentTime);
+
+        // フルーツの影
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.beginPath();
+        ctx.arc(x + 2, y + 2, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // フルーツ本体（グラデーション）
+        const fruitGradient = ctx.createRadialGradient(x - 3, y - 3, 0, x, y, radius);
+        fruitGradient.addColorStop(0, '#FF7F50');
+        fruitGradient.addColorStop(0.7, '#FF6347');
+        fruitGradient.addColorStop(1, '#DC143C');
+
+        ctx.fillStyle = fruitGradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // フルーツの輪郭
+        ctx.strokeStyle = '#DC143C';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 葉っぱ（3D効果）
+        ctx.fillStyle = '#32CD32';
+        ctx.beginPath();
+        ctx.ellipse(x, y - radius - 2, 4, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 葉っぱの影
+        ctx.fillStyle = '#228B22';
+        ctx.beginPath();
+        ctx.ellipse(x + 1, y - radius - 1, 3, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ハイライト
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    /**
+     * 星の形状を描画
+     */
+    drawStarShape(ctx, x, y, radius) {
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+            const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+            const x1 = x + Math.cos(angle) * radius;
+            const y1 = y + Math.sin(angle) * radius;
+
+            if (i === 0) {
+                ctx.moveTo(x1, y1);
+            } else {
+                ctx.lineTo(x1, y1);
+            }
+
+            const angle2 = ((i + 0.5) * 4 * Math.PI) / 5 - Math.PI / 2;
+            const x2 = x + Math.cos(angle2) * (radius * 0.5);
+            const y2 = y + Math.sin(angle2) * (radius * 0.5);
+            ctx.lineTo(x2, y2);
+        }
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    /**
+     * キラキラエフェクトを描画
+     */
+    drawSparkles(ctx, x, y, range, currentTime) {
+        ctx.save();
+
+        for (let i = 0; i < 5; i++) {
+            const sparkleTime = currentTime * 0.01 + i * 0.5;
+            const sparkleX = x + Math.cos(sparkleTime) * range;
+            const sparkleY = y + Math.sin(sparkleTime * 0.7) * range;
+            const sparkleSize = 2 + Math.sin(sparkleTime * 2) * 1;
+            const sparkleAlpha = 0.3 + Math.sin(sparkleTime * 3) * 0.3;
+
+            ctx.fillStyle = `rgba(255, 255, 255, ${sparkleAlpha})`;
+            ctx.beginPath();
+            ctx.arc(sparkleX, sparkleY, sparkleSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+
+    /**
+     * 魔法のゴールを描画
+     */
+    drawMagicalGoal(ctx, goal, currentTime) {
+        ctx.save();
+
+        // 虹色のオーラエフェクト
+        this.drawRainbowAura(ctx, goal.x + goal.width / 2, goal.y + goal.height / 2, 50, currentTime);
+
+        // 旗竿（3D効果）
+        const poleGradient = ctx.createLinearGradient(goal.x, 0, goal.x + 5, 0);
+        poleGradient.addColorStop(0, '#A0522D');
+        poleGradient.addColorStop(0.5, '#8B4513');
+        poleGradient.addColorStop(1, '#654321');
+
+        ctx.fillStyle = poleGradient;
+        ctx.fillRect(goal.x, goal.y, 5, goal.height);
+
+        // 旗の波打ち効果
+        const waveOffset = Math.sin(currentTime * 0.005) * 5;
+
+        // 旗の影
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(goal.x + 5 + 2, goal.y + 2);
+        ctx.lineTo(goal.x + 35 + waveOffset + 2, goal.y + 2);
+        ctx.lineTo(goal.x + 30 + waveOffset + 2, goal.y + 10 + 2);
+        ctx.lineTo(goal.x + 35 + waveOffset + 2, goal.y + 20 + 2);
+        ctx.lineTo(goal.x + 5 + 2, goal.y + 20 + 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // 旗本体（グラデーション）
+        const flagGradient = ctx.createLinearGradient(goal.x + 5, goal.y, goal.x + 35, goal.y);
+        flagGradient.addColorStop(0, '#FF69B4');
+        flagGradient.addColorStop(0.5, '#FF1493');
+        flagGradient.addColorStop(1, '#DC143C');
+
+        ctx.fillStyle = flagGradient;
+        ctx.beginPath();
+        ctx.moveTo(goal.x + 5, goal.y);
+        ctx.lineTo(goal.x + 35 + waveOffset, goal.y);
+        ctx.lineTo(goal.x + 30 + waveOffset, goal.y + 10);
+        ctx.lineTo(goal.x + 35 + waveOffset, goal.y + 20);
+        ctx.lineTo(goal.x + 5, goal.y + 20);
+        ctx.closePath();
+        ctx.fill();
+
+        // 旗の星マーク
+        ctx.fillStyle = '#FFD700';
+        this.drawStarShape(ctx, goal.x + 20, goal.y + 10, 6);
+
+        // 旗の縁取り
+        ctx.strokeStyle = '#8B0000';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // キラキラエフェクト
+        this.drawSparkles(ctx, goal.x + goal.width / 2, goal.y + goal.height / 2, 30, currentTime);
+
+        ctx.restore();
+    }
+
+    /**
+     * 虹色のオーラエフェクトを描画
+     */
+    drawRainbowAura(ctx, x, y, radius, currentTime) {
+        ctx.save();
+
+        const colors = ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3'];
+
+        for (let i = 0; i < colors.length; i++) {
+            const currentRadius = radius - i * 3;
+            const alpha = 0.1 + Math.sin(currentTime * 0.01 + i * 0.5) * 0.05;
+
+            ctx.fillStyle = colors[i] + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+            ctx.beginPath();
+            ctx.arc(x, y, currentRadius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+
+    /**
+     * ステージに応じた空の色を取得
+     */
+    getSkyColors() {
+        const stageGroup = Math.floor((this.stageNumber - 1) / 4); // 4ステージごとに色を変える
+
+        const skyThemes = [
+            // ステージ1-4: 明るい昼間
+            {
+                top: '#87CEEB',    // 薄い空色
+                middle: '#98E4FF', // 少し濃い空色
+                bottom: '#B0E0E6'  // パウダーブルー
+            },
+            // ステージ5-8: 夕方
+            {
+                top: '#FFB347',    // 薄いオレンジ
+                middle: '#FF7F50', // コーラル
+                bottom: '#FF6B6B'  // 薄い赤
+            },
+            // ステージ9-12: 夜明け
+            {
+                top: '#DDA0DD',    // プラム
+                middle: '#DA70D6', // オーキッド
+                bottom: '#FF69B4'  // ホットピンク
+            },
+            // ステージ13-16: 深い夜
+            {
+                top: '#191970',    // ミッドナイトブルー
+                middle: '#483D8B', // ダークスレートブルー
+                bottom: '#6A5ACD'  // スレートブルー
+            },
+            // ステージ17-20: 魔法の空
+            {
+                top: '#9400D3',    // バイオレット
+                middle: '#8A2BE2', // ブルーバイオレット
+                bottom: '#9370DB'  // ミディアムパープル
+            }
+        ];
+
+        const themeIndex = Math.min(stageGroup, skyThemes.length - 1);
+        return skyThemes[themeIndex];
+    }
+
+    /**
+     * 固定ランダム値生成（シードベース、常に同じ値を返す）
+     */
+    getFixedRandom(seed) {
+        // 簡単なシード値ベースの疑似乱数生成
+        const x = Math.sin(seed * 12.9898) * 43758.5453;
+        return x - Math.floor(x);
+    }
+
+    /**
+     * 最適化されたランダム値生成（パフォーマンス向上）
+     */
+    getOptimizedRandom(seed) {
+        // 簡単なシード値ベースの疑似乱数生成
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+    }
+
+    /**
+     * 描画の最適化チェック
+     */
+    isInViewport(x, y, width, height) {
+        const game = window.simpleGame || window.game;
+        const cameraX = game ? game.camera.x : 0;
+        const cameraY = game ? game.camera.y : 0;
+        const viewportWidth = 800; // 想定する画面幅
+        const viewportHeight = 600; // 想定する画面高さ
+
+        return x < cameraX + viewportWidth + 100 &&
+            x + width > cameraX - 100 &&
+            y < cameraY + viewportHeight + 100 &&
+            y + height > cameraY - 100;
     }
 }
 

@@ -1,77 +1,131 @@
-/* タブレット・モバイル対応 - シンプルで確実なレイアウト */
+/* 完全レスポンシブグリッドシステム - 自動列数調整 */
 
-/* 超大画面（1400px以上）- 最大5列 */
+/* 超大画面（1400px以上） - 最大5列 */
 @media screen and (min-width: 1400px) {
     .stage-grid {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
-        gap: 16px !important;
-        max-width: 100% !important;
-        margin: 1rem 0 !important;
-        padding: 0 !important;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 18px;
+        padding: 28px;
     }
     
     .stage-button {
         font-size: 1.4rem;
+        max-width: 160px;
     }
 }
 
-/* デスクトップ（1200px-1399px）- 最大4列 */
+/* デスクトップ（1200px-1399px） - 最大4列 */
 @media screen and (max-width: 1399px) and (min-width: 1200px) {
     .stage-grid {
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
-        gap: 16px !important;
-        max-width: 100% !important;
-        margin: 1rem 0 !important;
-        padding: 0 !important;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 16px;
+        padding: 24px;
     }
     
     .stage-button {
         font-size: 1.3rem;
+        max-width: 150px;
     }
 }
 
-/* 大画面タブレット（900px-1199px）- 最大3列 */
+/* 大画面タブレット（900px-1199px） - 最大3列 */
 @media screen and (max-width: 1199px) and (min-width: 900px) {
     .stage-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
-        gap: 14px !important;
-        max-width: 100% !important;
-        margin: 1rem 0 !important;
-        padding: 0 !important;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        padding: 22px;
     }
     
     .stage-button {
         font-size: 1.2rem;
+        max-width: 140px;
     }
 }
 
-/* 中画面タブレット（700px-899px）- 最大3列 */
+/* 中画面タブレット（700px-899px） - 最大3列 */
 @media screen and (max-width: 899px) and (min-width: 700px) {
     .stage-grid {
-        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
-        gap: 12px !important;
-        max-width: 100% !important;
-        margin: 1rem 0 !important;
-        padding: 0 !important;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 14px;
+        padding: 20px;
     }
     
     .stage-button {
         font-size: 1.1rem;
+        max-width: 130px;
     }
 }
 
-/* 小画面タブレット（500px-699px）- 最大2列 */
+/* 小画面タブレット（500px-699px） - 最大2列 */
 @media screen and (max-width: 699px) and (min-width: 500px) {
     .stage-grid {
-        grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)) !important;
-        gap: 10px !important;
-        max-width: 100% !important;
-        margin: 1rem 0 !important;
-        padding: 0 !important;
+        grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+        gap: 13px;
+        padding: 18px;
+    }
+    
+    .stage-button {
+        font-size: 1.1rem;
+        max-width: 120px;
+    }
+}
+
+/* タブレット（〜768px） - 最大2列 */
+@media screen and (max-width: 768px) {
+    .stage-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 12px;
+        padding: 16px;
     }
     
     .stage-button {
         font-size: 1rem;
+        max-width: 110px;
+    }
+}
+
+/* スマートフォン（〜480px） - 最大2列 */
+@media screen and (max-width: 480px) {
+    .stage-grid {
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 10px;
+        padding: 14px;
+    }
+    
+    .stage-button {
+        font-size: 0.95rem;
+        max-width: 100px;
+        min-width: 80px;
+    }
+}
+
+/* 小型スマホ（250px-320px） - 1-2列 */
+@media screen and (max-width: 320px) and (min-width: 250px) {
+    .stage-grid {
+        grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .stage-button {
+        font-size: 0.9rem;
+        max-width: 95px;
+        min-width: 75px;
+    }
+}
+
+/* 極小画面（〜249px） - 1列固定 */
+@media screen and (max-width: 249px) {
+    .stage-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 10px;
+    }
+    
+    .stage-button {
+        font-size: 0.85rem;
+        max-width: 90px;
+        min-width: 70px;
     }
 }
 
@@ -138,20 +192,7 @@
         font-size: 1.1rem;
     }
     
-    /* タブレット用：レスポンシブグリッド（最大2列） */
-    .stage-grid {
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
-        gap: 8px !important;
-        max-width: 100% !important;
-        margin: 1rem 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-    }
-    
-    .stage-button {
-        font-size: 1rem;
-        padding: 10px 5px;
-    }
+    /* 注意: stage-gridのレスポンシブ設定は上部の新システムで管理 */
     
     #gameUI {
         padding: 8px 15px;
@@ -170,6 +211,17 @@
     .touch-controls {
         bottom: 15px;
         padding: 0 15px;
+    }
+    
+    /* タブレット用バーチャルパッド */
+    .virtual-pad {
+        width: 110px;
+        height: 110px;
+    }
+    
+    .pad-stick {
+        width: 45px;
+        height: 45px;
     }
     
     .control-button {
@@ -238,19 +290,7 @@
     }
     
     /* スマートフォン用：レスポンシブグリッド（最大2列） */
-    .stage-grid {
-        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)) !important;
-        gap: 8px !important;
-        max-width: 100% !important;
-        margin: 1rem 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-    }
-    
-    .stage-button {
-        font-size: 0.9rem;
-        padding: 8px 4px;
-        border-radius: 12px;
+    /* stage-gridのレスポンシブ設定は上部の新システムで管理済み */
     }
     
     #gameUI {
@@ -279,9 +319,15 @@
         padding: 0 10px;
     }
 
-    .control-left, .control-right {
-        width: 45px;
-        height: 45px;
+    /* スマートフォン用バーチャルパッド */
+    .virtual-pad {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .pad-stick {
+        width: 38px;
+        height: 38px;
     }
 
     .control-button {
@@ -343,21 +389,7 @@
         font-size: 0.9rem;
     }
     
-    /* 小型画面：1-2列レイアウト */
-    .stage-grid {
-        grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)) !important;
-        gap: 6px !important;
-        max-width: 100% !important;
-        margin: 1rem 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-    }
-    
-    .stage-button {
-        font-size: 0.8rem;
-        padding: 8px;
-        border-radius: 10px;
-    }
+    /* stage-gridは上部の新システムで管理済み */
     
     .control-button {
         width: 40px;
@@ -374,24 +406,7 @@
     }
 }
 
-/* 極小スマートフォン（250px以下） */
-@media screen and (max-width: 249px) {
-    /* 極小画面：1列のみ */
-    .stage-grid {
-        grid-template-columns: 1fr !important;
-        gap: 4px !important;
-        max-width: 100% !important;
-        margin: 0.5rem 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-    }
-    
-    .stage-button {
-        font-size: 0.7rem;
-        padding: 6px;
-        border-radius: 8px;
-    }
-}
+/* 極小スマートフォンは上部の新システムで対応済み */
 
 /* 横向き表示の調整 */
 @media screen and (orientation: landscape) and (max-height: 500px) {
@@ -428,36 +443,14 @@
     }
     
     .stage-grid {
-        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
-        gap: 6px !important;
-        max-width: 100% !important;
-        margin: 0.5rem 0 !important;
-        padding: 0 !important;
-        max-height: 40vh;
-        overflow-y: auto;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(5px);
-        scrollbar-width: thin;
-        scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-    }
-    
-    .stage-grid::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .stage-grid::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    
-    .stage-grid::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 3px;
+        grid-template-columns: repeat(6, 1fr); /* 横向きは6列で対応 */
+        gap: 8px;
+        padding: 12px;
+        max-height: 45vh; /* 横向き用に調整 */
     }
     
     .stage-button {
-        font-size: 0.8rem;
-        padding: 6px 4px;
+        font-size: 0.9rem;
     }
     
     #gameCanvas {

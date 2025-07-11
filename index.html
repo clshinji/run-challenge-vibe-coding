@@ -174,17 +174,16 @@
         <!-- ゲームキャンバス -->
         <canvas id="gameCanvas" width="800" height="400"></canvas>
 
-        <!-- タッチ操作用ボタン（モバイル） -->
+        <!-- タッチ操作用コントロール（バーチャルパッド） -->
         <div id="touchControls" class="touch-controls">
-          <div class="control-left">
-            <button id="leftButton" class="control-button">←</button>
-            <button id="rightButton" class="control-button">→</button>
+          <div id="virtualPad" class="virtual-pad">
+            <div class="pad-background"></div>
+            <div class="pad-stick"></div>
           </div>
           <div class="control-right">
             <button id="jumpButton" class="control-button jump">
               ジャンプ
             </button>
-            <button id="crouchButton" class="control-button">しゃがむ</button>
           </div>
         </div>
       </div>
@@ -307,6 +306,10 @@
             <label>こうかおん</label>
             <button id="soundToggle" class="toggle-button">ON</button>
           </div>
+          <div class="setting-item">
+            <label>デバッグじょうほう</label>
+            <button id="debugInfoToggle" class="toggle-button">OFF</button>
+          </div>
           <div class="setting-item debug-section">
             <label>デバッグ機能</label>
             <div class="debug-buttons">
@@ -329,12 +332,12 @@
     </div>
 
     <!-- JavaScript読み込み（同期・順序保証） -->
-    <script src="js/storage.js?v=61"></script>
-    <script src="js/player.js?v=61"></script>
-    <script src="js/stage.js?v=61"></script>
-    <script src="js/goal-animation.js?v=61"></script>
-    <script src="js/game-simple.js?v=61"></script>
-    <script src="js/ui.js?v=61"></script>
+    <script src="js/storage.js?v=62"></script>
+    <script src="js/player.js?v=62"></script>
+    <script src="js/stage.js?v=62"></script>
+    <script src="js/goal-animation.js?v=62"></script>
+    <script src="js/game-simple.js?v=62"></script>
+    <script src="js/ui.js?v=62"></script>
 
     <!-- UIManager初期化 -->
     <script>

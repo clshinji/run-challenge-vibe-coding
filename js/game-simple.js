@@ -53,6 +53,9 @@ class SimpleGame {
         // グローバルアクセス用の設定
         window.game = this;
 
+        // デバッグ情報表示設定（デフォルトでオフ）
+        this.showDebugInfo = false;
+
         console.log('シンプルゲームエンジン初期化完了');
     }
 
@@ -143,9 +146,7 @@ class SimpleGame {
             'ArrowRight': 'right',
             'KeyD': 'right',
             'ArrowUp': 'jump',
-            'Space': 'jump',
-            'ArrowDown': 'crouch',
-            'KeyS': 'crouch'
+            'Space': 'jump'
         };
 
         const action = keyMap[keyCode];
@@ -357,14 +358,25 @@ class SimpleGame {
             }
         });
 
-        // 障害物との衝突（三角形の当たり判定）
+        // 障害物との衝突（ウニ形状の障害物 - 円形判定でトゲの先端まで）
         this.stage.obstacles.forEach(obstacle => {
-            if (this.checkTriangleCollision(this.player, obstacle)) {
-                console.log('🔥 三角形障害物との衝突を検出:', obstacle.type);
+            if (this.checkSpikeObstacleCollision(this.player, obstacle)) {
+                console.log('🔥 ウニ障害物との衝突を検出:', obstacle.type);
                 console.log('プレイヤー無敵状態:', this.player.invulnerable);
                 this.handleObstacleCollision(obstacle);
             }
         });
+
+        // 足場上の障害物との衝突（Phase 2の新機能）
+        if (this.stage.platformObstacles && this.stage.platformObstacles.length > 0) {
+            this.stage.platformObstacles.forEach(obstacle => {
+                if (this.checkSpikeObstacleCollision(this.player, obstacle)) {
+                    console.log('🔥 足場上のウニ障害物との衝突を検出:', obstacle.type);
+                    console.log('プレイヤー無敵状態:', this.player.invulnerable);
+                    this.handleObstacleCollision(obstacle);
+                }
+            });
+        }
 
         // ゴールとの衝突（クリア処理中は判定しない）
         if (!this.isCompleting && this.stage.goal && this.checkCollision(this.player, this.stage.goal)) {
@@ -381,6 +393,37 @@ class SimpleGame {
             obj1.x + obj1.width > obj2.x &&
             obj1.y < obj2.y + obj2.height &&
             obj1.y + obj1.height > obj2.y;
+    }
+
+    /**
+     * ウニ障害物との衝突判定（プレイヤー矩形 vs ウニ円形 - トゲの先端まで）
+     */
+    checkSpikeObstacleCollision(player, obstacle) {
+        // ウニの中心座標
+        const obstacleCenterX = obstacle.x + obstacle.width / 2;
+        const obstacleCenterY = obstacle.y + obstacle.height / 2;
+
+        // ウニの判定半径（ベース半径 + トゲの長さ）
+        const baseRadius = Math.min(obstacle.width, obstacle.height) / 3;
+        const spikeLength = baseRadius * 1.8;
+        const totalRadius = baseRadius + spikeLength;
+
+        // プレイヤーの中心座標
+        const playerCenterX = player.x + player.width / 2;
+        const playerCenterY = player.y + player.height / 2;
+
+        // プレイヤーの矩形と円の衝突判定
+        // 円の中心からプレイヤー矩形の最も近い点までの距離を計算
+        const closestX = Math.max(player.x, Math.min(obstacleCenterX, player.x + player.width));
+        const closestY = Math.max(player.y, Math.min(obstacleCenterY, player.y + player.height));
+
+        // 円の中心から最も近い点までの距離
+        const distanceX = obstacleCenterX - closestX;
+        const distanceY = obstacleCenterY - closestY;
+        const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+        // 距離が半径以下なら衝突
+        return distance <= totalRadius;
     }
 
     /**
@@ -448,7 +491,7 @@ class SimpleGame {
             return;
         }
 
-        console.log('💥 スパイクに触れました！');
+        console.log('💥 トゲトゲのウニに触れました！');
 
         // まずライフを減らす
         const beforeLives = this.gameState.lives;
@@ -644,8 +687,8 @@ class SimpleGame {
      * UI描画
      */
     renderUI() {
-        // デバッグ情報（簡素化）
-        if (this.player) {
+        // デバッグ情報（設定で制御）
+        if (this.player && this.showDebugInfo) {
             this.ctx.fillStyle = 'white';
             this.ctx.font = '16px Arial';
             this.ctx.fillText(`Running: ${this.isRunning}`, 10, 30);

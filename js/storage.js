@@ -23,7 +23,8 @@ class GameStorage {
             playerIcon: 'cat', // デフォルトアイコン
             settings: {
                 music: true,
-                sound: true
+                sound: true,
+                debugInfo: false // デバッグ情報はデフォルトでオフ
             },
             progress: {
                 unlockedStages: [1], // 最初はステージ1のみ解放

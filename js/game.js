@@ -6,9 +6,10 @@ class Game {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.isRunning = false;
+        this.isPaused = false;
         this.currentStage = 1;
         this.gameLoopId = null;
-        
+
         // ゲーム状態
         this.gameState = {
             score: 0,
@@ -16,20 +17,20 @@ class Game {
             time: 0,
             lives: 3
         };
-        
+
         // ゲームオブジェクト
         this.player = null;
         this.stage = null;
         this.camera = { x: 0, y: 0 };
-        
+
         // タイミング制御
         this.lastTime = 0;
         this.deltaTime = 0;
         this.gameStartTime = 0;
-        
+
         // キー入力状態
         this.keys = {};
-        
+
         this.init();
     }
 
@@ -39,6 +40,10 @@ class Game {
     init() {
         this.setupCanvas();
         this.setupInputHandlers();
+
+        // デバッグ情報表示設定（デフォルトでオフ）
+        this.showDebugInfo = false;
+
         console.log('ゲームエンジン初期化完了');
     }
 
@@ -48,11 +53,11 @@ class Game {
     setupCanvas() {
         // Canvas サイズ調整
         this.resizeCanvas();
-        
+
         // リサイズハンドラーの参照を保存
         this.resizeHandler = () => this.resizeCanvas();
         window.addEventListener('resize', this.resizeHandler);
-        
+
         // Canvas スタイル設定
         this.ctx.imageSmoothingEnabled = false; // ピクセルアート用
     }
@@ -63,34 +68,34 @@ class Game {
     resizeCanvas() {
         const container = this.canvas.parentElement;
         const containerRect = container.getBoundingClientRect();
-        
+
         console.log('Canvas リサイズ開始:', {
             container: { width: containerRect.width, height: containerRect.height },
             currentCanvas: { width: this.canvas.width, height: this.canvas.height },
             windowSize: { width: window.innerWidth, height: window.innerHeight }
         });
-        
+
         // アスペクト比を維持しながらサイズ調整
         const targetRatio = 2; // 横:縦 = 2:1
         let width = Math.max(containerRect.width - 40, 600); // 最小幅を600pxに設定
         let height = width / targetRatio;
-        
+
         // 高さが画面に収まらない場合は高さ基準で調整
         const maxHeight = Math.max(window.innerHeight - 200, 300); // 最小高さを300pxに設定
         if (height > maxHeight) {
             height = maxHeight;
             width = height * targetRatio;
         }
-        
+
         // 最小サイズを保証
         width = Math.max(width, 600);
         height = Math.max(height, 300);
-        
+
         this.canvas.width = width;
         this.canvas.height = height;
         this.canvas.style.width = width + 'px';
         this.canvas.style.height = height + 'px';
-        
+
         console.log('Canvas リサイズ完了:', {
             newSize: { width: this.canvas.width, height: this.canvas.height },
             style: { width: this.canvas.style.width, height: this.canvas.style.height }
@@ -140,9 +145,7 @@ class Game {
             'ArrowRight': 'right',
             'KeyD': 'right',
             'ArrowUp': 'jump',
-            'Space': 'jump',
-            'ArrowDown': 'crouch',
-            'KeyS': 'crouch'
+            'Space': 'jump'
         };
 
         const action = keyMap[keyCode];
@@ -156,7 +159,7 @@ class Game {
      */
     startStage(stageNumber) {
         console.log(`ステージ ${stageNumber} 開始処理開始`);
-        
+
         try {
             this.currentStage = stageNumber;
             this.gameState = {
@@ -171,41 +174,41 @@ class Game {
             this.stage = new Stage(stageNumber);
             console.log('ステージ作成完了:', this.stage);
             console.log('ステージ地面レベル:', this.stage.groundLevel);
-            
+
             // プレイヤー作成
             console.log('プレイヤー作成中...');
-            
+
             // Canvas高さに応じて安全な初期位置を計算
             const safePlayerY = Math.min(this.stage.groundLevel - 100, this.canvas.height - 100);
             this.player = new Player(100, safePlayerY);
-            
+
             console.log('プレイヤー作成完了:', this.player);
             console.log('プレイヤー初期位置:', { x: this.player.x, y: this.player.y });
             console.log('ステージ地面レベル:', this.stage.groundLevel);
             console.log('Canvas高さ:', this.canvas.height);
             console.log('計算された安全位置:', safePlayerY);
-            
+
             // カメラ初期化（シンプルで安全な方法）
             this.camera = { x: 0, y: 0 }; // まず安全な初期値に設定
-            
+
             // プレイヤーが作成された後にカメラを調整
             if (this.player) {
                 this.updateCamera(); // 初回のカメラ更新
             }
-            
+
             console.log('カメラ初期化完了:', {
                 camera: this.camera,
                 player: { x: this.player.x, y: this.player.y }
             });
-            
+
             // ゲーム開始
             this.gameStartTime = performance.now();
             this.lastTime = this.gameStartTime;
             this.isRunning = true;
-            
+
             console.log('ゲームループ開始');
             this.gameLoop();
-            
+
             console.log(`ステージ ${stageNumber} 開始完了`);
         } catch (error) {
             console.error('ステージ開始エラー:', error);
@@ -227,9 +230,9 @@ class Game {
         // デルタタイム計算
         this.deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
-        
+
         // 最大デルタタイム制限（ラグ対策）
-        this.deltaTime = Math.min(this.deltaTime, 1/30);
+        this.deltaTime = Math.min(this.deltaTime, 1 / 30);
 
         // 更新・描画
         try {
@@ -300,10 +303,10 @@ class Game {
             this.camera.x = Math.max(0, Math.min(this.camera.x, this.stage.width - this.canvas.width));
             this.camera.y = Math.max(-100, Math.min(this.camera.y, 100)); // 上下の移動範囲を制限
         }
-        
+
         // デバッグ用ログ（最初の数フレームのみ）
         if (this.gameState.time < 1) {
-            console.log('カメラ更新:', { 
+            console.log('カメラ更新:', {
                 player: { x: this.player.x, y: this.player.y },
                 camera: { x: this.camera.x, y: this.camera.y },
                 target: { x: targetX, y: targetY },
@@ -332,17 +335,18 @@ class Game {
             this.completeStage();
         }
 
-        // 障害物との衝突
+        // 障害物との衝突（ウニ形状の障害物 - 円形判定でトゲの先端まで）
         this.stage.obstacles.forEach(obstacle => {
-            if (this.checkCollision(this.player, obstacle)) {
+            if (this.checkSpikeObstacleCollision(this.player, obstacle)) {
+                console.log('🔥 ウニ障害物との衝突を検出:', obstacle.type);
                 this.handleObstacleCollision(obstacle);
             }
         });
 
         // 落下判定（ステージの地面レベルより下に落ちた場合）
         if (this.stage && this.player.y > this.stage.groundLevel + 100) {
-            console.log('プレイヤー落下判定:', { 
-                playerY: this.player.y, 
+            console.log('プレイヤー落下判定:', {
+                playerY: this.player.y,
                 groundLevel: this.stage.groundLevel,
                 threshold: this.stage.groundLevel + 100
             });
@@ -351,13 +355,44 @@ class Game {
     }
 
     /**
-     * 矩形衝突判定
-     */
+ * 矩形衝突判定
+ */
     checkCollision(obj1, obj2) {
         return obj1.x < obj2.x + obj2.width &&
-               obj1.x + obj1.width > obj2.x &&
-               obj1.y < obj2.y + obj2.height &&
-               obj1.y + obj1.height > obj2.y;
+            obj1.x + obj1.width > obj2.x &&
+            obj1.y < obj2.y + obj2.height &&
+            obj1.y + obj1.height > obj2.y;
+    }
+
+    /**
+     * ウニ障害物との衝突判定（プレイヤー矩形 vs ウニ円形 - トゲの先端まで）
+     */
+    checkSpikeObstacleCollision(player, obstacle) {
+        // ウニの中心座標
+        const obstacleCenterX = obstacle.x + obstacle.width / 2;
+        const obstacleCenterY = obstacle.y + obstacle.height / 2;
+
+        // ウニの判定半径（ベース半径 + トゲの長さ）
+        const baseRadius = Math.min(obstacle.width, obstacle.height) / 3;
+        const spikeLength = baseRadius * 1.8;
+        const totalRadius = baseRadius + spikeLength;
+
+        // プレイヤーの中心座標
+        const playerCenterX = player.x + player.width / 2;
+        const playerCenterY = player.y + player.height / 2;
+
+        // プレイヤーの矩形と円の衝突判定
+        // 円の中心からプレイヤー矩形の最も近い点までの距離を計算
+        const closestX = Math.max(player.x, Math.min(obstacleCenterX, player.x + player.width));
+        const closestY = Math.max(player.y, Math.min(obstacleCenterY, player.y + player.height));
+
+        // 円の中心から最も近い点までの距離
+        const distanceX = obstacleCenterX - closestX;
+        const distanceY = obstacleCenterY - closestY;
+        const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+        // 距離が半径以下なら衝突
+        return distance <= totalRadius;
     }
 
     /**
@@ -365,7 +400,7 @@ class Game {
      */
     collectItem(item) {
         this.gameState.itemsCollected++;
-        
+
         switch (item.type) {
             case 'star':
                 this.gameState.score += 100;
@@ -386,7 +421,20 @@ class Game {
      * 障害物衝突処理
      */
     handleObstacleCollision(obstacle) {
-        if (obstacle.type === 'deadly') {
+        // ウニ障害物（spike）はダメージを与える
+        if (obstacle.type === 'spike') {
+            console.log('💥 ウニに触れました！');
+
+            // プレイヤーがダメージを受ける
+            if (this.player.takeDamage && this.player.takeDamage()) {
+                this.gameState.lives--;
+
+                // ライフが0になったらゲームオーバー
+                if (this.gameState.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+        } else if (obstacle.type === 'deadly') {
             this.playerDied();
         }
     }
@@ -397,7 +445,7 @@ class Game {
     playerDied() {
         console.log('プレイヤー死亡処理開始');
         this.gameState.lives--;
-        
+
         if (this.gameState.lives <= 0) {
             this.gameOver();
         } else {
@@ -412,7 +460,7 @@ class Game {
      */
     completeStage() {
         this.isRunning = false;
-        
+
         const stats = {
             score: this.gameState.score,
             time: Math.floor(this.gameState.time),
@@ -436,7 +484,7 @@ class Game {
     gameOver() {
         console.log('ゲームオーバー処理開始');
         this.isRunning = false;
-        
+
         if (window.uiManager) {
             window.uiManager.showGameOver();
         }
@@ -463,7 +511,7 @@ class Game {
             // オブジェクトの存在確認
             if (!this.stage || !this.player) {
                 console.warn('描画対象オブジェクトが存在しません', { stage: !!this.stage, player: !!this.player });
-                
+
                 // 最低限の描画（テスト用）
                 this.ctx.fillStyle = 'red';
                 this.ctx.font = '20px Arial';
@@ -483,10 +531,10 @@ class Game {
 
             // 座標系変換（カメラ）- 安全な値でのみ実行
             this.ctx.save();
-            
+
             const cameraX = isFinite(this.camera.x) ? this.camera.x : 0;
             const cameraY = isFinite(this.camera.y) ? this.camera.y : 0;
-            
+
             this.ctx.translate(-cameraX, -cameraY);
 
             // ステージ描画
@@ -505,7 +553,7 @@ class Game {
             // エラーが発生しても描画を続行
             this.ctx.fillStyle = '#87CEEB';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            
+
             // エラーメッセージを表示
             this.ctx.fillStyle = 'red';
             this.ctx.font = '20px Arial';
@@ -518,24 +566,26 @@ class Game {
      * UI描画
      */
     renderUI() {
-        // デバッグ情報
-        if (this.player) {
+        // デバッグ情報（設定で制御）
+        if (this.player && this.showDebugInfo) {
             this.ctx.fillStyle = 'white';
             this.ctx.font = '16px Arial';
             this.ctx.fillText(`Player: (${Math.floor(this.player.x)}, ${Math.floor(this.player.y)})`, 10, 30);
             this.ctx.fillText(`Camera: (${Math.floor(this.camera.x)}, ${Math.floor(this.camera.y)})`, 10, 50);
             this.ctx.fillText(`Running: ${this.isRunning}, Paused: ${this.isPaused}`, 10, 70);
         }
-        
+
         // 画面中央に十字線を描画（デバッグ用）
-        this.ctx.strokeStyle = 'red';
-        this.ctx.lineWidth = 1;
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.canvas.width / 2 - 10, this.canvas.height / 2);
-        this.ctx.lineTo(this.canvas.width / 2 + 10, this.canvas.height / 2);
-        this.ctx.moveTo(this.canvas.width / 2, this.canvas.height / 2 - 10);
-        this.ctx.lineTo(this.canvas.width / 2, this.canvas.height / 2 + 10);
-        this.ctx.stroke();
+        if (this.showDebugInfo) {
+            this.ctx.strokeStyle = 'red';
+            this.ctx.lineWidth = 1;
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.canvas.width / 2 - 10, this.canvas.height / 2);
+            this.ctx.lineTo(this.canvas.width / 2 + 10, this.canvas.height / 2);
+            this.ctx.moveTo(this.canvas.width / 2, this.canvas.height / 2 - 10);
+            this.ctx.lineTo(this.canvas.width / 2, this.canvas.height / 2 + 10);
+            this.ctx.stroke();
+        }
     }
 
     /**
@@ -548,9 +598,9 @@ class Game {
             isPaused: this.isPaused,
             gameLoopId: this.gameLoopId
         });
-        
+
         this.isPaused = true;
-        
+
         console.log('ゲーム一時停止処理完了');
         console.log('一時停止後状態:', {
             isRunning: this.isRunning,
@@ -570,17 +620,17 @@ class Game {
             player: !!this.player,
             stage: !!this.stage
         });
-        
+
         this.isPaused = false;
         this.lastTime = performance.now();
-        
+
         // ゲームループが停止している場合は再開
         if (!this.isRunning) {
             console.log('ゲームループが停止していたため再開');
             this.isRunning = true;
             this.gameLoop();
         }
-        
+
         console.log('ゲーム再開処理完了');
         console.log('再開後状態:', {
             isRunning: this.isRunning,
@@ -594,17 +644,17 @@ class Game {
      */
     restart() {
         console.log('ゲーム再スタート開始');
-        
+
         // 現在のステージ番号を保存
         const currentStageNumber = this.currentStage;
-        
+
         // 完全にゲームを停止
         this.stop();
-        
+
         // 新しいゲームインスタンスとして再開始
         console.log('新しいゲーム開始');
         this.startStage(currentStageNumber);
-        
+
         console.log('ゲーム再スタート完了');
     }
 
@@ -613,17 +663,17 @@ class Game {
      */
     destroy() {
         console.log('ゲーム破棄開始');
-        
+
         // ゲームループを停止
         this.isRunning = false;
         this.isPaused = false;
-        
+
         // アニメーションフレームをキャンセル
         if (this.gameLoopId) {
             cancelAnimationFrame(this.gameLoopId);
             this.gameLoopId = null;
         }
-        
+
         // イベントリスナーを削除
         if (this.keyDownHandler) {
             document.removeEventListener('keydown', this.keyDownHandler);
@@ -637,20 +687,20 @@ class Game {
         if (this.resizeHandler) {
             window.removeEventListener('resize', this.resizeHandler);
         }
-        
+
         // オブジェクトを完全にクリア
         this.player = null;
         this.stage = null;
         this.camera = null;
-        
+
         // Canvas参照はクリアしない（再利用のため）
         // this.ctx = null;
         // this.canvas = null;
-        
+
         // ゲーム状態をクリア
         this.gameState = null;
         this.keys = null;
-        
+
         console.log('ゲーム破棄完了');
     }
 
@@ -659,22 +709,22 @@ class Game {
      */
     stop() {
         console.log('ゲーム停止開始');
-        
+
         // ゲームループを停止
         this.isRunning = false;
         this.isPaused = false;
-        
+
         // アニメーションフレームをキャンセル
         if (this.gameLoopId) {
             cancelAnimationFrame(this.gameLoopId);
             this.gameLoopId = null;
         }
-        
+
         // オブジェクトをクリア
         this.player = null;
         this.stage = null;
         this.camera = { x: 0, y: 0 };
-        
+
         // ゲーム状態をリセット
         this.gameState = {
             score: 0,
@@ -682,7 +732,7 @@ class Game {
             time: 0,
             lives: 3
         };
-        
+
         console.log('ゲーム停止完了');
     }
 }
