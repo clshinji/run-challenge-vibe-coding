@@ -795,7 +795,7 @@ class Player {
 
             // デバッグ情報（設定で切り替え可能）
             if (this.showDebugInfo) {
-                this.renderDebugInfo(ctx, drawX, drawY);
+            this.renderDebugInfo(ctx, drawX, drawY);
             }
         } catch (error) {
             console.error('プレイヤー描画エラー:', error);
@@ -807,7 +807,7 @@ class Player {
 
     /**
  * キャラクター描画（可愛い丸みを帯びたキャラクター）
- */
+     */
     renderCharacter(ctx, x, y) {
         // 無敵状態の場合は点滅効果
         if (this.invulnerable) {

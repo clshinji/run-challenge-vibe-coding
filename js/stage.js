@@ -1711,12 +1711,12 @@ class Stage {
         // ベースの円を描画（トゲの上に重ねる）
         ctx.fillStyle = bodyColor;
         ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
+                ctx.lineWidth = 2;
 
-        ctx.beginPath();
+                ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
+                ctx.fill();
+                ctx.stroke();
 
         // 中心部の濃い部分（立体感を演出）
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';

@@ -570,11 +570,11 @@ input[type="text"]:focus {
     order: 3;
 }
 
-/* バーチャルパッド */
+/* バーチャルパッド（子ども向けに大型化） */
 .virtual-pad {
     position: relative;
-    width: 120px;
-    height: 120px;
+    width: 150px;
+    height: 150px;
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
@@ -594,20 +594,20 @@ input[type="text"]:focus {
 
 .pad-stick {
     position: absolute;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, 
-        rgba(255, 255, 255, 0.8), 
-        rgba(200, 200, 200, 0.9));
-    border: 2px solid rgba(0, 0, 0, 0.3);
+        rgba(255, 255, 255, 0.9), 
+        rgba(200, 200, 200, 0.8));
+    border: 3px solid rgba(0, 0, 0, 0.4);
     box-shadow: 
-        0 2px 8px rgba(0, 0, 0, 0.4),
-        inset 0 1px 3px rgba(255, 255, 255, 0.6);
-    transition: all 0.1s ease;
+        0 3px 12px rgba(0, 0, 0, 0.5),
+        inset 0 2px 4px rgba(255, 255, 255, 0.7);
+    transition: all 0.15s ease;
 }
 
 .pad-stick.active {
@@ -623,21 +623,22 @@ input[type="text"]:focus {
 
 .control-left, .control-right {
     display: flex;
-    gap: 10px;
+    gap: 15px;
+    align-items: center;
 }
 
 .control-button {
-    width: 60px;
-    height: 60px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.9);
+    border: 4px solid rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     font-size: 1.2rem;
     font-weight: bold;
     color: #2C3E50;
     cursor: pointer;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
-    transition: all 0.1s ease;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    transition: all 0.15s ease;
     touch-action: manipulation;
     user-select: none;
     -webkit-user-select: none;
@@ -647,23 +648,94 @@ input[type="text"]:focus {
     -moz-appearance: none;
     appearance: none;
     outline: none;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .control-button:active {
-    transform: scale(0.9);
+    transform: scale(0.92);
     background: rgba(255, 255, 255, 1);
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 
 .control-button.pressed {
-    transform: scale(0.9);
+    transform: scale(0.92);
     background: rgba(255, 255, 255, 1);
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.control-button.jump:active {
+    transform: scale(0.92);
+    background: linear-gradient(135deg, #FF5722 0%, #FF7043 25%, #FF9800 50%, #FFD54F 75%, #8BC34A 100%);
+    box-shadow: 
+        0 3px 15px rgba(255, 87, 34, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        0 0 0 6px rgba(255, 87, 34, 0.2);
+    animation: none;
+}
+
+.control-button.jump.pressed {
+    transform: scale(0.92);
+    background: linear-gradient(135deg, #FF5722 0%, #FF7043 25%, #FF9800 50%, #FFD54F 75%, #8BC34A 100%);
+    box-shadow: 
+        0 3px 15px rgba(255, 87, 34, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        0 0 0 6px rgba(255, 87, 34, 0.2);
+    animation: none;
 }
 
 .control-button.jump {
-    background: rgba(255, 107, 107, 0.8);
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 25%, #FFB74D 50%, #FFF176 75%, #AED581 100%);
     color: white;
+    font-weight: 900;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+    border: 4px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 
+        0 6px 20px rgba(255, 107, 107, 0.5),
+        inset 0 3px 6px rgba(255, 255, 255, 0.4),
+        0 0 0 8px rgba(255, 107, 107, 0.1);
+    animation: jumpPulse 2s infinite;
+}
+
+.control-button.jump::before {
+    content: "↑";
+    font-size: 3rem;
+    font-weight: 900;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 4px;
+    display: block;
+    line-height: 1;
+}
+
+.control-button.jump::after {
+    content: "ジャンプ";
+    font-size: 1rem;
+    font-weight: 800;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+    display: block;
+    line-height: 1;
+}
+
+@keyframes jumpPulse {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 
+            0 6px 20px rgba(255, 107, 107, 0.5),
+            inset 0 3px 6px rgba(255, 255, 255, 0.4),
+            0 0 0 8px rgba(255, 107, 107, 0.1);
+    }
+    50% { 
+        transform: scale(1.01);
+        box-shadow: 
+            0 7px 22px rgba(255, 107, 107, 0.55),
+            inset 0 3px 6px rgba(255, 255, 255, 0.4),
+            0 0 0 10px rgba(255, 107, 107, 0.12);
+    }
 }
 
 /* 結果画面 */
