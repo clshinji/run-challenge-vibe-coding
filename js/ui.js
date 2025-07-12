@@ -174,17 +174,9 @@ class UIManager {
             this.handleStatsBack();
         });
 
-        // デバッグボタン
-        document.getElementById('addTestDataButton').addEventListener('click', () => {
-            this.generateTestData();
-        });
-
-        document.getElementById('addTestScoreButton').addEventListener('click', () => {
-            this.addTestScore();
-        });
-
-        document.getElementById('resetScoreButton').addEventListener('click', () => {
-            this.resetScoreData();
+        // デバッグ機能: テストデータ生成トグル
+        document.getElementById('testDataToggle').addEventListener('click', () => {
+            this.toggleTestData();
         });
 
         // ステージ選択画面
@@ -885,7 +877,7 @@ class UIManager {
                         <div class="stage-stars">${starsDisplay}</div>
                         <div class="stage-info">
                             <div class="stage-score">${(stats.bestScore || 0).toLocaleString()}</div>
-                            <div class="stage-time">${this.formatTime(stats.bestTime || 0)}</div>
+                            <div class="stage-time">${this.formatTime((stats.bestTime || 0) * 1000)}</div>
                         </div>
                     `;
                 } else {
@@ -1220,6 +1212,7 @@ class UIManager {
         const musicButton = document.getElementById('musicToggle');
         const soundButton = document.getElementById('soundToggle');
         const debugInfoButton = document.getElementById('debugInfoToggle');
+        const testDataButton = document.getElementById('testDataToggle');
 
         musicButton.textContent = this.gameData.settings.music ? 'ON' : 'OFF';
         musicButton.className = this.gameData.settings.music ? 'toggle-button' : 'toggle-button off';
@@ -1229,6 +1222,9 @@ class UIManager {
 
         debugInfoButton.textContent = this.gameData.settings.debugInfo ? 'ON' : 'OFF';
         debugInfoButton.className = this.gameData.settings.debugInfo ? 'toggle-button' : 'toggle-button off';
+
+        testDataButton.textContent = this.gameData.settings.testDataMode ? 'ON' : 'OFF';
+        testDataButton.className = this.gameData.settings.testDataMode ? 'toggle-button' : 'toggle-button off';
     }
 
     /**
@@ -1719,101 +1715,92 @@ class UIManager {
     }
 
     /**
-     * デバッグ用：テストデータを生成
+     * テストデータモードのトグル
      */
-    generateTestData() {
+    toggleTestData() {
         const currentPlayer = gameStorage.getCurrentPlayer();
         if (!currentPlayer) {
             alert('プレイヤーが設定されていません');
             return;
         }
 
-        const currentData = gameStorage.loadGameData();
+        // 現在の状態を取得
+        const currentMode = this.gameData.settings.testDataMode || false;
+        const newMode = !currentMode;
 
-        if (currentData.totalStats.totalScore > 0 ||
-            Object.keys(currentData.progress.stageStats).length > 0) {
-            if (!confirm(`プレイヤー "${currentPlayer}" には既にデータがあります。\nテストデータを追加しますか？`)) {
-                return;
-            }
+        console.log(`🔧 テストデータモード切り替え: ${currentMode} → ${newMode}`);
+
+        if (newMode) {
+            // テストデータモードON: 全ステージを開放
+            this.enableTestDataMode();
+        } else {
+            // テストデータモードOFF: 元の状態に戻す
+            this.disableTestDataMode();
         }
 
-        console.log(`プレイヤー "${currentPlayer}" のテスト用データを生成中...`);
+        // 設定を保存
+        this.gameData.settings.testDataMode = newMode;
+        gameStorage.saveSettings({ testDataMode: newMode });
 
-        // テスト用のステージクリアデータを生成
-        const testStages = [
-            { stage: 1, score: 1500, time: 45000, items: 8 },
-            { stage: 2, score: 1200, time: 52000, items: 6 },
-            { stage: 3, score: 800, time: 68000, items: 4 }
-        ];
+        // UI更新
+        this.updateSettingsDisplay();
+        this.updateStageButtons();
 
-        testStages.forEach(stageData => {
-            gameStorage.saveStageCompletion(stageData.stage, {
-                score: stageData.score,
-                time: stageData.time,
-                itemsCollected: stageData.items
+        console.log(`✅ テストデータモード: ${newMode ? 'ON' : 'OFF'}`);
+    }
+
+    /**
+     * テストデータモードを有効化（全ステージ開放）
+     */
+    enableTestDataMode() {
+        console.log('🔧 テストデータモード有効化: 全ステージを開放');
+
+        // 元の開放状態をバックアップ
+        this.gameData.settings.originalUnlockedStages = [...this.gameData.progress.unlockedStages];
+
+        // 全ステージ（1-20）を開放
+        this.gameData.progress.unlockedStages = [];
+        for (let i = 1; i <= 20; i++) {
+            this.gameData.progress.unlockedStages.push(i);
+        }
+
+        // データを保存
+        gameStorage.saveGameData(this.gameData);
+
+        console.log('✅ 全ステージ開放完了:', this.gameData.progress.unlockedStages);
+    }
+
+    /**
+     * テストデータモードを無効化（元の状態に戻す）
+     */
+    disableTestDataMode() {
+        console.log('🔧 テストデータモード無効化: 元の状態に戻す');
+
+        // バックアップされた開放状態を復元
+        if (this.gameData.settings.originalUnlockedStages) {
+            this.gameData.progress.unlockedStages = [...this.gameData.settings.originalUnlockedStages];
+            console.log('✅ 元の開放状態を復元:', this.gameData.progress.unlockedStages);
+        } else {
+            // バックアップがない場合は、クリア済みステージに基づいて復元
+            const completedStages = this.gameData.progress.completedStages || [];
+            this.gameData.progress.unlockedStages = [1]; // 最初はステージ1のみ
+
+            // クリア済みステージの次のステージまで開放
+            completedStages.forEach(stage => {
+                const nextStage = stage + 1;
+                if (nextStage <= 20 && !this.gameData.progress.unlockedStages.includes(nextStage)) {
+                    this.gameData.progress.unlockedStages.push(nextStage);
+                }
             });
-        });
 
-        console.log('テスト用データ生成完了');
-        alert(`プレイヤー "${currentPlayer}" にテストデータを生成しました！\n総合スコア: 3,500点`);
-    }
-
-    /**
-     * テスト用データを確保（実際のゲームデータがない場合）
-     * ※現在は使用していない（新規プレイヤーはゼロから開始）
-     */
-    ensureTestData() {
-        // この機能は無効化されています
-        // 新規プレイヤーは完全にゼロから開始します
-        // テストデータが必要な場合は設定画面の「テストデータ生成」ボタンを使用してください
-        return;
-    }
-
-    /**
-     * デバッグ用：スコアデータをリセット
-     */
-    resetScoreData() {
-        const currentPlayer = gameStorage.getCurrentPlayer();
-        if (!currentPlayer) {
-            alert('プレイヤーが設定されていません');
-            return;
+            console.log('✅ クリア実績に基づいて復元:', this.gameData.progress.unlockedStages);
         }
 
-        if (confirm(`プレイヤー "${currentPlayer}" のスコアデータをリセットしますか？`)) {
-            gameStorage.deletePlayerData(currentPlayer);
+        // バックアップデータを削除
+        delete this.gameData.settings.originalUnlockedStages;
 
-            // 新しいデータを作成
-            gameStorage.setCurrentPlayer(currentPlayer);
-            this.gameData = gameStorage.loadGameData();
-
-            console.log(`プレイヤー "${currentPlayer}" のスコアデータをリセットしました`);
-            alert(`プレイヤー "${currentPlayer}" のスコアデータをリセットしました`);
-        }
-    }
-
-    /**
-     * デバッグ用：テストスコアを追加
-     */
-    addTestScore() {
-        const currentPlayer = gameStorage.getCurrentPlayer();
-        if (!currentPlayer) {
-            alert('プレイヤーが設定されていません');
-            return;
-        }
-
-        const randomScore = Math.floor(Math.random() * 2000) + 500;
-        const randomTime = Math.floor(Math.random() * 60000) + 30000;
-        const randomItems = Math.floor(Math.random() * 10) + 1;
-        const randomStage = Math.floor(Math.random() * 20) + 1;
-
-        gameStorage.saveStageCompletion(randomStage, {
-            score: randomScore,
-            time: randomTime,
-            itemsCollected: randomItems
-        });
-
-        console.log(`プレイヤー "${currentPlayer}" にテストスコア追加: ステージ${randomStage}, スコア${randomScore}, 時間${randomTime}ms, アイテム${randomItems}個`);
-        alert(`テストスコア追加完了！\nプレイヤー: ${currentPlayer}\nステージ${randomStage}: ${randomScore}点`);
+        // データを保存
+        gameStorage.saveGameData(this.gameData);
     }
 
     /**
@@ -1925,7 +1912,7 @@ class UIManager {
                 </div>
                 <div>
                     <span class="label">タイム:</span>
-                    <span class="value">${this.formatTime(stats.bestTime || 0)}</span>
+                    <span class="value">${this.formatTime((stats.bestTime || 0) * 1000)}</span>
                 </div>
                 <div>
                     <span class="label">アイテム:</span>
@@ -2044,7 +2031,9 @@ class UIManager {
      * 時間をフォーマット
      */
     formatTime(milliseconds) {
-        if (milliseconds === 0) return '--:--';
+        if (milliseconds === 0 || milliseconds === Infinity || !milliseconds) {
+            return '--:--';
+        }
 
         const seconds = Math.floor(milliseconds / 1000);
         const minutes = Math.floor(seconds / 60);

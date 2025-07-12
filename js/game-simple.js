@@ -30,6 +30,7 @@ class SimpleGame {
         this.lastTime = 0;
         this.deltaTime = 0;
         this.gameStartTime = 0;
+        this.lastLoggedTime = -1; // デバッグ用
 
         // キー入力状態
         this.keys = {};
@@ -282,7 +283,20 @@ class SimpleGame {
      * ゲーム更新
      */
     update() {
-        this.gameState.time = (performance.now() - this.gameStartTime) / 1000;
+        const currentTime = performance.now();
+        const elapsedTime = (currentTime - this.gameStartTime) / 1000;
+        this.gameState.time = elapsedTime;
+
+        // 時間計算のデバッグログ（5秒ごとに出力）
+        if (Math.floor(elapsedTime) % 5 === 0 && Math.floor(elapsedTime) !== this.lastLoggedTime) {
+            console.log('⏰ 時間更新:', {
+                currentTime: currentTime,
+                gameStartTime: this.gameStartTime,
+                elapsedTime: elapsedTime.toFixed(2),
+                gameStateTime: this.gameState.time.toFixed(2)
+            });
+            this.lastLoggedTime = Math.floor(elapsedTime);
+        }
 
         // ゴールアニメーション中は更新を停止
         if (this.goalAnimation && this.goalAnimation.isAnimating()) {
@@ -610,6 +624,16 @@ class SimpleGame {
             time: Math.floor(this.gameState.time),
             itemsCollected: this.gameState.itemsCollected
         };
+
+        console.log('🏁 ゲームクリア時の時間計算:', {
+            'performance.now()': performance.now(),
+            'gameStartTime': this.gameStartTime,
+            'elapsed_ms': performance.now() - this.gameStartTime,
+            'elapsed_seconds': (performance.now() - this.gameStartTime) / 1000,
+            'gameState.time': this.gameState.time,
+            'Math.floor(gameState.time)': Math.floor(this.gameState.time),
+            'stats.time': stats.time
+        });
 
         gameStorage.saveStageCompletion(this.currentStage, stats);
 

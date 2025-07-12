@@ -24,7 +24,8 @@ class GameStorage {
             settings: {
                 music: true,
                 sound: true,
-                debugInfo: false // デバッグ情報はデフォルトでオフ
+                debugInfo: false, // デバッグ情報はデフォルトでオフ
+                testDataMode: false // テストデータモードはデフォルトでオフ
             },
             progress: {
                 unlockedStages: [1], // 最初はステージ1のみ解放
