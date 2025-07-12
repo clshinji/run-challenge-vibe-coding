@@ -365,7 +365,8 @@ class UIManager {
             centerPos: { x: 0, y: 0 },
             maxDistance: 35, // スティックの最大移動距離
             deadZone: 8,     // デッドゾーン（反応しない範囲）
-            currentDirection: null
+            currentDirection: null,
+            currentVerticalDirection: null // UFOモード用の縦方向状態
         };
 
         console.log('🕹️ バーチャルパッド要素確認:', { virtualPad, padStick });
@@ -589,27 +590,49 @@ class UIManager {
      */
     calculateDirection() {
         const deltaX = this.padState.currentPos.x - this.padState.centerPos.x;
-        const distance = Math.abs(deltaX);
+        const deltaY = this.padState.currentPos.y - this.padState.centerPos.y;
+        const distanceX = Math.abs(deltaX);
+        const distanceY = Math.abs(deltaY);
+
+        // UFOモードかどうかを確認
+        const isUFOMode = window.game?.player?.isUFOMode || false;
 
         // デッドゾーン内なら何もしない
-        if (distance < this.padState.deadZone) {
+        if (distanceX < this.padState.deadZone && distanceY < this.padState.deadZone) {
             if (this.padState.currentDirection) {
                 console.log('🕹️ デッドゾーン - 移動停止');
                 this.handleButtonInput(this.padState.currentDirection, false);
                 this.padState.currentDirection = null;
             }
+            if (this.padState.currentVerticalDirection) {
+                console.log('🕹️ デッドゾーン - 縦移動停止');
+                this.handleButtonInput(this.padState.currentVerticalDirection, false);
+                this.padState.currentVerticalDirection = null;
+            }
             return;
         }
 
-        // 移動方向を判定
+        // 横方向の移動判定
         let newDirection = null;
-        if (deltaX < -this.padState.deadZone) {
-            newDirection = 'left';
-        } else if (deltaX > this.padState.deadZone) {
-            newDirection = 'right';
+        if (distanceX >= this.padState.deadZone) {
+            if (deltaX < -this.padState.deadZone) {
+                newDirection = 'left';
+            } else if (deltaX > this.padState.deadZone) {
+                newDirection = 'right';
+            }
         }
 
-        // 方向が変わった場合のみ処理
+        // 縦方向の移動判定（UFOモードのみ）
+        let newVerticalDirection = null;
+        if (isUFOMode && distanceY >= this.padState.deadZone) {
+            if (deltaY < -this.padState.deadZone) {
+                newVerticalDirection = 'up';
+            } else if (deltaY > this.padState.deadZone) {
+                newVerticalDirection = 'down';
+            }
+        }
+
+        // 横方向が変わった場合の処理
         if (newDirection !== this.padState.currentDirection) {
             // 前の方向を停止
             if (this.padState.currentDirection) {
@@ -625,6 +648,23 @@ class UIManager {
 
             this.padState.currentDirection = newDirection;
         }
+
+        // 縦方向が変わった場合の処理（UFOモードのみ）
+        if (isUFOMode && newVerticalDirection !== this.padState.currentVerticalDirection) {
+            // 前の縦方向を停止
+            if (this.padState.currentVerticalDirection) {
+                console.log(`🕹️ 縦移動停止: ${this.padState.currentVerticalDirection}`);
+                this.handleButtonInput(this.padState.currentVerticalDirection, false);
+            }
+
+            // 新しい縦方向を開始
+            if (newVerticalDirection) {
+                console.log(`🕹️ 縦移動開始: ${newVerticalDirection}`);
+                this.handleButtonInput(newVerticalDirection, true);
+            }
+
+            this.padState.currentVerticalDirection = newVerticalDirection;
+        }
     }
 
     /**
@@ -638,6 +678,13 @@ class UIManager {
             console.log(`🕹️ リセット時移動停止: ${this.padState.currentDirection}`);
             this.handleButtonInput(this.padState.currentDirection, false);
             this.padState.currentDirection = null;
+        }
+
+        // 縦方向の移動も停止
+        if (this.padState.currentVerticalDirection) {
+            console.log(`🕹️ リセット時縦移動停止: ${this.padState.currentVerticalDirection}`);
+            this.handleButtonInput(this.padState.currentVerticalDirection, false);
+            this.padState.currentVerticalDirection = null;
         }
 
         // スティックを中心に戻す
@@ -1217,31 +1264,36 @@ class UIManager {
         if (progressFill && progressCount) {
             const playerLevel = player.playerLevel || 1;
             const collected = player.itemsInCurrentLevel || 0;
-            const required = player.itemsRequiredForLevelUp || 10;
-
-            // レベル2（最大レベル）に達している場合は常に満タン表示
-            if (playerLevel >= 2) {
+            let required = player.itemsRequiredForLevelUp || 10;
+            
+            // レベルに応じて必要アイテム数を設定
+            if (playerLevel === 1) {
+                required = 10; // レベル1→2: 10個
+            } else if (playerLevel === 2) {
+                required = 15; // レベル2→3: 15個
+            } else {
+                // レベル3（最大レベル）に達している場合は満タン表示
                 progressFill.style.width = '100%';
-                progressCount.textContent = `${required}/${required}`;
-
+                progressCount.textContent = `MAX`;
+                
                 console.log('プログレスバー更新（最大レベル）:', {
                     playerLevel: playerLevel,
-                    display: `${required}/${required}`,
-                    percentage: 100
+                    status: 'MAX_LEVEL'
                 });
-            } else {
-                // レベル1の場合は通常の進捗表示
-                const percentage = Math.min((collected / required) * 100, 100);
-                progressFill.style.width = `${percentage}%`;
-                progressCount.textContent = `${collected}/${required}`;
-
-                console.log('プログレスバー更新（レベル1）:', {
-                    playerLevel: playerLevel,
-                    collected: collected,
-                    required: required,
-                    percentage: percentage
-                });
+                return;
             }
+
+            // 通常の進捗表示
+            const percentage = Math.min((collected / required) * 100, 100);
+            progressFill.style.width = `${percentage}%`;
+            progressCount.textContent = `${collected}/${required}`;
+
+            console.log('プログレスバー更新:', {
+                playerLevel: playerLevel,
+                collected: collected,
+                required: required,
+                percentage: percentage
+            });
         }
     }
 
@@ -1257,22 +1309,43 @@ class UIManager {
             levelLabel.textContent = `レベル ${level}`;
 
             // レベルに応じた能力表示
-            if (level >= 2) {
+            if (level >= 3) {
+                levelAbility.textContent = 'UFO機能';
+            } else if (level >= 2) {
                 levelAbility.textContent = 'トリプルジャンプ';
             } else {
                 levelAbility.textContent = 'ダブルジャンプ';
             }
+
+            console.log('レベル情報更新:', {
+                level: level,
+                ability: levelAbility.textContent
+            });
         }
     }
 
     /**
      * レベルアップ通知表示
      */
-    showLevelUpNotification() {
+    showLevelUpNotification(message = null) {
         // 既存の通知がある場合は削除
         const existingNotification = document.querySelector('.level-up-notification');
         if (existingNotification) {
             existingNotification.remove();
+        }
+
+        // メッセージを設定
+        let subtitle = 'トリプルジャンプがアンロックされました!';
+        let icon = '🌟';
+        
+        if (message) {
+            if (message.includes('UFO') || message.includes('レベル3')) {
+                subtitle = 'UFO機能がアンロックされました!';
+                icon = '🛸';
+            } else if (message.includes('三段ジャンプ') || message.includes('レベル2')) {
+                subtitle = 'トリプルジャンプがアンロックされました!';
+                icon = '🌟';
+            }
         }
 
         // レベルアップ通知要素を作成
@@ -1280,9 +1353,9 @@ class UIManager {
         notification.className = 'level-up-notification';
         notification.innerHTML = `
             <div class="level-up-content">
-                <div class="level-up-icon">🌟</div>
+                <div class="level-up-icon">${icon}</div>
                 <div class="level-up-text">レベルアップ!</div>
-                <div class="level-up-subtitle">トリプルジャンプがアンロックされました!</div>
+                <div class="level-up-subtitle">${subtitle}</div>
             </div>
         `;
 
@@ -1307,7 +1380,7 @@ class UIManager {
             }, 3000);
         }
 
-        console.log('🌟 レベルアップ通知表示');
+        console.log('🌟 レベルアップ通知表示:', { message, subtitle, icon });
     }
 
     /**

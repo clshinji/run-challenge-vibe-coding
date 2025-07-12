@@ -52,10 +52,17 @@ class Player {
         this.previousJumpState = false;
 
         // レベルアップシステム
-        this.playerLevel = 1; // プレイヤーレベル（1: ダブルジャンプ, 2: トリプルジャンプ）
+        this.playerLevel = 1; // プレイヤーレベル（1: ダブルジャンプ, 2: トリプルジャンプ, 3: UFO）
         this.totalItemsCollected = 0; // 総アイテム収集数
         this.itemsInCurrentLevel = 0; // 現在レベルでのアイテム収集数
         this.itemsRequiredForLevelUp = 10; // レベルアップに必要なアイテム数
+
+        // UFO機能（レベル3）
+        this.isUFOMode = false; // UFO状態かどうか
+        this.ufoTimeRemaining = 0; // UFO状態の残り時間（秒）
+        this.ufoMaxDuration = 5; // UFO状態の最大持続時間（5秒）
+        this.ufoBlinkThreshold = 1; // 点滅開始時間（終了1秒前）
+        this.ufoSpeed = 200; // UFO状態での移動速度
 
         // データを読み込み
         this.loadLevelData();
@@ -103,6 +110,24 @@ class Player {
  */
     handleInput(action, isPressed) {
         this.inputState[action] = isPressed;
+
+        // UFOモードの場合は上下入力も処理
+        if (this.isUFOMode) {
+            if (action === 'up' || action === 'down') {
+                console.log('[UFO_DEBUG] 🛸 UFO上下入力:', { action, isPressed });
+                // UFOモードでは直接ゲームエンジンのキー状態を更新
+                if (window.game && window.game.keys) {
+                    if (action === 'up') {
+                        window.game.keys.ArrowUp = isPressed;
+                        window.game.keys.KeyW = isPressed;
+                    } else if (action === 'down') {
+                        window.game.keys.ArrowDown = isPressed;
+                        window.game.keys.KeyS = isPressed;
+                    }
+                }
+                return;
+            }
+        }
 
         // ジャンプ入力の詳細ログ
         if (action === 'jump') {
@@ -176,6 +201,11 @@ class Player {
                 jumpType: jumpType,
                 playerLevel: this.playerLevel
             });
+        }
+        else if (this.jumpCount >= 3 && this.playerLevel >= 3 && !this.isUFOMode) {
+            // UFO発動条件：三段ジャンプ後にさらにジャンプボタンを押した場合
+            console.log('[UFO_DEBUG] 🛸 UFO機能発動!');
+            this.activateUFO();
         }
         else {
             console.log('[JUMP_DEBUG] ❌ ジャンプ回数上限:', {
@@ -261,6 +291,172 @@ class Player {
     }
 
     /**
+     * UFO機能発動
+     */
+    activateUFO() {
+        this.isUFOMode = true;
+        this.ufoTimeRemaining = this.ufoMaxDuration;
+        this.velocityY = 0; // 重力を無効化
+        
+        // UFO発動時の位置はプレイヤーの現在位置と同じ
+        // （位置の変更は不要、現在のthis.x, this.yをそのまま使用）
+        
+        console.log('[UFO_DEBUG] 🛸 UFO機能発動完了!', {
+            duration: this.ufoMaxDuration,
+            playerLevel: this.playerLevel,
+            position: { x: this.x, y: this.y }
+        });
+    }
+
+    /**
+     * UFO機能終了
+     */
+    deactivateUFO() {
+        this.isUFOMode = false;
+        this.ufoTimeRemaining = 0;
+        
+        // 重力を復活させる（落下開始）
+        this.isGrounded = false;
+        this.velocityY = 0; // 初期落下速度をリセット
+        
+        console.log('[UFO_DEBUG] 🛸 UFO機能終了 - 重力復活', {
+            position: { x: this.x, y: this.y },
+            velocityY: this.velocityY,
+            isGrounded: this.isGrounded
+        });
+    }
+
+    /**
+     * UFO状態更新
+     */
+    updateUFOMode(deltaTime) {
+        if (!this.isUFOMode) return;
+
+        // 時間を減らす（deltaTimeは秒単位）
+        this.ufoTimeRemaining -= deltaTime;
+
+        console.log('[UFO_DEBUG] UFO時間更新:', {
+            remaining: this.ufoTimeRemaining.toFixed(2),
+            deltaTime: deltaTime.toFixed(3),
+            shouldBlink: this.ufoTimeRemaining <= this.ufoBlinkThreshold
+        });
+
+        // 時間切れチェック
+        if (this.ufoTimeRemaining <= 0) {
+            console.log('[UFO_DEBUG] 🛸 UFO時間切れ - 終了');
+            this.deactivateUFO();
+            return;
+        }
+
+        // UFO状態では重力を無効化（念のため毎フレーム設定）
+        this.velocityY = 0;
+    }
+
+    /**
+     * UFO状態での移動処理
+     */
+    handleUFOMovement(deltaTime) {
+        if (!this.isUFOMode) return;
+
+        try {
+            // deltaTimeは既に秒単位なので、そのまま使用
+            const moveDistance = this.ufoSpeed * deltaTime;
+
+            // ゲームエンジンの入力状態を取得
+            const gameKeys = window.game?.keys || {};
+            
+            const oldPosition = { x: this.x, y: this.y };
+            let moved = false;
+
+            // 上下左右の移動
+            if (gameKeys.ArrowUp || gameKeys.KeyW) {
+                this.y -= moveDistance;
+                moved = true;
+            }
+            if (gameKeys.ArrowDown || gameKeys.KeyS) {
+                this.y += moveDistance;
+                moved = true;
+            }
+            if (gameKeys.ArrowLeft || gameKeys.KeyA) {
+                this.x -= moveDistance;
+                this.facingRight = false;
+                moved = true;
+            }
+            if (gameKeys.ArrowRight || gameKeys.KeyD) {
+                this.x += moveDistance;
+                this.facingRight = true;
+                moved = true;
+            }
+
+            // 画面外に出ないように制限
+            this.constrainToScreen();
+
+            // デバッグログ（移動時のみ）
+            if (moved) {
+                console.log('[UFO_DEBUG] UFO移動:', {
+                    from: oldPosition,
+                    to: { x: this.x, y: this.y },
+                    keys: Object.keys(gameKeys).filter(key => gameKeys[key]),
+                    moveDistance: moveDistance.toFixed(2)
+                });
+            }
+        } catch (error) {
+            console.error('[UFO_DEBUG] UFO移動処理エラー:', error);
+            // エラー時はUFOモードを終了
+            this.deactivateUFO();
+        }
+    }
+
+    /**
+     * 画面内に制限（UFO用の特別な制限）
+     */
+    constrainToScreen() {
+        // ゲームエンジンからキャンバスとステージ情報を取得
+        const game = window.game;
+        const canvas = game?.canvas;
+        const stage = game?.stage;
+        
+        if (!canvas) return;
+
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+
+        // 横方向の制限：ステージの両端まで
+        if (stage && stage.width) {
+            // ステージの幅に基づく制限
+            const stageWidth = stage.width;
+            if (this.x < 0) this.x = 0;
+            if (this.x > stageWidth - this.width) this.x = stageWidth - this.width;
+        } else {
+            // フォールバック：キャンバス幅
+            if (this.x < 0) this.x = 0;
+            if (this.x > canvasWidth - this.width) this.x = canvasWidth - this.width;
+        }
+
+        // 縦方向の制限
+        // 上側：雲より上に出ない（キャンバス上端から少し余裕を持たせる）
+        const topLimit = 50; // 雲エリアを考慮した上限
+        if (this.y < topLimit) this.y = topLimit;
+
+        // 下側：地面より上にいる
+        let bottomLimit = canvasHeight - this.height - 50; // デフォルト
+        if (stage && stage.groundLevel) {
+            // ステージの地面レベルより上に制限
+            bottomLimit = stage.groundLevel - this.height - 10; // 地面から10px上
+        }
+        if (this.y > bottomLimit) this.y = bottomLimit;
+
+        console.log('[UFO_DEBUG] 位置制限適用:', {
+            x: this.x,
+            y: this.y,
+            topLimit,
+            bottomLimit,
+            stageWidth: stage?.width,
+            groundLevel: stage?.groundLevel
+        });
+    }
+
+    /**
      * アイテム収集処理
      */
     collectItem() {
@@ -285,14 +481,16 @@ class Player {
      */
     checkLevelUp() {
         if (this.playerLevel === 1 && this.itemsInCurrentLevel >= this.itemsRequiredForLevelUp) {
-            this.levelUp();
+            this.levelUpToLevel2();
+        } else if (this.playerLevel === 2 && this.itemsInCurrentLevel >= 15) {
+            this.levelUpToLevel3();
         }
     }
 
     /**
-     * レベルアップ実行
+     * レベル2へのレベルアップ（三段ジャンプ）
      */
-    levelUp() {
+    levelUpToLevel2() {
         this.playerLevel = 2;
         this.itemsInCurrentLevel = 0; // リセット
         this.maxJumps = 3; // トリプルジャンプアンロック
@@ -302,7 +500,7 @@ class Player {
         this.levelUpTime = 0;
         this.showLevelUpMessage = true;
 
-        console.log('🌟🌟🌟 レベルアップ! トリプルジャンプがアンロックされました!', {
+        console.log('🌟🌟🌟 レベル2アップ! トリプルジャンプがアンロックされました!', {
             playerLevel: this.playerLevel,
             maxJumps: this.maxJumps
         });
@@ -312,8 +510,43 @@ class Player {
 
         // UI にレベルアップを通知
         if (window.uiManager && window.uiManager.showLevelUpNotification) {
-            window.uiManager.showLevelUpNotification();
+            window.uiManager.showLevelUpNotification('レベル2: 三段ジャンプ');
         }
+    }
+
+    /**
+     * レベル3へのレベルアップ（UFO機能）
+     */
+    levelUpToLevel3() {
+        this.playerLevel = 3;
+        this.itemsInCurrentLevel = 0; // リセット
+
+        // レベルアップエフェクト開始
+        this.isLevelingUp = true;
+        this.levelUpTime = 0;
+        this.showLevelUpMessage = true;
+
+        console.log('🛸🛸🛸 レベル3アップ! UFO機能がアンロックされました!', {
+            playerLevel: this.playerLevel
+        });
+
+        // データを保存
+        this.saveLevelData();
+
+        // UI にレベルアップを通知
+        if (window.uiManager && window.uiManager.showLevelUpNotification) {
+            window.uiManager.showLevelUpNotification('レベル3: UFO機能');
+        }
+    }
+
+    /**
+     * レベルアップ実行（後方互換性のため残す）
+     */
+    /**
+     * レベルアップ実行（後方互換性のため残す）
+     */
+    levelUp() {
+        this.levelUpToLevel2();
     }
 
     /**
@@ -340,6 +573,12 @@ class Player {
         this.updateAnimation(deltaTime);
         this.updateInvulnerability(deltaTime);
         this.updateLevelUpEffect(deltaTime);
+        this.updateUFOMode(deltaTime);
+        
+        // UFO状態の場合は特別な移動処理
+        if (this.isUFOMode) {
+            this.handleUFOMovement(deltaTime);
+        }
     }
 
     /**
@@ -415,8 +654,8 @@ class Player {
             }
         }
 
-        // 重力適用（ノックバック中も常に適用）
-        if (!this.isGrounded) {
+        // 重力適用（ノックバック中も常に適用、ただしUFO状態では無効）
+        if (!this.isGrounded && !this.isUFOMode) {
             this.velocityY += this.gravity * deltaTime;
         }
 
@@ -932,6 +1171,12 @@ class Player {
  * キャラクター描画（可愛い丸みを帯びたキャラクター）
      */
     renderCharacter(ctx, x, y) {
+        // UFO状態の場合は特別な描画
+        if (this.isUFOMode) {
+            this.renderUFOCharacter(ctx, x, y);
+            return;
+        }
+
         // 無敵状態の場合は点滅効果
         if (this.invulnerable) {
             const blinkRate = 0.1; // 点滅の速度
@@ -1027,6 +1272,111 @@ class Player {
 
         // 無敵状態の場合はアルファ値をリセット
         if (this.invulnerable) {
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    /**
+     * UFOキャラクター描画
+     */
+    renderUFOCharacter(ctx, x, y) {
+        const centerX = x + this.width / 2;
+        const centerY = y + this.height / 2;
+        
+        // UFO終了1秒前の点滅効果
+        const shouldBlink = this.ufoTimeRemaining <= this.ufoBlinkThreshold;
+        if (shouldBlink) {
+            const blinkRate = 0.2; // 点滅の速度
+            const alpha = Math.sin(Date.now() * blinkRate) > 0 ? 0.3 : 1.0;
+            ctx.globalAlpha = alpha;
+        }
+
+        // UFOの浮遊アニメーション
+        const hoverOffset = Math.sin(Date.now() * 0.005) * 3;
+        const ufoY = centerY + hoverOffset;
+
+        // UFO本体（楕円形）
+        ctx.fillStyle = '#C0C0C0'; // シルバー
+        ctx.beginPath();
+        ctx.ellipse(centerX, ufoY, this.width * 0.6, this.height * 0.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // UFOの上部ドーム
+        ctx.fillStyle = '#E6E6FA'; // 薄紫
+        ctx.beginPath();
+        ctx.ellipse(centerX, ufoY - this.height * 0.15, this.width * 0.35, this.height * 0.25, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // UFOのライト（点滅）
+        const lightTime = Date.now() * 0.01;
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2 + lightTime;
+            const lightX = centerX + Math.cos(angle) * this.width * 0.4;
+            const lightY = ufoY + Math.sin(angle) * this.height * 0.1;
+            
+            ctx.fillStyle = `hsl(${(lightTime * 50 + i * 60) % 360}, 70%, 70%)`;
+            ctx.beginPath();
+            ctx.arc(lightX, lightY, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 中央の窓
+        ctx.fillStyle = '#4169E1'; // ロイヤルブルー
+        ctx.beginPath();
+        ctx.ellipse(centerX, ufoY - this.height * 0.1, this.width * 0.2, this.height * 0.15, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 窓の中のキャラクター（小さな猫）
+        ctx.fillStyle = '#87CEEB';
+        ctx.beginPath();
+        ctx.arc(centerX, ufoY - this.height * 0.1, this.width * 0.08, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 猫の耳
+        ctx.fillStyle = '#4682B4';
+        ctx.beginPath();
+        ctx.arc(centerX - 3, ufoY - this.height * 0.15, 2, 0, Math.PI * 2);
+        ctx.arc(centerX + 3, ufoY - this.height * 0.15, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // UFOのビーム（下向き）
+        const beamGradient = ctx.createLinearGradient(centerX, ufoY + this.height * 0.2, centerX, ufoY + this.height * 0.8);
+        beamGradient.addColorStop(0, 'rgba(255, 255, 0, 0.3)');
+        beamGradient.addColorStop(1, 'rgba(255, 255, 0, 0.1)');
+        
+        ctx.fillStyle = beamGradient;
+        ctx.beginPath();
+        ctx.moveTo(centerX - this.width * 0.1, ufoY + this.height * 0.2);
+        ctx.lineTo(centerX + this.width * 0.1, ufoY + this.height * 0.2);
+        ctx.lineTo(centerX + this.width * 0.3, ufoY + this.height * 0.8);
+        ctx.lineTo(centerX - this.width * 0.3, ufoY + this.height * 0.8);
+        ctx.closePath();
+        ctx.fill();
+
+        // 残り時間表示（デバッグ用）
+        if (this.ufoTimeRemaining > 0) {
+            // テキスト描画時は反転を一時的に無効化
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0); // 変換をリセット
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            
+            // 実際の画面座標を計算（変換を考慮）
+            const screenX = this.x + this.width / 2;
+            const screenY = this.y - 10;
+            
+            ctx.strokeText(`UFO: ${this.ufoTimeRemaining.toFixed(1)}s`, screenX, screenY);
+            ctx.fillText(`UFO: ${this.ufoTimeRemaining.toFixed(1)}s`, screenX, screenY);
+            
+            ctx.restore();
+        }
+
+        // アルファ値をリセット
+        if (shouldBlink) {
             ctx.globalAlpha = 1.0;
         }
     }
@@ -1492,13 +1842,18 @@ class Player {
                 this.itemsInCurrentLevel = gameData.levelSystem.itemsInCurrentLevel || 0;
 
                 // レベルに応じてmaxJumpsを設定
-                this.maxJumps = this.playerLevel >= 2 ? 3 : 2;
+                if (this.playerLevel >= 2) {
+                    this.maxJumps = 3; // レベル2以上でトリプルジャンプ
+                } else {
+                    this.maxJumps = 2; // レベル1でダブルジャンプ
+                }
 
                 console.log('レベルデータ読み込み完了:', {
                     playerLevel: this.playerLevel,
                     totalItemsCollected: this.totalItemsCollected,
                     itemsInCurrentLevel: this.itemsInCurrentLevel,
-                    maxJumps: this.maxJumps
+                    maxJumps: this.maxJumps,
+                    ufoAvailable: this.playerLevel >= 3
                 });
             }
         }
@@ -1540,6 +1895,11 @@ if (typeof window !== 'undefined') {
     console.log('window.Player:', typeof window.Player);
 } else {
     console.error('❌ windowオブジェクトが利用できません');
+}
+
+// Playerクラスをグローバルスコープで利用可能にする
+if (typeof window !== 'undefined') {
+    window.Player = Player;
 }
 
 // ファイル読み込み確認

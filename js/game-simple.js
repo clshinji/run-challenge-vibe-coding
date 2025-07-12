@@ -140,6 +140,14 @@ class SimpleGame {
     handleKeyInput(keyCode, isPressed) {
         if (!this.player) return;
 
+        // UFOモードの場合は特別な処理
+        if (this.player.isUFOMode) {
+            // UFOモードでは直接キー状態を管理
+            this.keys[keyCode] = isPressed;
+            console.log('[UFO_INPUT] キー入力:', keyCode, isPressed);
+            return;
+        }
+
         const keyMap = {
             'ArrowLeft': 'left',
             'KeyA': 'left',
