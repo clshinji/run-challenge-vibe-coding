@@ -105,6 +105,22 @@ class UIManager {
             this.showScreen('nameInputScreen');
         });
 
+        document.getElementById('playWithPlayerButton').addEventListener('click', () => {
+            console.log('このプレイヤーであそぶボタンが押されました');
+            
+            // 現在選択されているプレイヤーを確認
+            const currentPlayer = this.gameData.playerName;
+            if (!currentPlayer || currentPlayer === '未設定') {
+                alert('プレイヤーを選択してください');
+                return;
+            }
+            
+            console.log('選択されたプレイヤー:', currentPlayer);
+            
+            // ステージ選択画面に遷移
+            this.showScreen('stageSelectScreen');
+        });
+
         document.getElementById('playerListBackButton').addEventListener('click', () => {
             console.log('プレイヤー一覧画面から戻る処理開始');
 

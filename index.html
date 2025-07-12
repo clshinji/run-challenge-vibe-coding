@@ -101,15 +101,9 @@
 
         <!-- 現在のプレイヤー表示 -->
         <div class="current-player-display">
-          <div class="current-player-label">いまのプレイヤー:</div>
-          <div class="current-player-info">
-            <span id="playerListCurrentPlayerIcon" class="current-player-icon"
-              >🐱</span
-            >
-            <span id="playerListCurrentPlayerName" class="current-player-name"
-              >未設定</span
-            >
-          </div>
+          <span class="current-player-label">いまのプレイヤー</span>
+          <span id="playerListCurrentPlayerIcon" class="current-player-icon">🐱</span>
+          <span id="playerListCurrentPlayerName" class="current-player-name">未設定</span>
         </div>
 
         <div class="player-list-container">
@@ -118,6 +112,9 @@
           </div>
         </div>
         <div class="menu-buttons">
+          <button id="playWithPlayerButton" class="game-button">
+            このプレイヤーであそぶ
+          </button>
           <button id="addNewPlayerButton" class="game-button">
             あたらしいプレイヤー
           </button>
