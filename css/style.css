@@ -1051,8 +1051,8 @@ input[type="text"]:focus {
 /* バーチャルパッド（子ども向けに大型化） */
 .virtual-pad {
     position: relative;
-    width: 150px;
-    height: 150px;
+    width: 200px;
+    height: 200px;
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
@@ -1072,8 +1072,8 @@ input[type="text"]:focus {
 
 .pad-stick {
     position: absolute;
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -1106,8 +1106,8 @@ input[type="text"]:focus {
 }
 
 .control-button {
-    width: 150px;
-    height: 150px;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
     border: 4px solid rgba(255, 255, 255, 0.9);
     background: rgba(255, 255, 255, 0.95);
@@ -1180,7 +1180,7 @@ input[type="text"]:focus {
 
 .control-button.jump::before {
     content: "↑";
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: 900;
     color: white;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -1191,7 +1191,7 @@ input[type="text"]:focus {
 
 .control-button.jump::after {
     content: "ジャンプ";
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 800;
     color: white;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);

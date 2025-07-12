@@ -63,43 +63,24 @@ class Game {
     }
 
     /**
-     * Canvas サイズ調整
+     * Canvas サイズ調整（レスポンシブ対応）
      */
     resizeCanvas() {
-        const container = this.canvas.parentElement;
-        const containerRect = container.getBoundingClientRect();
+        // User Agentをチェックしてモバイルデバイスかどうかを判定する
+        const isMobile = /Mobi|iP(hone|ad|od)|Android/i.test(navigator.userAgent);
 
-        console.log('Canvas リサイズ開始:', {
-            container: { width: containerRect.width, height: containerRect.height },
-            currentCanvas: { width: this.canvas.width, height: this.canvas.height },
-            windowSize: { width: window.innerWidth, height: window.innerHeight }
-        });
+        // モバイルではより広い視野（高解像度）を設定してズームアウトさせる
+        const logicalWidth = isMobile ? 2400 : 1920;
+        const logicalHeight = isMobile ? 1200 : 960;
 
-        // アスペクト比を維持しながらサイズ調整
-        const targetRatio = 2; // 横:縦 = 2:1
-        let width = Math.max(containerRect.width - 40, 600); // 最小幅を600pxに設定
-        let height = width / targetRatio;
+        this.canvas.width = logicalWidth;
+        this.canvas.height = logicalHeight;
 
-        // 高さが画面に収まらない場合は高さ基準で調整
-        const maxHeight = Math.max(window.innerHeight - 200, 300); // 最小高さを300pxに設定
-        if (height > maxHeight) {
-            height = maxHeight;
-            width = height * targetRatio;
-        }
+        // CSSでCanvasの表示サイズをコンテナにフィットさせる
+        this.canvas.style.width = '100%';
+        this.canvas.style.height = 'auto';
 
-        // 最小サイズを保証
-        width = Math.max(width, 600);
-        height = Math.max(height, 300);
-
-        this.canvas.width = width;
-        this.canvas.height = height;
-        this.canvas.style.width = width + 'px';
-        this.canvas.style.height = height + 'px';
-
-        console.log('Canvas リサイズ完了:', {
-            newSize: { width: this.canvas.width, height: this.canvas.height },
-            style: { width: this.canvas.style.width, height: this.canvas.style.height }
-        });
+        console.log(`Canvas resized. Logical: ${logicalWidth}x${logicalHeight}, Mobile: ${isMobile}`);
     }
 
     /**
@@ -703,6 +684,22 @@ class Game {
         if (this.resizeHandler) {
             window.removeEventListener('resize', this.resizeHandler);
         }
+
+        // タッチイベントリスナーを削除
+        const jumpButton = document.getElementById('jumpButton');
+        if (jumpButton && this.jumpButtonTouchStartHandler) {
+            jumpButton.removeEventListener('touchstart', this.jumpButtonTouchStartHandler);
+            jumpButton.removeEventListener('touchend', this.jumpButtonTouchEndHandler);
+            jumpButton.removeEventListener('touchcancel', this.jumpButtonTouchEndHandler);
+        }
+        const virtualPad = document.getElementById('virtualPad');
+        if (virtualPad && this.virtualPadTouchStartHandler) {
+            virtualPad.removeEventListener('touchstart', this.virtualPadTouchStartHandler);
+            virtualPad.removeEventListener('touchmove', this.virtualPadTouchMoveHandler);
+            virtualPad.removeEventListener('touchend', this.virtualPadTouchEndHandler);
+            virtualPad.removeEventListener('touchcancel', this.virtualPadTouchEndHandler);
+        }
+
 
         // オブジェクトを完全にクリア
         this.player = null;
