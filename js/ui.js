@@ -175,8 +175,24 @@ class UIManager {
         });
 
         // デバッグ機能: テストデータ生成トグル
-        document.getElementById('testDataToggle').addEventListener('click', () => {
-            this.toggleTestData();
+        document.getElementById('testDataToggle').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // ボタンを一時的に無効化
+            const button = e.target;
+            if (button.disabled) return;
+            
+            button.disabled = true;
+            
+            try {
+                this.toggleTestData();
+            } finally {
+                // 処理完了後にボタンを再有効化
+                setTimeout(() => {
+                    button.disabled = false;
+                }, 500);
+            }
         });
 
         // ステージ選択画面
@@ -1718,11 +1734,18 @@ class UIManager {
      * テストデータモードのトグル
      */
     toggleTestData() {
+        console.log('🔧 toggleTestData() 開始');
+        
         const currentPlayer = gameStorage.getCurrentPlayer();
         if (!currentPlayer) {
             alert('プレイヤーが設定されていません');
             return;
         }
+
+        // 最新データを取得
+        console.log('📋 データ再読み込み前の状態:', this.gameData.settings.testDataMode);
+        this.gameData = gameStorage.loadGameData();
+        console.log('📋 データ再読み込み後の状態:', this.gameData.settings.testDataMode);
 
         // 現在の状態を取得
         const currentMode = this.gameData.settings.testDataMode || false;
@@ -1739,14 +1762,22 @@ class UIManager {
         }
 
         // 設定を保存
+        console.log('💾 設定保存前:', { testDataMode: newMode });
         this.gameData.settings.testDataMode = newMode;
         gameStorage.saveSettings({ testDataMode: newMode });
+        console.log('💾 設定保存後');
+
+        // データを再読み込み
+        console.log('📋 最終データ再読み込み前');
+        this.gameData = gameStorage.loadGameData();
+        console.log('📋 最終データ再読み込み後:', this.gameData.settings.testDataMode);
 
         // UI更新
-        this.updateSettingsDisplay();
+        this.updateSettingsUI();
         this.updateStageButtons();
 
         console.log(`✅ テストデータモード: ${newMode ? 'ON' : 'OFF'}`);
+        console.log('🔧 toggleTestData() 終了');
     }
 
     /**
@@ -1754,9 +1785,11 @@ class UIManager {
      */
     enableTestDataMode() {
         console.log('🔧 テストデータモード有効化: 全ステージを開放');
+        console.log('📋 有効化前の開放ステージ:', this.gameData.progress.unlockedStages);
 
         // 元の開放状態をバックアップ
         this.gameData.settings.originalUnlockedStages = [...this.gameData.progress.unlockedStages];
+        console.log('💾 バックアップ保存:', this.gameData.settings.originalUnlockedStages);
 
         // 全ステージ（1-20）を開放
         this.gameData.progress.unlockedStages = [];
@@ -1765,7 +1798,8 @@ class UIManager {
         }
 
         // データを保存
-        gameStorage.saveGameData(this.gameData);
+        const saveResult = gameStorage.saveGameData(this.gameData);
+        console.log('💾 データ保存結果:', saveResult);
 
         console.log('✅ 全ステージ開放完了:', this.gameData.progress.unlockedStages);
     }
@@ -1775,6 +1809,8 @@ class UIManager {
      */
     disableTestDataMode() {
         console.log('🔧 テストデータモード無効化: 元の状態に戻す');
+        console.log('📋 無効化前の開放ステージ:', this.gameData.progress.unlockedStages);
+        console.log('📋 バックアップデータ:', this.gameData.settings.originalUnlockedStages);
 
         // バックアップされた開放状態を復元
         if (this.gameData.settings.originalUnlockedStages) {
@@ -1798,9 +1834,11 @@ class UIManager {
 
         // バックアップデータを削除
         delete this.gameData.settings.originalUnlockedStages;
+        console.log('🗑️ バックアップデータ削除');
 
         // データを保存
-        gameStorage.saveGameData(this.gameData);
+        const saveResult = gameStorage.saveGameData(this.gameData);
+        console.log('💾 データ保存結果:', saveResult);
     }
 
     /**
