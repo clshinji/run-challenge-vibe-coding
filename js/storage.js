@@ -364,13 +364,23 @@ class GameStorage {
      * ステージクリア情報を保存
      */
     saveStageCompletion(stageNumber, stats) {
-        console.log(`ステージ${stageNumber}クリア情報保存開始:`, stats);
+        console.log('=== saveStageCompletion() 開始 ===');
+        console.log(`📊 ステージ${stageNumber}クリア情報保存:`, {
+            stageNumber: stageNumber,
+            stageNumberType: typeof stageNumber,
+            stats: stats,
+            timestamp: new Date().toLocaleTimeString()
+        });
+
         const data = this.loadGameData();
+        console.log('📋 保存前のクリア済みステージ:', data.progress.completedStages);
 
         // ステージクリア記録
         if (!data.progress.completedStages.includes(stageNumber)) {
             data.progress.completedStages.push(stageNumber);
-            console.log(`ステージ${stageNumber}をクリア済みに追加`);
+            console.log(`✅ ステージ${stageNumber}をクリア済みに追加`);
+        } else {
+            console.log(`📌 ステージ${stageNumber}は既にクリア済み`);
         }
 
         // 次のステージを解放

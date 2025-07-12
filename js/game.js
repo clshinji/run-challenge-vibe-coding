@@ -272,9 +272,13 @@ class Game {
         // ゲーム状態チェック
         this.checkGameState();
 
-        // UI更新
+        // UI更新（プログレスバー含む）
         if (window.uiManager) {
-            window.uiManager.updateGameUI(this.gameState);
+            if (window.uiManager.updateGameUIWithProgress) {
+                window.uiManager.updateGameUIWithProgress(this.gameState, this.player);
+            } else {
+                window.uiManager.updateGameUI(this.gameState);
+            }
         }
     }
 
@@ -413,6 +417,11 @@ class Game {
                 break;
         }
 
+        // プレイヤーのレベルアップシステムに通知
+        if (this.player && this.player.collectItem) {
+            this.player.collectItem();
+        }
+
         // 効果音再生（実装予定）
         console.log(`アイテム収集: ${item.type}`);
     }
@@ -459,6 +468,13 @@ class Game {
      * ステージクリア
      */
     completeStage() {
+        console.log('=== Game.completeStage() 開始 ===');
+        console.log('🔍 ステージクリア詳細情報 (Game):', {
+            currentStage: this.currentStage,
+            currentStageType: typeof this.currentStage,
+            isRunning: this.isRunning
+        });
+
         this.isRunning = false;
 
         const stats = {
@@ -475,7 +491,7 @@ class Game {
             window.uiManager.showGameClear(stats);
         }
 
-        console.log('ステージクリア！', stats);
+        console.log('✅ ステージクリア完了 (Game)！', stats);
     }
 
     /**

@@ -157,18 +157,70 @@
 
       <!-- ゲーム画面 -->
       <div id="gameScreen" class="screen">
-        <!-- ゲーム情報表示 -->
+        <!-- 統合インフォメーションエリア -->
         <div id="gameUI">
-          <div class="ui-top">
-            <div id="scoreDisplay">スコア: <span id="score">0</span></div>
-            <div id="itemDisplay">アイテム: <span id="itemCount">0</span></div>
-            <div id="timeDisplay">じかん: <span id="time">0</span></div>
-            <div id="livesDisplay">
-              <span class="lives-label">ライフ:</span>
-              <span id="hearts" class="hearts-container"></span>
+          <div id="integratedInfoArea" class="integrated-info-area">
+            <!-- 戻るボタン -->
+            <button id="backToStageButton" class="back-button">
+              <span class="back-icon">🏠</span>
+              <span class="back-text">もどる</span>
+            </button>
+
+            <!-- メイン情報バー -->
+            <div class="main-info-bar">
+              <!-- 左側：スコアとレベル -->
+              <div class="info-group left-group">
+                <div class="info-item score-item">
+                  <div class="info-icon">⭐</div>
+                  <div class="info-content">
+                    <div class="info-label">スコア</div>
+                    <div class="info-value" id="score">0</div>
+                  </div>
+                </div>
+                <div class="info-item level-item">
+                  <div class="info-icon">🎯</div>
+                  <div class="info-content">
+                    <div class="info-label" id="levelLabel">レベル 1</div>
+                    <div class="info-value level-ability" id="levelAbility">
+                      ダブルジャンプ
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 中央：プログレスバー -->
+              <div class="info-group center-group">
+                <div class="progress-section">
+                  <div class="progress-header">
+                    <span class="progress-label">あつめた アイテム</span>
+                    <span class="progress-count" id="progressCount">0/7</span>
+                  </div>
+                  <div class="progress-container">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <div class="progress-stars">☆☆☆☆☆☆☆☆☆☆</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 右側：時間とライフ -->
+              <div class="info-group right-group">
+                <div class="info-item time-item">
+                  <div class="info-icon">⏰</div>
+                  <div class="info-content">
+                    <div class="info-label">じかん</div>
+                    <div class="info-value" id="time">0</div>
+                  </div>
+                </div>
+                <div class="info-item lives-item">
+                  <div class="info-icon">❤️</div>
+                  <div class="info-content">
+                    <div class="info-label">ライフ</div>
+                    <div class="info-value hearts-container" id="hearts"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <button id="backToStageButton" class="ui-button">🏠 もどる</button>
         </div>
 
         <!-- ゲームキャンバス -->

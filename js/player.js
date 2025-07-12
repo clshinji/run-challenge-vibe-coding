@@ -51,6 +51,21 @@ class Player {
         // ジャンプボタンの前フレーム状態（連続押下防止用）
         this.previousJumpState = false;
 
+        // レベルアップシステム
+        this.playerLevel = 1; // プレイヤーレベル（1: ダブルジャンプ, 2: トリプルジャンプ）
+        this.totalItemsCollected = 0; // 総アイテム収集数
+        this.itemsInCurrentLevel = 0; // 現在レベルでのアイテム収集数
+        this.itemsRequiredForLevelUp = 10; // レベルアップに必要なアイテム数
+
+        // データを読み込み
+        this.loadLevelData();
+
+        // レベルアップエフェクト
+        this.isLevelingUp = false;
+        this.levelUpTime = 0;
+        this.levelUpDuration = 2000; // 2秒間のレベルアップエフェクト
+        this.showLevelUpMessage = false;
+
         // 入力状態
         this.inputState = {
             left: false,
@@ -67,6 +82,11 @@ class Player {
         this.isSpinning = false;
         this.spinStartTime = 0;
         this.spinDuration = 300;
+
+        // トリプルジャンプエフェクト
+        this.isTripleJumping = false;
+        this.tripleJumpStartTime = 0;
+        this.tripleJumpDuration = 500;
 
         // デバッグ表示設定
         this.showDebugInfo = false; // デフォルトでオフ（将来的に設定画面で切り替え可能）
@@ -118,18 +138,19 @@ class Player {
     }
 
     /**
- * ジャンプ試行（シンプル化された二段ジャンプ）
+ * ジャンプ試行（トリプルジャンプ対応）
  */
     attemptJump() {
-        console.log('[JUMP_DEBUG] 🚀 ジャンプ試行（新方式）:', {
+        console.log('[JUMP_DEBUG] 🚀 ジャンプ試行:', {
             jumpCount: this.jumpCount,
             maxJumps: this.maxJumps,
+            playerLevel: this.playerLevel,
             isGrounded: this.isGrounded,
             velocityY: this.velocityY,
             canJump: this.jumpCount < this.maxJumps
         });
 
-        // ジャンプ回数チェック（シンプル）
+        // ジャンプ回数チェック
         if (this.jumpCount < this.maxJumps) {
             this.jumpCount++;
 
@@ -137,26 +158,30 @@ class Player {
                 // 一段ジャンプ
                 console.log('[JUMP_DEBUG] ✅ 一段ジャンプ実行');
                 this.jump();
-            } else {
+            } else if (this.jumpCount === 2) {
                 // 二段ジャンプ
                 console.log('[JUMP_DEBUG] ✅ 二段ジャンプ実行');
                 this.doubleJump();
-
-                // デバッグ用アラート（成功時）
-                if (window.location.search.includes('debug')) {
-                    alert('二段ジャンプ成功！');
-                }
+            } else if (this.jumpCount === 3) {
+                // 三段ジャンプ（レベル2でのみ可能）
+                console.log('[JUMP_DEBUG] ✅ トリプルジャンプ実行');
+                this.tripleJump();
             }
+
+            const jumpType = this.jumpCount === 1 ? '一段' :
+                this.jumpCount === 2 ? '二段' : 'トリプル';
 
             console.log('[JUMP_DEBUG] ✅ ジャンプ実行完了:', {
                 jumpCount: this.jumpCount,
-                jumpType: this.jumpCount === 1 ? '一段' : '二段'
+                jumpType: jumpType,
+                playerLevel: this.playerLevel
             });
         }
         else {
             console.log('[JUMP_DEBUG] ❌ ジャンプ回数上限:', {
                 jumpCount: this.jumpCount,
-                maxJumps: this.maxJumps
+                maxJumps: this.maxJumps,
+                playerLevel: this.playerLevel
             });
 
             // デバッグ用アラート（失敗時）
@@ -209,6 +234,103 @@ class Player {
     }
 
     /**
+     * 三段目ジャンプ（レベル2でアンロック）
+     */
+    tripleJump() {
+        this.velocityY = -this.jumpPower * 0.7; // 三段目は少し弱く
+        this.isJumping = true;
+        this.isGrounded = false;
+        this.animationState = 'jump';
+
+        // トリプルジャンプの特別なエフェクト
+        this.applyTripleJumpEffect();
+
+        console.log('[JUMP_DEBUG] ✨✨✨ トリプルジャンプ実行完了!', {
+            playerLevel: this.playerLevel,
+            velocityY: this.velocityY
+        });
+    }
+
+    /**
+     * トリプルジャンプエフェクト
+     */
+    applyTripleJumpEffect() {
+        this.isTripleJumping = true;
+        this.tripleJumpStartTime = Date.now();
+        this.tripleJumpDuration = 500; // 0.5秒間の特別エフェクト
+    }
+
+    /**
+     * アイテム収集処理
+     */
+    collectItem() {
+        this.totalItemsCollected++;
+        this.itemsInCurrentLevel++;
+
+        console.log('🎁 アイテム収集!', {
+            totalItems: this.totalItemsCollected,
+            itemsInLevel: this.itemsInCurrentLevel,
+            requiredForLevelUp: this.itemsRequiredForLevelUp
+        });
+
+        // データを保存
+        this.saveLevelData();
+
+        // レベルアップチェック
+        this.checkLevelUp();
+    }
+
+    /**
+     * レベルアップチェック
+     */
+    checkLevelUp() {
+        if (this.playerLevel === 1 && this.itemsInCurrentLevel >= this.itemsRequiredForLevelUp) {
+            this.levelUp();
+        }
+    }
+
+    /**
+     * レベルアップ実行
+     */
+    levelUp() {
+        this.playerLevel = 2;
+        this.itemsInCurrentLevel = 0; // リセット
+        this.maxJumps = 3; // トリプルジャンプアンロック
+
+        // レベルアップエフェクト開始
+        this.isLevelingUp = true;
+        this.levelUpTime = 0;
+        this.showLevelUpMessage = true;
+
+        console.log('🌟🌟🌟 レベルアップ! トリプルジャンプがアンロックされました!', {
+            playerLevel: this.playerLevel,
+            maxJumps: this.maxJumps
+        });
+
+        // データを保存
+        this.saveLevelData();
+
+        // UI にレベルアップを通知
+        if (window.uiManager && window.uiManager.showLevelUpNotification) {
+            window.uiManager.showLevelUpNotification();
+        }
+    }
+
+    /**
+     * レベルアップエフェクト更新
+     */
+    updateLevelUpEffect(deltaTime) {
+        if (this.isLevelingUp) {
+            this.levelUpTime += deltaTime;
+
+            if (this.levelUpTime >= this.levelUpDuration) {
+                this.isLevelingUp = false;
+                this.showLevelUpMessage = false;
+            }
+        }
+    }
+
+    /**
      * 更新処理
      */
     update(deltaTime, stage) {
@@ -217,6 +339,7 @@ class Player {
         this.updateCollisions(stage);
         this.updateAnimation(deltaTime);
         this.updateInvulnerability(deltaTime);
+        this.updateLevelUpEffect(deltaTime);
     }
 
     /**
@@ -795,7 +918,7 @@ class Player {
 
             // デバッグ情報（設定で切り替え可能）
             if (this.showDebugInfo) {
-            this.renderDebugInfo(ctx, drawX, drawY);
+                this.renderDebugInfo(ctx, drawX, drawY);
             }
         } catch (error) {
             console.error('プレイヤー描画エラー:', error);
@@ -898,6 +1021,9 @@ class Player {
 
         // 二段ジャンプ可能時のエフェクト
         this.drawDoubleJumpEffect(ctx, x + this.width / 2, bodyY + currentHeight / 2);
+
+        // トリプルジャンプエフェクト描画
+        this.drawTripleJumpEffect(ctx, x + this.width / 2, bodyY + currentHeight / 2);
 
         // 無敵状態の場合はアルファ値をリセット
         if (this.invulnerable) {
@@ -1184,6 +1310,98 @@ class Player {
     }
 
     /**
+     * トリプルジャンプエフェクト描画
+     */
+    drawTripleJumpEffect(ctx, centerX, centerY) {
+        const currentTime = performance.now();
+
+        // トリプルジャンプ実行中のエフェクト
+        if (this.isTripleJumping) {
+            const elapsed = currentTime - this.tripleJumpStartTime;
+            if (elapsed < this.tripleJumpDuration) {
+                ctx.save();
+
+                // レインボーオーラ
+                const auraRadius = 35;
+                const sparkleCount = 12;
+
+                for (let i = 0; i < sparkleCount; i++) {
+                    const angle = (i / sparkleCount) * Math.PI * 2 + currentTime * 0.01;
+                    const sparkleX = centerX + Math.cos(angle) * auraRadius;
+                    const sparkleY = centerY + Math.sin(angle) * (auraRadius * 0.7);
+                    const sparkleSize = 3 + Math.sin(currentTime * 0.02 + i) * 1.5;
+                    const alpha = 0.7 + Math.sin(currentTime * 0.015 + i * 0.5) * 0.3;
+
+                    // レインボー色
+                    const hue = (i * 30 + currentTime * 0.1) % 360;
+                    ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(sparkleX, sparkleY, sparkleSize, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // ハイライト
+                    ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
+                    ctx.beginPath();
+                    ctx.arc(sparkleX, sparkleY, sparkleSize * 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // 中央のレインボーオーラ
+                const auraAlpha = 0.2 + Math.sin(currentTime * 0.02) * 0.1;
+                const auraGradient = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 30);
+                auraGradient.addColorStop(0, `hsla(${(currentTime * 0.1) % 360}, 100%, 70%, ${auraAlpha})`);
+                auraGradient.addColorStop(0.5, `hsla(${(currentTime * 0.1 + 180) % 360}, 100%, 70%, ${auraAlpha * 0.5})`);
+                auraGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                ctx.fillStyle = auraGradient;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 30, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            } else {
+                this.isTripleJumping = false;
+            }
+        }
+
+        // トリプルジャンプ可能時のエフェクト（レベル2以上）
+        if (!this.isGrounded && this.jumpCount === 2 && this.playerLevel >= 2) {
+            ctx.save();
+
+            const auraRadius = 30;
+            const sparkleCount = 10;
+
+            for (let i = 0; i < sparkleCount; i++) {
+                const angle = (i / sparkleCount) * Math.PI * 2 + currentTime * 0.008;
+                const sparkleX = centerX + Math.cos(angle) * auraRadius;
+                const sparkleY = centerY + Math.sin(angle) * (auraRadius * 0.6);
+                const sparkleSize = 2.5 + Math.sin(currentTime * 0.012 + i) * 1;
+                const alpha = 0.6 + Math.sin(currentTime * 0.01 + i * 0.4) * 0.3;
+
+                // レインボー色
+                const hue = (i * 36 + currentTime * 0.08) % 360;
+                ctx.fillStyle = `hsla(${hue}, 90%, 65%, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(sparkleX, sparkleY, sparkleSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 中央のオーラ
+            const auraAlpha = 0.15 + Math.sin(currentTime * 0.012) * 0.05;
+            const auraGradient = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, 25);
+            auraGradient.addColorStop(0, `hsla(${(currentTime * 0.08) % 360}, 80%, 75%, ${auraAlpha})`);
+            auraGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+            ctx.fillStyle = auraGradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 25, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+    }
+
+    /**
      * 二段ジャンプ実行時のスピンエフェクト
      */
     applyDoubleJumpSpin() {
@@ -1260,6 +1478,55 @@ class Player {
             width: this.width,
             height: this.height
         };
+    }
+
+    /**
+     * レベルデータを読み込み
+     */
+    loadLevelData() {
+        if (typeof window !== 'undefined' && window.gameStorage) {
+            const gameData = window.gameStorage.loadGameData();
+            if (gameData && gameData.levelSystem) {
+                this.playerLevel = gameData.levelSystem.playerLevel || 1;
+                this.totalItemsCollected = gameData.levelSystem.totalItemsCollected || 0;
+                this.itemsInCurrentLevel = gameData.levelSystem.itemsInCurrentLevel || 0;
+
+                // レベルに応じてmaxJumpsを設定
+                this.maxJumps = this.playerLevel >= 2 ? 3 : 2;
+
+                console.log('レベルデータ読み込み完了:', {
+                    playerLevel: this.playerLevel,
+                    totalItemsCollected: this.totalItemsCollected,
+                    itemsInCurrentLevel: this.itemsInCurrentLevel,
+                    maxJumps: this.maxJumps
+                });
+            }
+        }
+    }
+
+    /**
+     * レベルデータを保存
+     */
+    saveLevelData() {
+        if (typeof window !== 'undefined' && window.gameStorage) {
+            const gameData = window.gameStorage.loadGameData();
+
+            if (!gameData.levelSystem) {
+                gameData.levelSystem = {};
+            }
+
+            gameData.levelSystem.playerLevel = this.playerLevel;
+            gameData.levelSystem.totalItemsCollected = this.totalItemsCollected;
+            gameData.levelSystem.itemsInCurrentLevel = this.itemsInCurrentLevel;
+
+            window.gameStorage.saveGameData(gameData);
+
+            console.log('レベルデータ保存完了:', {
+                playerLevel: this.playerLevel,
+                totalItemsCollected: this.totalItemsCollected,
+                itemsInCurrentLevel: this.itemsInCurrentLevel
+            });
+        }
     }
 }
 

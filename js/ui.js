@@ -7,6 +7,7 @@ class UIManager {
         this.previousScreen = null; // 前の画面を記録
         this.gameData = null;
         this.storage = new GameStorage();
+        this.clearedStageNumber = null; // クリアしたステージ番号を追跡
         this.init();
     }
 
@@ -192,8 +193,26 @@ class UIManager {
 
         // ゲームクリア画面
         document.getElementById('nextStageButton').addEventListener('click', () => {
-            console.log('つぎのステージへボタンクリック');
+            console.log('🔘 つぎのステージへボタンクリック');
+            console.log('⏰ クリック時刻:', new Date().toLocaleTimeString());
+
+            // ダブルクリック防止：ボタンを一時的に無効化
+            const button = document.getElementById('nextStageButton');
+            if (button.disabled) {
+                console.log('⚠️ ボタンが無効化されているため処理をスキップ');
+                return;
+            }
+
+            button.disabled = true;
+            button.style.opacity = '0.5';
+
             this.handleNextStage();
+
+            // 3秒後にボタンを再有効化（通常は画面が切り替わるので実際には無効化されたまま）
+            setTimeout(() => {
+                button.disabled = false;
+                button.style.opacity = '1';
+            }, 3000);
         });
 
         document.getElementById('clearBackButton').addEventListener('click', () => {
@@ -985,32 +1004,125 @@ class UIManager {
     }
 
     /**
-     * 次のステージへ
-     */
+ * 次のステージへ
+ */
     handleNextStage() {
+        console.log('=== handleNextStage() 開始 ===');
+
         const currentGame = window.simpleGame || window.game;
 
-        if (currentGame && currentGame.currentStage < 20) {
-            const nextStage = currentGame.currentStage + 1;
-            console.log(`次のステージ処理: ${currentGame.currentStage} → ${nextStage}`);
+        if (!currentGame) {
+            console.error('❌ ゲームインスタンスが見つかりません');
+            this.showScreen('stageSelectScreen');
+            return;
+        }
+
+        // **修正**：実際にクリアしたステージ番号を使用（プロパティとDOM属性の両方をチェック）
+        let clearedStage = this.clearedStageNumber;
+
+        // プロパティがnullの場合はDOM属性からバックアップを取得
+        const nextButton = document.getElementById('nextStageButton');
+        if (!clearedStage && nextButton) {
+            const domClearedStage = nextButton.getAttribute('data-cleared-stage');
+            if (domClearedStage) {
+                clearedStage = parseInt(domClearedStage, 10);
+                console.log('🔄 DOM属性からクリアステージ番号を復元:', clearedStage);
+            }
+        }
+
+        console.log('🔍 詳細デバッグ情報:', {
+            clearedStage: clearedStage,
+            propertyValue: this.clearedStageNumber,
+            domAttribute: nextButton ? nextButton.getAttribute('data-cleared-stage') : 'なし',
+            currentStage: currentGame.currentStage,
+            gameInstance: currentGame.constructor.name,
+            isCompleting: currentGame.isCompleting || 'undefined'
+        });
+
+        if (!clearedStage) {
+            console.error('❌ クリアしたステージ番号が見つかりません（プロパティとDOM属性の両方でnull）');
+            this.showScreen('stageSelectScreen');
+            return;
+        }
+
+        // ステージ20をクリアした場合、全ステージクリアメッセージを表示
+        if (clearedStage === 20) {
+            console.log('🎉 ステージ20クリア検出！全ステージクリアメッセージ表示');
+            alert('🎉 おめでとう！すべてのステージをクリアしました！');
+            this.showScreen('stageSelectScreen');
+            currentGame.stop();
+            // クリアしたステージ番号とDOM属性をリセット
+            this.clearedStageNumber = null;
+            if (nextButton) {
+                nextButton.removeAttribute('data-cleared-stage');
+            }
+            return;
+        }
+
+        // ステージ1-19の場合、次のステージに進む処理
+        if (clearedStage < 20) {
+            const nextStage = clearedStage + 1;
+            console.log(`次のステージ処理: ${clearedStage} → ${nextStage}`);
 
             // 次のステージが解放されているかチェック
             if (gameStorage.isStageUnlocked(nextStage)) {
                 console.log(`ステージ${nextStage}開始`);
                 this.hideScreen('clearScreen');
+                // クリアしたステージ番号とDOM属性をリセット
+                this.clearedStageNumber = null;
+                if (nextButton) {
+                    nextButton.removeAttribute('data-cleared-stage');
+                }
                 this.startStage(nextStage);
             } else {
                 console.log(`ステージ${nextStage}は未解放のため、ステージ選択画面へ`);
                 this.showScreen('stageSelectScreen');
-                if (currentGame) currentGame.stop();
+                currentGame.stop();
+                // クリアしたステージ番号とDOM属性をリセット
+                this.clearedStageNumber = null;
+                if (nextButton) {
+                    nextButton.removeAttribute('data-cleared-stage');
+                }
             }
         } else {
-            // 全ステージクリア
-            console.log('全ステージクリア！');
-            alert('🎉 おめでとう！すべてのステージをクリアしました！');
+            // ステージ20より大きい場合（通常はありえない）
+            console.log('無効なステージ番号、ステージ選択画面に戻る');
             this.showScreen('stageSelectScreen');
-            if (currentGame) currentGame.stop();
+            currentGame.stop();
+            // クリアしたステージ番号とDOM属性をリセット
+            this.clearedStageNumber = null;
+            if (nextButton) {
+                nextButton.removeAttribute('data-cleared-stage');
+            }
         }
+    }
+
+    /**
+ * 全ステージクリア済みかチェック
+ */
+    checkAllStagesCompleted() {
+        const totalStages = 20;
+        let completedCount = 0;
+        const completedStages = [];
+        const uncompletedStages = [];
+
+        for (let i = 1; i <= totalStages; i++) {
+            if (gameStorage.isStageCompleted(i)) {
+                completedCount++;
+                completedStages.push(i);
+            } else {
+                uncompletedStages.push(i);
+            }
+        }
+
+        console.log(`ステージクリア状況詳細:`, {
+            completedCount: `${completedCount}/${totalStages}`,
+            completedStages: completedStages,
+            uncompletedStages: uncompletedStages,
+            isAllCompleted: completedCount === totalStages
+        });
+
+        return completedCount === totalStages;
     }
 
     /**
@@ -1061,9 +1173,125 @@ class UIManager {
      */
     updateGameUI(gameState) {
         document.getElementById('score').textContent = gameState.score;
-        document.getElementById('itemCount').textContent = gameState.itemsCollected;
         document.getElementById('time').textContent = Math.floor(gameState.time);
         this.updateLivesDisplay(gameState.lives);
+    }
+
+    /**
+     * プログレスバー付きゲームUI更新
+     */
+    updateGameUIWithProgress(gameState, player) {
+        // 基本的なUI更新
+        this.updateGameUI(gameState);
+
+        // プレイヤー情報が存在する場合のみプログレス更新
+        if (player) {
+            this.updateProgressBar(player);
+            this.updateLevelInfo(player);
+        }
+    }
+
+    /**
+ * プログレスバー更新
+ */
+    updateProgressBar(player) {
+        const progressFill = document.getElementById('progressFill');
+        const progressCount = document.getElementById('progressCount');
+
+        if (progressFill && progressCount) {
+            const playerLevel = player.playerLevel || 1;
+            const collected = player.itemsInCurrentLevel || 0;
+            const required = player.itemsRequiredForLevelUp || 10;
+
+            // レベル2（最大レベル）に達している場合は常に満タン表示
+            if (playerLevel >= 2) {
+                progressFill.style.width = '100%';
+                progressCount.textContent = `${required}/${required}`;
+
+                console.log('プログレスバー更新（最大レベル）:', {
+                    playerLevel: playerLevel,
+                    display: `${required}/${required}`,
+                    percentage: 100
+                });
+            } else {
+                // レベル1の場合は通常の進捗表示
+                const percentage = Math.min((collected / required) * 100, 100);
+                progressFill.style.width = `${percentage}%`;
+                progressCount.textContent = `${collected}/${required}`;
+
+                console.log('プログレスバー更新（レベル1）:', {
+                    playerLevel: playerLevel,
+                    collected: collected,
+                    required: required,
+                    percentage: percentage
+                });
+            }
+        }
+    }
+
+    /**
+     * レベル情報更新
+     */
+    updateLevelInfo(player) {
+        const levelLabel = document.getElementById('levelLabel');
+        const levelAbility = document.getElementById('levelAbility');
+
+        if (levelLabel && levelAbility) {
+            const level = player.playerLevel || 1;
+            levelLabel.textContent = `レベル ${level}`;
+
+            // レベルに応じた能力表示
+            if (level >= 2) {
+                levelAbility.textContent = 'トリプルジャンプ';
+            } else {
+                levelAbility.textContent = 'ダブルジャンプ';
+            }
+        }
+    }
+
+    /**
+     * レベルアップ通知表示
+     */
+    showLevelUpNotification() {
+        // 既存の通知がある場合は削除
+        const existingNotification = document.querySelector('.level-up-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // レベルアップ通知要素を作成
+        const notification = document.createElement('div');
+        notification.className = 'level-up-notification';
+        notification.innerHTML = `
+            <div class="level-up-content">
+                <div class="level-up-icon">🌟</div>
+                <div class="level-up-text">レベルアップ!</div>
+                <div class="level-up-subtitle">トリプルジャンプがアンロックされました!</div>
+            </div>
+        `;
+
+        // ゲーム画面に追加
+        const gameScreen = document.getElementById('gameScreen');
+        if (gameScreen) {
+            gameScreen.appendChild(notification);
+
+            // アニメーション付きで表示
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+
+            // 3秒後に自動削除
+            setTimeout(() => {
+                notification.classList.add('hide');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 500);
+            }, 3000);
+        }
+
+        console.log('🌟 レベルアップ通知表示');
     }
 
     /**
@@ -1130,35 +1358,42 @@ class UIManager {
         const currentGame = window.simpleGame || window.game;
         const nextButton = document.getElementById('nextStageButton');
 
+        // **重要**：実際にクリアしたステージ番号を保存（より安全な方法を使用）
+        const clearedStage = currentGame ? currentGame.currentStage : null;
+        this.clearedStageNumber = clearedStage;
+
+        // DOMエレメントにも保存（バックアップ）
+        if (nextButton && clearedStage) {
+            nextButton.setAttribute('data-cleared-stage', clearedStage.toString());
+        }
+
+        console.log('🎯 クリアしたステージ番号を保存:', {
+            property: this.clearedStageNumber,
+            domAttribute: nextButton ? nextButton.getAttribute('data-cleared-stage') : 'なし',
+            currentStage: currentGame.currentStage
+        });
+
+        // デバッグ用：5秒後にも確認
+        setTimeout(() => {
+            console.log('🔍 5秒後のクリアステージ番号:', {
+                property: this.clearedStageNumber,
+                domAttribute: nextButton ? nextButton.getAttribute('data-cleared-stage') : 'なし'
+            });
+        }, 5000);
+
         console.log('次のステージボタン表示判定:', {
             currentGame: !!currentGame,
-            currentStage: currentGame ? currentGame.currentStage : 'なし',
+            clearedStageNumber: this.clearedStageNumber,
             maxStage: 20
         });
 
-        if (currentGame && currentGame.currentStage < 20) {
-            const nextStage = currentGame.currentStage + 1;
-            const isNextStageUnlocked = gameStorage.isStageUnlocked(nextStage);
-
-            console.log('次のステージ詳細:', {
-                nextStage: nextStage,
-                isUnlocked: isNextStageUnlocked
-            });
-
-            if (isNextStageUnlocked) {
-                nextButton.style.display = 'block';
-                console.log('✅ 次のステージボタンを表示');
-            } else {
-                nextButton.style.display = 'none';
-                console.log('❌ 次のステージが未解放のためボタンを非表示');
-            }
+        if (currentGame && this.clearedStageNumber >= 1 && this.clearedStageNumber <= 20) {
+            // ステージ1-20すべてで「つぎのステージへ」ボタンを表示
+            nextButton.style.display = 'block';
+            console.log('✅ 次のステージボタンを表示');
         } else {
             nextButton.style.display = 'none';
-            if (currentGame && currentGame.currentStage >= 20) {
-                console.log('❌ 最終ステージのためボタンを非表示');
-            } else {
-                console.log('❌ ゲームが見つからないためボタンを非表示');
-            }
+            console.log('❌ ゲームインスタンスが見つからないか無効なステージのためボタンを非表示');
         }
 
         this.showScreen('clearScreen');

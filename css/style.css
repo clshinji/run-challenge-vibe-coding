@@ -376,21 +376,537 @@ input[type="text"]:focus {
     left: 0;
     right: 0;
     z-index: 10;
-    padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.9);
+    flex-shrink: 0;
+    order: 1;
+    pointer-events: none;
+}
+
+#gameUI > * {
+    pointer-events: auto;
+}
+
+/* 統合インフォメーションエリア */
+.integrated-info-area {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 248, 255, 0.95));
+    backdrop-filter: blur(12px);
+    border-radius: 0 0 30px 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 45px 20px 8px 20px;
+    margin: 0;
+    position: relative;
+}
+
+/* 統合された戻るボタン */
+.back-button {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: none;
+    border-radius: 20px;
+    padding: 6px 12px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    transition: all 0.3s ease;
+    z-index: 15;
+    min-width: 70px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    height: 30px;
+}
+
+.back-button:hover {
+    background: linear-gradient(135deg, #2980b9, #3498db);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.back-button:active {
+    background: linear-gradient(135deg, #2471a3, #2980b9);
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+}
+
+.back-icon {
+    font-size: 1.1rem;
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.back-text {
+    font-size: 0.85rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* メイン情報バー */
+.main-info-bar {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+/* 情報グループ */
+.info-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.left-group {
+    justify-content: flex-start;
+}
+
+.center-group {
+    justify-content: center;
+}
+
+.right-group {
+    justify-content: flex-end;
+}
+
+/* 情報アイテム */
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 16px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    min-width: 80px;
+}
+
+.info-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.info-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.info-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+}
+
+.info-value {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.level-ability {
+    font-size: 0.8rem !important;
+    color: #7f8c8d !important;
+    font-weight: 500 !important;
+}
+
+/* プログレスセクション */
+.progress-section {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    padding: 10px 16px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(52, 152, 219, 0.2);
+}
+
+.progress-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-shrink: 0;
-    order: 1;
+    margin-bottom: 6px;
 }
 
-.ui-top {
-    display: flex;
-    gap: 20px;
+.progress-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.progress-count {
+    font-size: 0.9rem;
     font-weight: bold;
-    color: #2C3E50;
-    flex-wrap: wrap; /* 小さい画面で折り返し */
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.progress-container {
+    position: relative;
+    height: 18px;
+    background: #ecf0f1;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    border-radius: 12px;
+    transition: width 0.5s ease-out;
+    position: relative;
+    box-shadow: 0 0 8px rgba(52, 152, 219, 0.4);
+}
+
+.progress-fill.max-level {
+    background: linear-gradient(90deg, #e74c3c, #f39c12, #f1c40f, #2ecc71, #3498db, #9b59b6, #e91e63);
+    background-size: 200% 100%;
+    animation: rainbow-flow 3s linear infinite;
+}
+
+.progress-stars {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.7rem;
+    color: #7f8c8d;
+    pointer-events: none;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* サブ情報バー */
+.sub-info-bar {
+    display: flex;
+    justify-content: center;
+    padding: 4px 0;
+}
+
+.item-detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(46, 204, 113, 0.1);
+    border-radius: 12px;
+    padding: 4px 12px;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.item-icon {
+    font-size: 1rem;
+}
+
+.item-text {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #27ae60;
+}
+
+/* ハートコンテナの調整 */
+.hearts-container {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.heart {
+    font-size: 1rem !important;
+    filter: none !important;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 1024px) {
+    .integrated-info-area {
+        padding: 40px 16px 6px 16px;
+    }
+    
+    .back-button {
+        top: 6px;
+        right: 10px;
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        min-width: 65px;
+        height: 28px;
+    }
+    
+    .back-icon {
+        font-size: 0.95rem;
+    }
+    
+    .back-text {
+        font-size: 0.75rem;
+    }
+    
+    .main-info-bar {
+        gap: 12px;
+    }
+    
+    .info-item {
+        padding: 6px 10px;
+        min-width: 70px;
+    }
+    
+    .info-icon {
+        font-size: 1.2rem;
+    }
+    
+    .info-label {
+        font-size: 0.7rem;
+    }
+    
+    .info-value {
+        font-size: 0.9rem;
+    }
+    
+    .progress-section {
+        padding: 8px 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .integrated-info-area {
+        padding: 35px 12px 6px 12px;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .back-button {
+        top: 4px;
+        right: 8px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        min-width: 55px;
+        border-radius: 16px;
+        height: 26px;
+    }
+    
+    .back-icon {
+        font-size: 0.85rem;
+    }
+    
+    .back-text {
+        font-size: 0.7rem;
+    }
+    
+    .main-info-bar {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .info-group {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .center-group {
+        order: -1;
+    }
+    
+    .info-item {
+        flex: 1;
+        min-width: 60px;
+        padding: 6px 8px;
+    }
+    
+    .info-icon {
+        font-size: 1.1rem;
+    }
+    
+    .info-label {
+        font-size: 0.65rem;
+    }
+    
+    .info-value {
+        font-size: 0.85rem;
+    }
+    
+    .level-ability {
+        font-size: 0.7rem !important;
+    }
+    
+    .progress-section {
+        padding: 6px 10px;
+        margin-bottom: 4px;
+    }
+    
+    .progress-label {
+        font-size: 0.75rem;
+    }
+    
+    .progress-count {
+        font-size: 0.8rem;
+        padding: 1px 6px;
+    }
+    
+    .progress-container {
+        height: 16px;
+    }
+    
+    .progress-stars {
+        font-size: 0.6rem;
+    }
+    
+    .sub-info-bar {
+        padding: 2px 0;
+    }
+    
+    .item-detail {
+        padding: 3px 8px;
+    }
+    
+    .item-text {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .integrated-info-area {
+        padding: 30px 8px 4px 8px;
+    }
+    
+    .back-button {
+        top: 3px;
+        right: 6px;
+        padding: 3px 6px;
+        font-size: 0.7rem;
+        min-width: 45px;
+        border-radius: 14px;
+        gap: 3px;
+        height: 24px;
+    }
+    
+    .back-icon {
+        font-size: 0.8rem;
+    }
+    
+    .back-text {
+        font-size: 0.65rem;
+    }
+    
+    .main-info-bar {
+        gap: 6px;
+    }
+    
+    .info-group {
+        gap: 6px;
+    }
+    
+    .info-item {
+        padding: 4px 6px;
+        min-width: 50px;
+    }
+    
+    .info-icon {
+        font-size: 1rem;
+    }
+    
+    .info-label {
+        font-size: 0.6rem;
+    }
+    
+    .info-value {
+        font-size: 0.8rem;
+    }
+    
+    .level-ability {
+        font-size: 0.65rem !important;
+    }
+    
+    .progress-section {
+        padding: 5px 8px;
+    }
+    
+    .progress-label {
+        font-size: 0.7rem;
+    }
+    
+    .progress-count {
+        font-size: 0.75rem;
+        padding: 1px 5px;
+    }
+    
+    .progress-container {
+        height: 14px;
+    }
+    
+    .progress-stars {
+        font-size: 0.55rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .item-detail {
+        padding: 2px 6px;
+    }
+    
+    .item-icon {
+        font-size: 0.9rem;
+    }
+    
+    .item-text {
+        font-size: 0.7rem;
+    }
+    
+    .heart {
+        font-size: 0.9rem !important;
+    }
+}
+
+/* 極小画面での戻るボタン最適化 */
+@media (max-width: 360px) {
+    .integrated-info-area {
+        padding: 28px 6px 4px 6px;
+    }
+    
+    .back-button {
+        top: 2px;
+        right: 4px;
+        padding: 2px 4px;
+        font-size: 0.65rem;
+        min-width: 40px;
+        border-radius: 12px;
+        gap: 2px;
+        height: 22px;
+    }
+    
+    .back-icon {
+        font-size: 0.75rem;
+    }
+    
+    .back-text {
+        font-size: 0.6rem;
+    }
+}
+
+/* アイコンのみ表示オプション（320px以下の極小画面） */
+@media (max-width: 320px) {
+    .back-button {
+        min-width: 30px;
+        padding: 2px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        justify-content: center;
+    }
+    
+    .back-text {
+        display: none;
+    }
+    
+    .back-icon {
+        font-size: 0.9rem;
+    }
 }
 
 /* ライフ表示 */
@@ -474,45 +990,7 @@ input[type="text"]:focus {
     }
 }
 
-.ui-button {
-    background: rgba(255, 255, 255, 0.9); /* 半透明の白い背景 */
-    border: 2px solid #2C3E50; /* 濃い色の枠線 */
-    border-radius: 12px;
-    padding: 12px 18px;
-    color: #2C3E50; /* 黒っぽいテキスト */
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8); /* 白い影でテキストを際立たせる */
-    box-shadow: 
-        0 3px 6px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5); /* 内側にハイライト */
-    transition: all 0.3s ease; /* スムーズな変化 */
-    backdrop-filter: blur(5px); /* 背景をぼかす効果 */
-}
 
-.ui-button:hover {
-    background: rgba(52, 73, 94, 0.95); /* ホバー時に濃い背景 */
-    border-color: #FFD700; /* ホバー時に金色の枠線 */
-    color: #FFD700; /* ホバー時に金色のテキスト */
-    text-shadow: 
-        1px 1px 2px rgba(0, 0, 0, 0.8),
-        0 0 8px rgba(255, 215, 0, 0.5); /* 金色の光る効果 */
-    transform: translateY(-2px); /* 少し浮き上がる効果 */
-    box-shadow: 
-        0 5px 10px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.ui-button:active {
-    background: rgba(26, 37, 47, 0.95); /* クリック時にさらに濃く */
-    color: #FFF; /* アクティブ時は白いテキスト */
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    transform: translateY(0px); /* 押し込まれる効果 */
-    box-shadow: 
-        0 2px 4px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
 
 /* ゲームキャンバス */
 #gameCanvas {
@@ -816,27 +1294,7 @@ input[type="text"]:focus {
     40% { content: ".."; }
     60%, 100% { content: "..."; }
 }
-/* ゲーム画面のもどるボタン */
-#backToStageButton {
-    padding: 8px 12px;
-    font-size: 14px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid #4CAF50;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 20;
-}
 
-#backToStageButton:hover {
-    background: #4CAF50;
-    color: white;
-    transform: scale(1.05);
-}
-
-#backToStageButton:active {
-    transform: scale(0.95);
-}
 
 /* プレイヤー名表示エリア */
 .player-name-display {
@@ -2941,4 +3399,165 @@ input[type="text"]:focus {
         font-size: 0.9rem;
         min-width: 50px;
     }
+}
+
+/* ========== レベルアップシステム関連スタイル ========== */
+
+/* Level up notification */
+.level-up-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    transform: translateX(100%) scale(0);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    z-index: 2000;
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    max-width: 280px;
+}
+
+.level-up-notification.show {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+}
+
+.level-up-notification.hide {
+    transform: translateX(100%) scale(0);
+    opacity: 0;
+}
+
+.level-up-content {
+    text-align: center;
+    color: white;
+}
+
+.level-up-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    animation: twinkle 1s ease-in-out infinite alternate;
+}
+
+.level-up-text {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    animation: sparkle 1.5s ease-in-out infinite;
+    line-height: 1.2;
+}
+
+.level-up-subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.level-up-sparkles {
+    font-size: 1.5rem;
+    animation: twinkle 1s ease-in-out infinite alternate;
+}
+
+@keyframes sparkle {
+    0%, 100% {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    50% {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.8);
+    }
+}
+
+@keyframes twinkle {
+    0% {
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+
+
+@keyframes rainbow-flow {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 200% 0%;
+    }
+}
+
+/* Rainbow jump button (triple jump unlocked) */
+.control-button.jump.rainbow-unlocked {
+    background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3) !important;
+    background-size: 400% 400% !important;
+    animation: rainbow-rotation 3s ease-in-out infinite, jumpPulse 2s ease-in-out infinite !important;
+}
+
+.control-button.jump.rainbow-unlocked:active {
+    background: linear-gradient(45deg, #e60000, #e67200, #e6e600, #00e600, #0000e6, #420075, #8300c0) !important;
+    background-size: 400% 400% !important;
+}
+
+/* Rainbow rotation animation */
+@keyframes rainbow-rotation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Responsive adjustments for level up system */
+@media (max-width: 768px) {
+    .level-up-notification {
+        top: 15px;
+        right: 15px;
+        max-width: 250px;
+        padding: 15px;
+    }
+
+    .level-up-text {
+        font-size: 1.5rem;
+    }
+
+    .level-up-subtitle {
+        font-size: 1rem;
+    }
+
+
+}
+
+@media (max-width: 480px) {
+    .level-up-notification {
+        top: 10px;
+        right: 10px;
+        padding: 12px;
+        max-width: 220px;
+    }
+
+    .level-up-text {
+        font-size: 1.3rem;
+        margin-bottom: 8px;
+    }
+
+    .level-up-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+
+    .level-up-sparkles {
+        font-size: 1.2rem;
+    }
+
+
 }

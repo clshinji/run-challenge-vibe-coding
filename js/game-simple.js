@@ -294,8 +294,13 @@ class SimpleGame {
         this.checkCollisions();
         this.checkGameState();
 
+        // UI更新（プログレスバー含む）
         if (window.uiManager) {
-            window.uiManager.updateGameUI(this.gameState);
+            if (window.uiManager.updateGameUIWithProgress) {
+                window.uiManager.updateGameUIWithProgress(this.gameState, this.player);
+            } else {
+                window.uiManager.updateGameUI(this.gameState);
+            }
         }
     }
 
@@ -537,6 +542,11 @@ class SimpleGame {
                 this.gameState.score += 200;
                 break;
         }
+
+        // プレイヤーのレベルアップシステムに通知
+        if (this.player && this.player.collectItem) {
+            this.player.collectItem();
+        }
     }
 
     /**
@@ -563,10 +573,17 @@ class SimpleGame {
      * ステージクリア
      */
     completeStage() {
-        console.log('ステージクリア処理開始');
+        console.log('=== completeStage() 開始 ===');
+        console.log('🔍 ステージクリア詳細情報:', {
+            currentStage: this.currentStage,
+            currentStageType: typeof this.currentStage,
+            isCompleting: this.isCompleting,
+            isRunning: this.isRunning
+        });
 
         // 重複実行を防ぐ
         if (this.isCompleting) {
+            console.log('⚠️ 既にクリア処理中のためスキップ');
             return;
         }
 
