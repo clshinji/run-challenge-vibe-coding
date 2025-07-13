@@ -585,5 +585,109 @@
     }
 }
 
+/* タブレット・スマートフォンでの画面下部見切れ対策 */
+@media screen and (max-width: 1024px) {
+    /* 全体のレイアウト調整 */
+    .screen {
+        min-height: 100vh;
+        padding-bottom: 80px;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
+
+    /* せいせき画面の調整 */
+    #statsScreen {
+        padding: 10px;
+        min-height: calc(100vh - 20px);
+    }
+
+    .stats-content-wrapper {
+        padding-bottom: 120px; /* 下部に十分な余白 */
+    }
+
+    /* 共有セクションの調整 */
+    .share-section {
+        margin: 15px 0 20px 0;
+        padding: 15px;
+    }
+
+    .share-preview {
+        margin: 15px 0;
+        padding: 10px;
+    }
+
+    #sharePreviewCanvas {
+        max-width: 100%;
+        width: 350px;
+        height: auto;
+    }
+
+    /* ボタンエリアの調整 */
+    .menu-buttons {
+        position: sticky;
+        bottom: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+        z-index: 100;
+        backdrop-filter: blur(10px);
+    }
+
+    /* ステージ選択画面の調整 */
+    #stageScreen {
+        padding-bottom: 120px;
+    }
+
+    .stage-selection-content {
+        padding-bottom: 100px;
+    }
+
+    /* 設定画面の調整 */
+    #settingsScreen {
+        padding-bottom: 120px;
+    }
+
+    .settings-options {
+        padding-bottom: 100px;
+    }
+
+    /* ゲーム画面の調整 */
+    #gameScreen {
+        padding-bottom: 80px;
+    }
+
+    /* プレイヤー選択画面の調整 */
+    #playerListScreen {
+        padding-bottom: 120px;
+    }
+
+    /* タイトル画面の調整 */
+    #titleScreen {
+        padding-bottom: 80px;
+    }
+}
+
+/* より小さなタブレット・スマートフォン対応 */
+@media screen and (max-width: 768px) {
+    .screen {
+        padding-bottom: 100px;
+    }
+
+    .stats-content-wrapper {
+        padding-bottom: 140px;
+    }
+
+    .menu-buttons {
+        bottom: 10px;
+        padding: 12px;
+    }
+
+    #sharePreviewCanvas {
+        width: 300px;
+    }
+}
+
 /* 完全レスポンシブグリッド対応完了 - 2024年12月27日 */
 /* 画面幅に応じて5列〜1列まで自動調整されます */

@@ -5,11 +5,24 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; /* iOS Safari でのスムーズスクロール */
+}
+
 body {
     font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
     min-height: 100vh;
-    overflow: hidden;
+    position: relative;
+}
+
+/* タブレット・スマートフォンでのスクロール対応 */
+@media (max-width: 1024px) {
+    body {
+        overflow: auto;
+    }
 }
 
 /* ゲームコンテナ */
