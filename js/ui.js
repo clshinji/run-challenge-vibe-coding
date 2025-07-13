@@ -12,6 +12,7 @@ class UIManager {
         // 共有機能の処理中フラグ
         this.isDownloading = false;
         this.isSharing = false;
+        this.sharePreviewInitialized = false;
         
         this.init();
     }
@@ -200,8 +201,14 @@ class UIManager {
             }
         });
 
-        // 成績共有機能
-        this.setupShareFeatures();
+        // 成績共有機能（DOM準備完了後に初期化）
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => this.setupShareFeatures(), 100);
+            });
+        } else {
+            setTimeout(() => this.setupShareFeatures(), 100);
+        }
 
         // ステージ選択画面
         document.getElementById('stageBackButton').addEventListener('click', () => {
@@ -1737,12 +1744,41 @@ class UIManager {
         this.updateStatsDisplay();
         this.showScreen('statsScreen');
         
-        // 共有機能の初期プレビューを表示
+        // 共有機能の初期プレビューを表示（強制実行）
         setTimeout(() => {
+            this.ensureSharePreview();
+        }, 300);
+    }
+
+    /**
+     * 共有プレビューの確実な表示
+     */
+    ensureSharePreview() {
+        console.log('🔄 共有プレビュー確認開始');
+        
+        const canvas = document.getElementById('sharePreviewCanvas');
+        if (!canvas) {
+            console.error('❌ プレビューキャンバスが見つかりません');
+            return;
+        }
+
+        // キャンバスが空の場合のみ初期プレビューを表示
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const isEmpty = imageData.data.every(pixel => pixel === 0);
+
+        if (isEmpty || !this.sharePreviewInitialized) {
+            console.log('🎨 初期プレビューを強制表示');
             if (this.shareGenerator) {
                 this.showInitialPreview();
+                this.sharePreviewInitialized = true;
+            } else {
+                console.log('⚠️ ShareGeneratorが未初期化、再初期化を試行');
+                this.setupShareFeatures();
             }
-        }, 100);
+        } else {
+            console.log('✅ プレビューは既に表示済み');
+        }
     }
 
     /**
@@ -1862,81 +1898,171 @@ class UIManager {
     setupShareFeatures() {
         console.log('📸 成績共有機能セットアップ開始');
 
-        // ShareGeneratorインスタンス作成
-        this.shareGenerator = new ShareGenerator();
+        try {
+            // ShareGeneratorインスタンス作成
+            if (!this.shareGenerator) {
+                this.shareGenerator = new ShareGenerator();
+                console.log('✅ ShareGeneratorインスタンス作成完了');
+            }
 
-        // 初期プレビュー表示
-        this.showInitialPreview();
+            // ボタン要素の存在確認（リトライ機能付き）
+            const certificateBtn = document.getElementById('shareAsCertificate');
+            const dashboardBtn = document.getElementById('shareAsDashboard');
+            const downloadBtn = document.getElementById('downloadImage');
+            const shareBtn = document.getElementById('shareToSocial');
 
-        // 表彰状ボタン
-        document.getElementById('shareAsCertificate').addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.generateShareImage('certificate');
-        });
+            if (!certificateBtn || !dashboardBtn || !downloadBtn || !shareBtn) {
+                console.error('❌ 共有ボタンが見つかりません');
+                console.log('🔍 ボタン存在確認:', {
+                    certificate: !!certificateBtn,
+                    dashboard: !!dashboardBtn,
+                    download: !!downloadBtn,
+                    share: !!shareBtn
+                });
+                
+                // 1秒後にリトライ
+                setTimeout(() => {
+                    console.log('🔄 共有機能セットアップをリトライ');
+                    this.setupShareFeatures();
+                }, 1000);
+                return;
+            }
 
-        // 成績表ボタン
-        document.getElementById('shareAsDashboard').addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.generateShareImage('dashboard');
-        });
+            // イベントリスナーの重複登録を防ぐ
+            if (!certificateBtn.hasAttribute('data-share-listener')) {
+                certificateBtn.addEventListener('click', (e) => {
+                    console.log('🎯 表彰状ボタンクリック');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.generateShareImage('certificate');
+                });
+                certificateBtn.setAttribute('data-share-listener', 'true');
+            }
 
-        // ダウンロードボタン
-        document.getElementById('downloadImage').addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.downloadShareImage();
-        });
+            if (!dashboardBtn.hasAttribute('data-share-listener')) {
+                dashboardBtn.addEventListener('click', (e) => {
+                    console.log('🎯 成績表ボタンクリック');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.generateShareImage('dashboard');
+                });
+                dashboardBtn.setAttribute('data-share-listener', 'true');
+            }
 
-        // 共有ボタン
-        document.getElementById('shareToSocial').addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.shareToSocial();
-        });
+            if (!downloadBtn.hasAttribute('data-share-listener')) {
+                downloadBtn.addEventListener('click', (e) => {
+                    console.log('🎯 ダウンロードボタンクリック');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.downloadShareImage();
+                });
+                downloadBtn.setAttribute('data-share-listener', 'true');
+            }
 
-        console.log('✅ 成績共有機能セットアップ完了');
+            if (!shareBtn.hasAttribute('data-share-listener')) {
+                shareBtn.addEventListener('click', (e) => {
+                    console.log('🎯 共有ボタンクリック');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.shareToSocial();
+                });
+                shareBtn.setAttribute('data-share-listener', 'true');
+            }
+
+            // 初期プレビューを表示
+            setTimeout(() => {
+                this.showInitialPreview();
+            }, 100);
+
+            console.log('✅ 成績共有機能セットアップ完了');
+        } catch (error) {
+            console.error('❌ 成績共有機能セットアップエラー:', error);
+            
+            // エラー時のリトライ
+            setTimeout(() => {
+                console.log('🔄 エラー後の共有機能セットアップをリトライ');
+                this.setupShareFeatures();
+            }, 2000);
+        }
     }
 
     /**
      * 初期プレビュー表示
      */
     showInitialPreview() {
-        const success = this.shareGenerator.initCanvas('sharePreviewCanvas', 400, 300);
-        if (!success) return;
+        try {
+            console.log('🎨 初期プレビュー表示開始');
+            
+            const canvas = document.getElementById('sharePreviewCanvas');
+            if (!canvas) {
+                console.error('❌ プレビューキャンバスが見つかりません');
+                return;
+            }
 
-        const ctx = this.shareGenerator.ctx;
-        
-        // 背景
-        const gradient = ctx.createLinearGradient(0, 0, 400, 300);
-        gradient.addColorStop(0, '#f8f9fa');
-        gradient.addColorStop(1, '#e9ecef');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 400, 300);
+            console.log('🔍 キャンバス状態確認:', {
+                canvas: !!canvas,
+                width: canvas.width,
+                height: canvas.height,
+                styleWidth: canvas.style.width,
+                styleHeight: canvas.style.height,
+                offsetWidth: canvas.offsetWidth,
+                offsetHeight: canvas.offsetHeight
+            });
 
-        // 枠線
-        ctx.strokeStyle = '#dee2e6';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([10, 5]);
-        ctx.strokeRect(20, 20, 360, 260);
-        ctx.setLineDash([]);
+            const success = this.shareGenerator.initCanvas('sharePreviewCanvas', 400, 300);
+            if (!success) {
+                console.error('❌ キャンバス初期化失敗');
+                return;
+            }
 
-        // メッセージ
-        this.shareGenerator.drawText('ボタンをおしてがぞうをさくせい', 200, 120, {
-            fontSize: 16,
-            color: '#6c757d'
-        });
+            const ctx = this.shareGenerator.ctx;
+            if (!ctx) {
+                console.error('❌ コンテキストが取得できません');
+                return;
+            }
+            
+            // 背景
+            const gradient = ctx.createLinearGradient(0, 0, 400, 300);
+            gradient.addColorStop(0, '#f8f9fa');
+            gradient.addColorStop(1, '#e9ecef');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 400, 300);
 
-        this.shareGenerator.drawText('📜 ひょうしょうじょう または 📊 せいせきひょう', 200, 150, {
-            fontSize: 12,
-            color: '#868e96'
-        });
+            // 枠線
+            ctx.strokeStyle = '#dee2e6';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
+            ctx.strokeRect(20, 20, 360, 260);
+            ctx.setLineDash([]);
 
-        // アイコン
-        this.shareGenerator.drawText('🎨', 200, 180, {
-            fontSize: 30
-        });
+            // メッセージ
+            this.shareGenerator.drawText('ボタンをおしてがぞうをさくせい', 200, 120, {
+                fontSize: 16,
+                color: '#6c757d'
+            });
+
+            this.shareGenerator.drawText('📜 ひょうしょうじょう または 📊 せいせきひょう', 200, 150, {
+                fontSize: 12,
+                color: '#868e96'
+            });
+
+            // アイコン
+            this.shareGenerator.drawText('🎨', 200, 180, {
+                fontSize: 30
+            });
+
+            console.log('✅ 初期プレビュー表示完了');
+            
+            // 描画結果を確認
+            setTimeout(() => {
+                const imageData = ctx.getImageData(0, 0, 400, 300);
+                const hasContent = !imageData.data.every(pixel => pixel === 0);
+                console.log('🔍 描画結果確認:', { hasContent });
+            }, 100);
+            
+        } catch (error) {
+            console.error('❌ 初期プレビュー表示エラー:', error);
+        }
     }
 
     /**
@@ -1946,6 +2072,14 @@ class UIManager {
         console.log('🎨 共有画像生成開始:', template);
 
         try {
+            // 最新のゲームデータを取得
+            this.gameData = gameStorage.loadGameData();
+            console.log('📊 ゲームデータ取得:', {
+                playerName: this.gameData.playerName,
+                totalScore: this.gameData.totalStats.totalScore,
+                completedStages: this.gameData.progress.completedStages.length
+            });
+
             // ボタンの状態更新
             this.updateShareButtons(template);
 
@@ -1960,13 +2094,18 @@ class UIManager {
 
             // テンプレートに応じて画像生成
             if (template === 'certificate') {
+                console.log('📜 表彰状生成開始');
                 await this.generateCertificate();
             } else if (template === 'dashboard') {
+                console.log('📊 ダッシュボード生成開始');
                 await this.generateDashboard();
             }
 
             // アクションボタンを表示
-            document.querySelector('.share-actions').style.display = 'flex';
+            const actionsDiv = document.querySelector('.share-actions');
+            if (actionsDiv) {
+                actionsDiv.style.display = 'flex';
+            }
 
             console.log('✅ 共有画像生成完了');
         } catch (error) {

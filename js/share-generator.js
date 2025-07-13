@@ -15,26 +15,48 @@ class ShareGenerator {
      * キャンバス初期化
      */
     initCanvas(canvasId, width = 800, height = 600) {
-        this.canvas = document.getElementById(canvasId);
-        if (!this.canvas) {
-            console.error('❌ キャンバスが見つかりません:', canvasId);
+        try {
+            this.canvas = document.getElementById(canvasId);
+            if (!this.canvas) {
+                console.error('❌ キャンバスが見つかりません:', canvasId);
+                return false;
+            }
+
+            // キャンバスのサイズ設定
+            this.canvas.width = width;
+            this.canvas.height = height;
+            
+            // コンテキスト取得
+            this.ctx = this.canvas.getContext('2d');
+            if (!this.ctx) {
+                console.error('❌ 2Dコンテキストの取得に失敗');
+                return false;
+            }
+            
+            // 高解像度対応
+            const dpr = window.devicePixelRatio || 1;
+            this.canvas.style.width = width + 'px';
+            this.canvas.style.height = height + 'px';
+            this.canvas.width = width * dpr;
+            this.canvas.height = height * dpr;
+            this.ctx.scale(dpr, dpr);
+
+            // キャンバスをクリア
+            this.ctx.clearRect(0, 0, width, height);
+
+            console.log('🎨 キャンバス初期化完了:', { 
+                canvasId, 
+                width, 
+                height, 
+                dpr,
+                canvasElement: !!this.canvas,
+                context: !!this.ctx
+            });
+            return true;
+        } catch (error) {
+            console.error('❌ キャンバス初期化エラー:', error);
             return false;
         }
-
-        this.canvas.width = width;
-        this.canvas.height = height;
-        this.ctx = this.canvas.getContext('2d');
-        
-        // 高解像度対応
-        const dpr = window.devicePixelRatio || 1;
-        this.canvas.style.width = width + 'px';
-        this.canvas.style.height = height + 'px';
-        this.canvas.width = width * dpr;
-        this.canvas.height = height * dpr;
-        this.ctx.scale(dpr, dpr);
-
-        console.log('🎨 キャンバス初期化完了:', { width, height, dpr });
-        return true;
     }
 
     /**
