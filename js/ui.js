@@ -8,6 +8,11 @@ class UIManager {
         this.gameData = null;
         this.storage = new GameStorage();
         this.clearedStageNumber = null; // クリアしたステージ番号を追跡
+        
+        // 共有機能の処理中フラグ
+        this.isDownloading = false;
+        this.isSharing = false;
+        
         this.init();
     }
 
@@ -194,6 +199,9 @@ class UIManager {
                 }, 500);
             }
         });
+
+        // 成績共有機能
+        this.setupShareFeatures();
 
         // ステージ選択画面
         document.getElementById('stageBackButton').addEventListener('click', () => {
@@ -1728,6 +1736,13 @@ class UIManager {
         // this.ensureTestData();
         this.updateStatsDisplay();
         this.showScreen('statsScreen');
+        
+        // 共有機能の初期プレビューを表示
+        setTimeout(() => {
+            if (this.shareGenerator) {
+                this.showInitialPreview();
+            }
+        }, 100);
     }
 
     /**
@@ -1839,6 +1854,424 @@ class UIManager {
         // データを保存
         const saveResult = gameStorage.saveGameData(this.gameData);
         console.log('💾 データ保存結果:', saveResult);
+    }
+
+    /**
+     * 成績共有機能のセットアップ
+     */
+    setupShareFeatures() {
+        console.log('📸 成績共有機能セットアップ開始');
+
+        // ShareGeneratorインスタンス作成
+        this.shareGenerator = new ShareGenerator();
+
+        // 初期プレビュー表示
+        this.showInitialPreview();
+
+        // 表彰状ボタン
+        document.getElementById('shareAsCertificate').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.generateShareImage('certificate');
+        });
+
+        // 成績表ボタン
+        document.getElementById('shareAsDashboard').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.generateShareImage('dashboard');
+        });
+
+        // ダウンロードボタン
+        document.getElementById('downloadImage').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.downloadShareImage();
+        });
+
+        // 共有ボタン
+        document.getElementById('shareToSocial').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.shareToSocial();
+        });
+
+        console.log('✅ 成績共有機能セットアップ完了');
+    }
+
+    /**
+     * 初期プレビュー表示
+     */
+    showInitialPreview() {
+        const success = this.shareGenerator.initCanvas('sharePreviewCanvas', 400, 300);
+        if (!success) return;
+
+        const ctx = this.shareGenerator.ctx;
+        
+        // 背景
+        const gradient = ctx.createLinearGradient(0, 0, 400, 300);
+        gradient.addColorStop(0, '#f8f9fa');
+        gradient.addColorStop(1, '#e9ecef');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 400, 300);
+
+        // 枠線
+        ctx.strokeStyle = '#dee2e6';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([10, 5]);
+        ctx.strokeRect(20, 20, 360, 260);
+        ctx.setLineDash([]);
+
+        // メッセージ
+        this.shareGenerator.drawText('ボタンをおしてがぞうをさくせい', 200, 120, {
+            fontSize: 16,
+            color: '#6c757d'
+        });
+
+        this.shareGenerator.drawText('📜 ひょうしょうじょう または 📊 せいせきひょう', 200, 150, {
+            fontSize: 12,
+            color: '#868e96'
+        });
+
+        // アイコン
+        this.shareGenerator.drawText('🎨', 200, 180, {
+            fontSize: 30
+        });
+    }
+
+    /**
+     * 共有画像生成
+     */
+    async generateShareImage(template) {
+        console.log('🎨 共有画像生成開始:', template);
+
+        try {
+            // ボタンの状態更新
+            this.updateShareButtons(template);
+
+            // キャンバス初期化
+            const success = this.shareGenerator.initCanvas('sharePreviewCanvas', 400, 300);
+            if (!success) {
+                throw new Error('キャンバス初期化失敗');
+            }
+
+            // プレイヤーデータ設定
+            this.shareGenerator.setPlayerData(this.gameData);
+
+            // テンプレートに応じて画像生成
+            if (template === 'certificate') {
+                await this.generateCertificate();
+            } else if (template === 'dashboard') {
+                await this.generateDashboard();
+            }
+
+            // アクションボタンを表示
+            document.querySelector('.share-actions').style.display = 'flex';
+
+            console.log('✅ 共有画像生成完了');
+        } catch (error) {
+            console.error('❌ 共有画像生成エラー:', error);
+            alert('がぞうのさくせいにしっぱいしました');
+        }
+    }
+
+    /**
+     * 共有ボタンの状態更新
+     */
+    updateShareButtons(activeTemplate) {
+        const buttons = document.querySelectorAll('.share-button');
+        buttons.forEach(button => {
+            button.classList.remove('active');
+        });
+
+        if (activeTemplate === 'certificate') {
+            document.getElementById('shareAsCertificate').classList.add('active');
+        } else if (activeTemplate === 'dashboard') {
+            document.getElementById('shareAsDashboard').classList.add('active');
+        }
+    }
+
+    /**
+     * 表彰状生成
+     */
+    async generateCertificate() {
+        const generator = this.shareGenerator;
+        const data = generator.playerData;
+
+        // 背景
+        generator.ctx.fillStyle = '#f8f5e4';
+        generator.ctx.fillRect(0, 0, 400, 300);
+
+        // 枠線
+        generator.drawRoundRect(10, 10, 380, 280, 15, null, '#d4af37', 4);
+        generator.drawRoundRect(20, 20, 360, 260, 10, null, '#b8860b', 2);
+
+        // タイトル
+        generator.drawText('ぼうけんたっせいしょう', 200, 50, {
+            fontSize: 18,
+            color: '#8b4513',
+            fontFamily: 'serif'
+        });
+
+        // プレイヤー名
+        generator.drawText(`${data.name} さん`, 200, 90, {
+            fontSize: 16,
+            color: '#2c3e50',
+            fontFamily: 'serif'
+        });
+
+        // 成績情報
+        const achievements = [
+            `クリアしたステージ: ${data.completedStages}こ`,
+            `そうごうスコア: ${generator.formatScore(data.totalScore)}`,
+            `ぼうけんレベル: ${data.playerLevel}`
+        ];
+
+        achievements.forEach((text, index) => {
+            generator.drawText(text, 200, 130 + (index * 25), {
+                fontSize: 12,
+                color: '#34495e'
+            });
+        });
+
+        // 星の装飾
+        generator.drawStar(50, 80, 15);
+        generator.drawStar(350, 80, 15);
+        generator.drawStar(50, 220, 12);
+        generator.drawStar(350, 220, 12);
+
+        // 日付
+        generator.drawText(`たっせいび: ${data.achievementDate}`, 200, 250, {
+            fontSize: 11,
+            color: '#5d4037',
+            fontFamily: 'serif'
+        });
+    }
+
+    /**
+     * ダッシュボード生成
+     */
+    async generateDashboard() {
+        const generator = this.shareGenerator;
+        const data = generator.playerData;
+
+        // 背景グラデーション
+        const gradient = generator.ctx.createLinearGradient(0, 0, 400, 300);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+        generator.ctx.fillStyle = gradient;
+        generator.ctx.fillRect(0, 0, 400, 300);
+
+        // ヘッダー
+        generator.drawRoundRect(20, 20, 360, 50, 10, 'rgba(255,255,255,0.9)');
+        generator.drawText(`${data.name}のせいせき`, 200, 35, {
+            fontSize: 14,
+            color: '#2c3e50'
+        });
+        generator.drawText(`レベル ${data.playerLevel}`, 200, 55, {
+            fontSize: 12,
+            color: '#7f8c8d'
+        });
+
+        // 統計カード
+        const stats = [
+            { label: 'スコア', value: generator.formatScore(data.totalScore), x: 70, y: 120 },
+            { label: 'ステージ', value: `${data.completedStages}こ`, x: 200, y: 120 },
+            { label: 'アイテム', value: `${data.totalItems}こ`, x: 330, y: 120 }
+        ];
+
+        stats.forEach(stat => {
+            // カード背景
+            generator.drawRoundRect(stat.x - 40, stat.y - 30, 80, 60, 8, 'rgba(255,255,255,0.9)');
+            
+            // 値
+            generator.drawText(stat.value, stat.x, stat.y - 10, {
+                fontSize: 12,
+                color: '#2c3e50'
+            });
+            
+            // ラベル
+            generator.drawText(stat.label, stat.x, stat.y + 10, {
+                fontSize: 10,
+                color: '#7f8c8d'
+            });
+        });
+
+        // プレイ時間
+        generator.drawRoundRect(50, 200, 300, 40, 8, 'rgba(255,255,255,0.9)');
+        generator.drawText(`そうプレイじかん: ${generator.formatTime(data.totalPlayTime)}`, 200, 220, {
+            fontSize: 12,
+            color: '#2c3e50'
+        });
+
+        // 日付（背景付き）
+        generator.drawRoundRect(150, 255, 100, 25, 12, 'rgba(255,255,255,0.9)');
+        generator.drawText(data.achievementDate, 200, 267, {
+            fontSize: 11,
+            color: '#2c3e50',
+            fontFamily: 'Arial, sans-serif'
+        });
+    }
+
+    /**
+     * 画像ダウンロード
+     */
+    async downloadShareImage() {
+        if (!this.shareGenerator || !this.shareGenerator.canvas) {
+            alert('さきにがぞうをさくせいしてください');
+            return;
+        }
+
+        const downloadButton = document.getElementById('downloadImage');
+        
+        // 既に処理中の場合は無視
+        if (downloadButton.disabled || this.isDownloading) {
+            console.log('⚠️ ダウンロード処理中のため無視');
+            return;
+        }
+
+        // ダウンロード中フラグを設定
+        this.isDownloading = true;
+        
+        // ボタンを無効化
+        downloadButton.disabled = true;
+        const originalText = downloadButton.textContent;
+        downloadButton.textContent = '💾 ダウンロードちゅう...';
+
+        try {
+            const playerName = this.gameData.playerName || 'ぼうけんしゃ';
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+            const filename = `${playerName}のせいせき_${timestamp}.png`;
+            
+            console.log('🎯 ダウンロード実行開始:', filename);
+            await this.shareGenerator.downloadImage(filename);
+            
+            console.log('✅ ダウンロード完了');
+        } catch (error) {
+            console.error('❌ ダウンロードエラー:', error);
+            alert('ダウンロードにしっぱいしました');
+        } finally {
+            // フラグとボタンを復元
+            setTimeout(() => {
+                this.isDownloading = false;
+                downloadButton.disabled = false;
+                downloadButton.textContent = originalText;
+                console.log('🔄 ダウンロードボタン復元完了');
+            }, 1500);
+        }
+    }
+
+    /**
+     * SNS共有
+     */
+    async shareToSocial() {
+        if (!this.shareGenerator || !this.shareGenerator.canvas) {
+            alert('さきにがぞうをさくせいしてください');
+            return;
+        }
+
+        const shareButton = document.getElementById('shareToSocial');
+        
+        // 既に処理中の場合は無視
+        if (shareButton.disabled || this.isSharing) {
+            console.log('⚠️ 共有処理中のため無視');
+            return;
+        }
+
+        // 共有中フラグを設定
+        this.isSharing = true;
+        
+        // ボタンを無効化
+        shareButton.disabled = true;
+        const originalText = shareButton.textContent;
+        shareButton.textContent = '📱 きょうゆうちゅう...';
+
+        try {
+            const blob = await this.shareGenerator.getImageBlob();
+            const file = new File([blob], 'せいせき.png', { type: 'image/png' });
+
+            console.log('🔍 共有機能チェック開始');
+
+            // Web Share API対応チェック
+            if (navigator.share) {
+                console.log('✅ Web Share API対応');
+                
+                try {
+                    // ファイル共有対応チェック
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        console.log('✅ ファイル共有対応');
+                        await navigator.share({
+                            title: 'キッズアドベンチャー - せいせき',
+                            text: 'ぼくの・わたしのぼうけんのせいせきだよ！',
+                            files: [file]
+                        });
+                        console.log('📱 ファイル共有完了');
+                        // 成功時は何もメッセージを表示しない
+                        return;
+                    } else {
+                        console.log('⚠️ ファイル共有非対応、テキスト共有を試行');
+                        // ファイル共有非対応の場合、テキストのみ共有
+                        await navigator.share({
+                            title: 'キッズアドベンチャー - せいせき',
+                            text: 'ぼくの・わたしのぼうけんのせいせきだよ！\nキッズアドベンチャーでぼうけんしています！'
+                        });
+                        console.log('📱 テキスト共有完了');
+                        alert('きょうゆうしました！\nがぞうは「がぞうをほぞん」ボタンでほぞんできます。');
+                        return;
+                    }
+                } catch (shareError) {
+                    console.log('📱 共有エラー詳細:', shareError.name, shareError.message);
+                    
+                    if (shareError.name === 'AbortError') {
+                        // ユーザーがキャンセルした場合
+                        console.log('📱 ユーザーが共有をキャンセル');
+                        return;
+                    }
+                    
+                    if (shareError.name === 'NotAllowedError') {
+                        console.log('📱 共有権限なし');
+                        alert('きょうゆうのきょかがひつようです。\nブラウザのせっていをかくにんしてください。');
+                        return;
+                    }
+                    
+                    // その他のエラーはフォールバックに進む
+                    console.log('📱 Web Share API失敗、フォールバックに進む');
+                }
+            } else {
+                console.log('⚠️ Web Share API非対応');
+            }
+
+            // フォールバック: クリップボードにコピー
+            console.log('📋 クリップボードコピーを試行');
+            if (navigator.clipboard && navigator.clipboard.write) {
+                try {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]);
+                    alert('がぞうをクリップボードにコピーしました！\nSNSにはりつけてください。');
+                    console.log('📋 クリップボードコピー完了');
+                    return;
+                } catch (clipboardError) {
+                    console.log('📋 クリップボードコピー失敗:', clipboardError);
+                }
+            }
+
+            // 最終フォールバック
+            console.log('⚠️ 全ての共有方法が失敗');
+            alert('このブラウザではきょうゆうきのうがつかえません。\n「がぞうをほぞん」ボタンでほぞんしてください。');
+
+        } catch (error) {
+            console.error('❌ 共有処理で予期しないエラー:', error);
+            alert('きょうゆうにしっぱいしました。\n「がぞうをほぞん」ボタンをつかってください。');
+        } finally {
+            // フラグとボタンを復元
+            setTimeout(() => {
+                this.isSharing = false;
+                shareButton.disabled = false;
+                shareButton.textContent = originalText;
+                console.log('🔄 共有ボタン復元完了');
+            }, 1000);
+        }
     }
 
     /**

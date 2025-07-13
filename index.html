@@ -6,6 +6,7 @@
     <title>キッズアドベンチャー - 横スクロールゲーム</title>
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/share-styles.css" />
   </head>
   <body>
     <!-- ゲームコンテナ -->
@@ -337,6 +338,30 @@
             </div>
           </div>
 
+          <!-- 成績共有セクション -->
+          <div class="share-section">
+            <h3>せいせきをきょうゆう</h3>
+            <div class="share-options">
+              <button id="shareAsCertificate" class="share-button">
+                📜 ひょうしょうじょう
+              </button>
+              <button id="shareAsDashboard" class="share-button">
+                📊 せいせきひょう
+              </button>
+            </div>
+            <div class="share-preview">
+              <canvas id="sharePreviewCanvas" width="400" height="300"></canvas>
+            </div>
+            <div class="share-actions" style="display: none;">
+              <button id="downloadImage" class="action-button">
+                💾 がぞうをほぞん
+              </button>
+              <button id="shareToSocial" class="action-button">
+                📱 きょうゆう
+              </button>
+            </div>
+          </div>
+
           <div class="menu-buttons">
             <button id="statsBackButton" class="game-button secondary">
               もどる
@@ -375,6 +400,7 @@
 
     <!-- JavaScript読み込み（同期・順序保証） -->
     <script src="js/storage.js?v=62"></script>
+    <script src="js/share-generator.js?v=62"></script>
     <script src="js/player.js?v=62"></script>
     <script src="js/stage.js?v=62"></script>
     <script src="js/goal-animation.js?v=62"></script>
