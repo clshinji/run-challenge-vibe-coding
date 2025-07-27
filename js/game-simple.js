@@ -54,7 +54,10 @@ class SimpleGame {
         // ゲームパッド初期化
         if (typeof GamepadManager !== 'undefined') {
             this.gamepadManager = new GamepadManager();
-            console.log('✅ ゲームパッド管理システム初期化完了');
+            this.gamepadManager.managerType = 'Game_Player';
+            // ゲーム用はメニューモードを無効化
+            this.gamepadManager.setMenuMode(false);
+            console.log(`✅ ゲームパッド管理システム初期化完了（ゲームモード） [${this.gamepadManager.instanceId}]`);
         } else {
             console.warn('⚠️ GamepadManagerが見つかりません');
         }

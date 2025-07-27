@@ -14,6 +14,10 @@ class UIManager {
         this.isSharing = false;
         this.sharePreviewInitialized = false;
         
+        // ゲームパッド関連
+        this.menuGamepadManager = null;
+        this.gamepadUpdateId = null;
+        
         this.init();
     }
 
@@ -41,6 +45,99 @@ class UIManager {
         setTimeout(() => {
             this.updatePlayerNameDisplay();
         }, 100);
+        
+        // ゲームパッド初期化（遅延実行で安全に）
+        setTimeout(() => {
+            this.initializeMenuGamepad();
+        }, 200);
+    }
+
+    /**
+     * メニュー用ゲームパッド初期化
+     */
+    initializeMenuGamepad() {
+        try {
+            if (typeof GamepadManager !== 'undefined') {
+                this.menuGamepadManager = new GamepadManager();
+                this.menuGamepadManager.managerType = 'UIManager_Menu';
+                console.log(`✅ UIManager: メニュー用GamepadManager初期化完了 [${this.menuGamepadManager.instanceId}]`);
+                
+                // メニューモードを有効にして更新ループ開始（ゲーム画面以外の場合のみ）
+                if (this.currentScreen !== 'gameScreen') {
+                    this.menuGamepadManager.setMenuMode(true);
+                }
+                this.startMenuGamepadLoop();
+            } else {
+                console.warn('⚠️ GamepadManagerが利用できません');
+            }
+        } catch (error) {
+            console.error('❌ ゲームパッド初期化エラー:', error);
+        }
+    }
+
+    /**
+     * メニューゲームパッド更新ループ開始
+     */
+    startMenuGamepadLoop() {
+        if (!this.menuGamepadManager) return;
+        
+        const updateLoop = () => {
+            // ゲーム画面以外 かつ メニューモード有効時のみ更新
+            if (this.currentScreen !== 'gameScreen' && 
+                this.menuGamepadManager && 
+                this.menuGamepadManager.isMenuMode) {
+                try {
+                    this.menuGamepadManager.update();
+                } catch (error) {
+                    console.error('🎮 メニューゲームパッド更新エラー:', error);
+                }
+            }
+            
+            this.gamepadUpdateId = requestAnimationFrame(updateLoop);
+        };
+        
+        this.gamepadUpdateId = requestAnimationFrame(updateLoop);
+        console.log('🎮 メニューゲームパッド更新ループ開始');
+    }
+
+    /**
+     * メニューゲームパッド更新ループ停止
+     */
+    stopMenuGamepadLoop() {
+        if (this.gamepadUpdateId) {
+            cancelAnimationFrame(this.gamepadUpdateId);
+            this.gamepadUpdateId = null;
+            console.log('🎮 メニューゲームパッド更新ループ停止');
+        }
+    }
+
+    /**
+     * メニューゲームパッドナビゲーション再初期化
+     */
+    refreshMenuGamepadNavigation() {
+        if (!this.menuGamepadManager) return;
+        
+        if (this.currentScreen === 'gameScreen') {
+            // ゲーム画面：メニューモードを完全に無効化し、更新も停止
+            this.menuGamepadManager.setMenuMode(false);
+            this.menuGamepadManager.clearAllFocus();
+            this.stopMenuGamepadLoop();
+            console.log('🎮 UIManager: ゲーム画面でメニューモード無効化・更新停止');
+        } else if (this.menuGamepadManager.isMenuMode) {
+            // その他画面：100ms後に再初期化（DOM更新待ち）
+            setTimeout(() => {
+                this.menuGamepadManager.initializeFocusableElements();
+            }, 100);
+        } else {
+            // メニューモードが無効の場合は有効化し、更新ループ再開
+            if (!this.gamepadUpdateId) {
+                this.startMenuGamepadLoop();
+            }
+            this.menuGamepadManager.setMenuMode(true);
+            setTimeout(() => {
+                this.menuGamepadManager.initializeFocusableElements();
+            }, 100);
+        }
     }
 
     /**
@@ -781,6 +878,9 @@ class UIManager {
 
             // 画面固有の初期化処理
             this.initScreen(screenId);
+            
+            // ゲームパッドメニューナビゲーション再初期化
+            this.refreshMenuGamepadNavigation();
 
             console.log(`showScreen: ${screenId} 初期化完了`);
         } else {

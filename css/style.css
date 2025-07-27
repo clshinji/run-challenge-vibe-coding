@@ -1395,6 +1395,37 @@ input[type="text"]:focus {
     background: #E67E22;
 }
 
+/* ゲームパッドフォーカス表示 */
+.gamepad-focused {
+    outline: 3px solid #FF6B6B !important;
+    outline-offset: 2px !important;
+    background: rgba(255, 107, 107, 0.1) !important;
+    transform: scale(1.02) !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.4) !important;
+}
+
+.game-button.gamepad-focused {
+    background: linear-gradient(45deg, #FF6B6B, #FF8E8E) !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+.stage-button.gamepad-focused {
+    border-color: #FF6B6B !important;
+    background: rgba(255, 107, 107, 0.15) !important;
+}
+
+.toggle-button.gamepad-focused {
+    background: #FF6B6B !important;
+    color: white !important;
+}
+
+input.gamepad-focused {
+    border-color: #FF6B6B !important;
+    background: rgba(255, 250, 250, 1) !important;
+}
+
 /* ローディング表示 */
 .loading {
     display: flex;
