@@ -1383,8 +1383,10 @@ class UIManager {
         const deadzoneValue = document.getElementById('deadzoneValue');
         const connectionStatus = document.getElementById('gamepadConnectionStatus');
 
+        // UIManagerのメニューGamepadManagerまたはゲーム内GamepadManagerを優先的に取得
+        const gamepadManager = this.menuGamepadManager || window.game?.gamepadManager;
+
         if (gamepadToggle) {
-            const gamepadManager = window.game?.gamepadManager;
             const isEnabled = gamepadManager ? gamepadManager.isEnabled : true;
             
             gamepadToggle.textContent = isEnabled ? 'ON' : 'OFF';
@@ -1392,7 +1394,6 @@ class UIManager {
         }
 
         if (gamepadDeadzone && deadzoneValue) {
-            const gamepadManager = window.game?.gamepadManager;
             const deadzone = gamepadManager ? gamepadManager.deadzone : 0.15;
             
             gamepadDeadzone.value = deadzone;
@@ -1408,7 +1409,8 @@ class UIManager {
      * ゲームパッド設定切り替え
      */
     toggleGamepadSetting() {
-        const gamepadManager = window.game?.gamepadManager;
+        // UIManagerのメニューGamepadManagerまたはゲーム内GamepadManagerを優先的に取得
+        const gamepadManager = this.menuGamepadManager || window.game?.gamepadManager;
         if (!gamepadManager) {
             console.warn('⚠️ ゲームパッドマネージャーが見つかりません');
             return;
@@ -1424,7 +1426,8 @@ class UIManager {
      * ゲームパッドデッドゾーン更新
      */
     updateGamepadDeadzone(value) {
-        const gamepadManager = window.game?.gamepadManager;
+        // UIManagerのメニューGamepadManagerまたはゲーム内GamepadManagerを優先的に取得
+        const gamepadManager = this.menuGamepadManager || window.game?.gamepadManager;
         if (!gamepadManager) return;
 
         gamepadManager.setDeadzone(value);
@@ -1440,7 +1443,8 @@ class UIManager {
         const connectionStatus = document.getElementById('gamepadConnectionStatus');
         if (!connectionStatus) return;
 
-        const gamepadManager = window.game?.gamepadManager;
+        // UIManagerのメニューGamepadManagerまたはゲーム内GamepadManagerを優先的に取得
+        const gamepadManager = this.menuGamepadManager || window.game?.gamepadManager;
         if (!gamepadManager) {
             connectionStatus.textContent = '未対応';
             connectionStatus.className = 'status-indicator disconnected';
@@ -1463,10 +1467,16 @@ class UIManager {
      */
     startGamepadTest() {
         const testButton = document.getElementById('gamepadTestButton');
-        const gamepadManager = window.game?.gamepadManager;
+        // UIManagerのメニューGamepadManagerまたはゲーム内GamepadManagerを優先的に取得
+        const gamepadManager = this.menuGamepadManager || window.game?.gamepadManager;
         
         if (!gamepadManager) {
             console.warn('⚠️ ゲームパッドマネージャーが見つかりません');
+            console.warn('デバッグ情報:', {
+                menuGamepadManager: !!this.menuGamepadManager,
+                gameGamepadManager: !!window.game?.gamepadManager,
+                windowGame: !!window.game
+            });
             return;
         }
 
