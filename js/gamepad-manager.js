@@ -271,23 +271,31 @@ class GamepadManager {
      * 移動入力処理
      */
     processMovementInput(gamepad, lastState) {
-        // 左スティック横軸
+        // 左スティック横軸・縦軸
         const leftStickX = gamepad.axes[this.buttonMapping.movement.leftStick.axis];
+        const leftStickY = gamepad.axes[this.buttonMapping.movement.leftStickVertical.axis];
         const horizontalInput = Math.abs(leftStickX) > this.deadzone ? leftStickX : 0;
+        const verticalInput = Math.abs(leftStickY) > this.deadzone ? leftStickY : 0;
         
         // 十字キー
         const dPadLeft = gamepad.buttons[this.buttonMapping.movement.dPadLeft.button]?.pressed || false;
         const dPadRight = gamepad.buttons[this.buttonMapping.movement.dPadRight.button]?.pressed || false;
+        const dPadUp = gamepad.buttons[this.buttonMapping.movement.dPadUp.button]?.pressed || false;
+        const dPadDown = gamepad.buttons[this.buttonMapping.movement.dPadDown.button]?.pressed || false;
         
         // 入力の統合
         let leftPressed = horizontalInput < -this.deadzone || dPadLeft;
         let rightPressed = horizontalInput > this.deadzone || dPadRight;
+        let upPressed = verticalInput < -this.deadzone || dPadUp;
+        let downPressed = verticalInput > this.deadzone || dPadDown;
         
         // 前フレームとの比較
         const wasLeftPressed = lastState.leftPressed || false;
         const wasRightPressed = lastState.rightPressed || false;
+        const wasUpPressed = lastState.upPressed || false;
+        const wasDownPressed = lastState.downPressed || false;
         
-        // 入力変化を検出してアクションを送信
+        // 左右入力変化を検出してアクションを送信
         if (leftPressed !== wasLeftPressed) {
             this.sendInputAction('left', leftPressed);
         }
@@ -296,12 +304,27 @@ class GamepadManager {
             this.sendInputAction('right', rightPressed);
         }
         
+        // UFOモード時のみ上下入力を送信
+        if (this.isPlayerInUFOMode()) {
+            if (upPressed !== wasUpPressed) {
+                console.log('[UFO_GAMEPAD] ⬆️ 上入力:', upPressed);
+                this.sendInputAction('up', upPressed);
+            }
+            
+            if (downPressed !== wasDownPressed) {
+                console.log('[UFO_GAMEPAD] ⬇️ 下入力:', downPressed);
+                this.sendInputAction('down', downPressed);
+            }
+        }
+        
         // デバッグログ（移動時のみ）
-        if (leftPressed || rightPressed) {
+        if (leftPressed || rightPressed || (this.isPlayerInUFOMode() && (upPressed || downPressed))) {
             console.log('[GAMEPAD] 移動入力:', {
                 leftStickX: leftStickX.toFixed(3),
-                dPadLeft, dPadRight,
-                leftPressed, rightPressed
+                leftStickY: leftStickY.toFixed(3),
+                dPad: { left: dPadLeft, right: dPadRight, up: dPadUp, down: dPadDown },
+                pressed: { left: leftPressed, right: rightPressed, up: upPressed, down: downPressed },
+                isUFOMode: this.isPlayerInUFOMode()
             });
         }
     }
@@ -350,9 +373,15 @@ class GamepadManager {
         const dPadDown = gamepad.buttons[this.buttonMapping.movement.dPadDown.button]?.pressed || false;
         
         return {
-            // ゲーム用
+            // ゲーム用（水平移動）
             leftPressed: (leftStickX < -this.deadzone) || dPadLeft,
             rightPressed: (leftStickX > this.deadzone) || dPadRight,
+            
+            // ゲーム用（垂直移動 - UFOモード用）
+            upPressed: (leftStickY < -this.deadzone) || dPadUp,
+            downPressed: (leftStickY > this.deadzone) || dPadDown,
+            
+            // ゲーム用（アクション）
             jumpPressed: gamepad.buttons[this.buttonMapping.actions.jump.button]?.pressed || false,
             pausePressed: gamepad.buttons[this.buttonMapping.actions.pause.button]?.pressed || false,
             backPressed: gamepad.buttons[this.buttonMapping.actions.back.button]?.pressed || false,
@@ -564,6 +593,18 @@ class GamepadManager {
         };
     }
     
+    /**
+     * プレイヤーのUFOモード状態を取得
+     */
+    isPlayerInUFOMode() {
+        try {
+            return window.game?.player?.isUFOMode || false;
+        } catch (error) {
+            console.error('[GAMEPAD] UFOモード状態取得エラー:', error);
+            return false;
+        }
+    }
+
     /**
      * メニューモード設定
      */
