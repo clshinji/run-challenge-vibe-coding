@@ -632,6 +632,9 @@ class GamepadManager {
     initializeFocusableElements() {
         console.log(`🎮 [DEBUG] initializeFocusableElements開始 [${this.instanceId}]`);
         
+        // 既存のフォーカス要素をクリア（古い要素参照を削除）
+        this.clearAllFocus();
+        
         // 基本的なフォーカス可能要素を検索
         const selectors = [
             '.game-button:not([disabled])',
@@ -647,7 +650,8 @@ class GamepadManager {
             const elements = document.querySelectorAll(selector);
             console.log(`🎮 [DEBUG] セレクター "${selector}": ${elements.length}個の要素`);
             elements.forEach(element => {
-                if (this.isElementVisible(element)) {
+                // DOM要素の有効性チェック
+                if (this.isElementValid(element) && this.isElementVisible(element)) {
                     // ゲーム画面の要素かチェック
                     const isGameScreenElement = element.closest('#gameScreen') !== null;
                     const isBackButton = element.id === 'backToStageButton' || element.classList.contains('back-button');
@@ -660,7 +664,8 @@ class GamepadManager {
                         inGameScreen: isGameScreenElement,
                         isBackButton: isBackButton,
                         isGameUIElement: isGameUIElement,
-                        textContent: element.textContent?.substring(0, 30)
+                        textContent: element.textContent?.substring(0, 30),
+                        isConnected: element.isConnected
                     };
                     
                     // ゲーム画面関連要素は除外
@@ -678,10 +683,29 @@ class GamepadManager {
         if (this.focusedElements.length > 0) {
             this.currentFocusIndex = 0;
             this.updateFocus();
+        } else {
+            // フォーカス要素がない場合はインデックスをリセット
+            this.currentFocusIndex = -1;
         }
         
         console.log(`🎮 [DEBUG] フォーカス可能要素: ${this.focusedElements.length}個 [${this.instanceId}]`);
         console.log(`🎮 [DEBUG] 要素ID一覧:`, this.focusedElements.map(el => el.id || el.className || el.tagName));
+    }
+    
+    /**
+     * DOM要素が有効かチェック（DOMに接続されているかなど）
+     */
+    isElementValid(element) {
+        try {
+            // 要素がDOM文書に接続されているかチェック
+            return element && 
+                   element.nodeType === Node.ELEMENT_NODE && 
+                   element.isConnected && 
+                   document.contains(element);
+        } catch (error) {
+            console.warn('🎮 [DEBUG] 要素有効性チェックエラー:', error);
+            return false;
+        }
     }
     
     /**
@@ -766,6 +790,14 @@ class GamepadManager {
         
         if (this.currentFocusIndex >= 0 && this.currentFocusIndex < this.focusedElements.length) {
             const element = this.focusedElements[this.currentFocusIndex];
+            
+            // 要素の有効性を再チェック
+            if (!this.isElementValid(element)) {
+                console.log(`🎮 [WARNING] 無効な要素を検出 - フォーカス要素を再初期化 [${this.instanceId}]`);
+                this.initializeFocusableElements();
+                return;
+            }
+            
             console.log(`🎮 [CRITICAL] 要素アクティベート実行 [${this.instanceId}]:`, {
                 id: element.id,
                 className: element.className,
@@ -773,7 +805,8 @@ class GamepadManager {
                 textContent: element.textContent?.substring(0, 50),
                 offsetParent: element.offsetParent !== null,
                 style_display: window.getComputedStyle(element).display,
-                style_visibility: window.getComputedStyle(element).visibility
+                style_visibility: window.getComputedStyle(element).visibility,
+                isConnected: element.isConnected
             });
             
             if (element.tagName === 'BUTTON') {

@@ -3766,6 +3766,15 @@ class UIManager {
         // プレイヤー一覧を更新（選択状態の変更を反映）
         this.updatePlayerListDisplay();
 
+        // DOM更新後、ゲームパッドナビゲーションをリフレッシュ
+        // プレイヤー選択によってDOM要素が再生成されるため、フォーカス要素を再初期化
+        setTimeout(() => {
+            if (this.menuGamepadManager && this.currentScreen === 'playerListScreen') {
+                console.log('🎮 プレイヤー選択後のゲームパッドナビゲーション再初期化');
+                this.menuGamepadManager.initializeFocusableElements();
+            }
+        }, 50); // DOM更新完了を待つ短い遅延
+
         console.log('プレイヤー選択完了:', playerName);
     }
 
