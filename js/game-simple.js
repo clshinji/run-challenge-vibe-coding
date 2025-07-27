@@ -35,6 +35,9 @@ class SimpleGame {
         // キー入力状態
         this.keys = {};
 
+        // ゲームパッド管理
+        this.gamepadManager = null;
+
         // ゴールアニメーション
         this.goalAnimation = null;
 
@@ -47,6 +50,14 @@ class SimpleGame {
     init() {
         this.setupCanvas();
         this.setupInputHandlers();
+
+        // ゲームパッド初期化
+        if (typeof GamepadManager !== 'undefined') {
+            this.gamepadManager = new GamepadManager();
+            console.log('✅ ゲームパッド管理システム初期化完了');
+        } else {
+            console.warn('⚠️ GamepadManagerが見つかりません');
+        }
 
         // ゴールアニメーション初期化
         this.goalAnimation = new GoalAnimation(this.canvas, this.ctx);
@@ -302,6 +313,11 @@ class SimpleGame {
         if (this.goalAnimation && this.goalAnimation.isAnimating()) {
             this.goalAnimation.update(performance.now());
             return;
+        }
+
+        // ゲームパッド入力更新
+        if (this.gamepadManager) {
+            this.gamepadManager.update();
         }
 
         if (this.player) {
@@ -754,6 +770,13 @@ class SimpleGame {
         if (this.gameLoopId) {
             cancelAnimationFrame(this.gameLoopId);
             this.gameLoopId = null;
+        }
+
+        // ゲームパッド管理システム破棄
+        if (this.gamepadManager) {
+            this.gamepadManager.destroy();
+            this.gamepadManager = null;
+            console.log('🎮 ゲームパッド管理システム破棄完了');
         }
 
         // グローバル参照をクリア

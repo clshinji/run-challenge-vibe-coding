@@ -1,27 +1,73 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/javascript-node
 {
-	"name": "Node.js",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
-	"features": {
-		"ghcr.io/devcontainers/features/common-utils:2": {}
-	},
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "bash .devcontainer/set-env.sh",
-	// Configure tool-specific properties.
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"ritwickdey.liveserver",
-				"mhutchie.git-graph"
-			]
-		}
-	}
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
-}
+    "name": "Claude Code Sandbox",
+    "build": {
+      "dockerfile": "Dockerfile",
+      "args": {
+        "TZ": "${localEnv:TZ:Asia/Tokyo}"
+      }
+    },
+    "runArgs": ["--cap-add=NET_ADMIN", "--cap-add=NET_RAW"],
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "dbaeumer.vscode-eslint",
+          "esbenp.prettier-vscode",
+          "eamodio.gitlens",
+          "ms-python.autopep8",
+          "streetsidesoftware.code-spell-checker",
+          "mhutchie.git-graph",
+          "github.copilot",
+          "ms-azuretools.vscode-docker",
+          "ms-vsliveshare.vsliveshare",
+          "mechatroner.rainbow-csv",
+          "ms-vscode-remote.remote-wsl",
+          "ms-python.python",
+          "ms-python.debugpy",
+          "ms-python.pylint",
+          "ms-python.vscode-pylance",
+          "amazonwebservices.aws-toolkit-vscode",
+          "ms-vscode-remote.remote-containers",
+          "pkief.material-icon-theme",
+          "ms-python.black-formatter",
+          "bierner.markdown-mermaid",
+          "ms-toolsai.jupyter"
+        ],
+        "settings": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": "explicit"
+          },
+          "terminal.integrated.defaultProfile.linux": "zsh",
+          "terminal.integrated.profiles.linux": {
+            "bash": {
+              "path": "bash",
+              "icon": "terminal-bash"
+            },
+            "zsh": {
+              "path": "zsh"
+            }
+          },
+          "[python]": {
+            "editor.defaultFormatter": "ms-python.black-formatter",
+            "editor.formatOnSave": true
+          }
+        }
+      }
+    },
+    "remoteUser": "node",
+    "mounts": [
+      "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+      "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume",
+      // ホストの ~/.aws をコンテナの /home/node/.aws にマウント
+      "source=${localEnv:HOME}/.aws,target=/home/node/.aws,type=bind,consistency=cached"
+    ],
+    "remoteEnv": {
+      "NODE_OPTIONS": "--max-old-space-size=4096",
+      "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+      "POWERLEVEL9K_DISABLE_GITSTATUS": "true"
+    },
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+    "workspaceFolder": "/workspace",
+    "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh"
+  }

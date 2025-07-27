@@ -391,6 +391,29 @@
               <button id="testDataToggle" class="toggle-button">OFF</button>
             </div>
           </div>
+          
+          <div class="setting-item gamepad-section">
+            <label>ゲームコントローラー</label>
+            <div class="setting-item">
+              <span>コントローラー対応</span>
+              <button id="gamepadToggle" class="toggle-button">ON</button>
+            </div>
+            <div class="setting-item">
+              <span>せんたく感度</span>
+              <div class="range-control">
+                <input type="range" id="gamepadDeadzone" min="0.05" max="0.5" step="0.05" value="0.15">
+                <span id="deadzoneValue">0.15</span>
+              </div>
+            </div>
+            <div class="setting-item gamepad-status">
+              <span>接続状態</span>
+              <span id="gamepadConnectionStatus" class="status-indicator">未接続</span>
+            </div>
+            <div class="setting-item gamepad-test">
+              <span>接続テスト</span>
+              <button id="gamepadTestButton" class="action-button">テストかいし</button>
+            </div>
+          </div>
         </div>
         <button id="settingsBackButton" class="game-button secondary">
           もどる
@@ -404,6 +427,7 @@
     <script src="js/player.js?v=62"></script>
     <script src="js/stage.js?v=62"></script>
     <script src="js/goal-animation.js?v=62"></script>
+    <script src="js/gamepad-manager.js?v=62"></script>
     <script src="js/game-simple.js?v=62"></script>
     <script src="js/ui.js?v=62"></script>
 

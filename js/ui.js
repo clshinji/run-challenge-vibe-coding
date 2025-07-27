@@ -285,6 +285,19 @@ class UIManager {
             this.toggleSetting('sound');
         });
 
+        // ゲームパッド設定
+        document.getElementById('gamepadToggle').addEventListener('click', () => {
+            this.toggleGamepadSetting();
+        });
+
+        document.getElementById('gamepadDeadzone').addEventListener('input', (e) => {
+            this.updateGamepadDeadzone(parseFloat(e.target.value));
+        });
+
+        document.getElementById('gamepadTestButton').addEventListener('click', () => {
+            this.startGamepadTest();
+        });
+
         document.getElementById('settingsBackButton').addEventListener('click', () => {
             this.showScreen('titleScreen');
         });
@@ -1256,6 +1269,186 @@ class UIManager {
 
         testDataButton.textContent = this.gameData.settings.testDataMode ? 'ON' : 'OFF';
         testDataButton.className = this.gameData.settings.testDataMode ? 'toggle-button' : 'toggle-button off';
+
+        // ゲームパッド設定更新
+        this.updateGamepadSettingsUI();
+    }
+
+    /**
+     * ゲームパッド設定UI更新
+     */
+    updateGamepadSettingsUI() {
+        const gamepadToggle = document.getElementById('gamepadToggle');
+        const gamepadDeadzone = document.getElementById('gamepadDeadzone');
+        const deadzoneValue = document.getElementById('deadzoneValue');
+        const connectionStatus = document.getElementById('gamepadConnectionStatus');
+
+        if (gamepadToggle) {
+            const gamepadManager = window.game?.gamepadManager;
+            const isEnabled = gamepadManager ? gamepadManager.isEnabled : true;
+            
+            gamepadToggle.textContent = isEnabled ? 'ON' : 'OFF';
+            gamepadToggle.className = isEnabled ? 'toggle-button' : 'toggle-button off';
+        }
+
+        if (gamepadDeadzone && deadzoneValue) {
+            const gamepadManager = window.game?.gamepadManager;
+            const deadzone = gamepadManager ? gamepadManager.deadzone : 0.15;
+            
+            gamepadDeadzone.value = deadzone;
+            deadzoneValue.textContent = deadzone.toFixed(2);
+        }
+
+        if (connectionStatus) {
+            this.updateGamepadConnectionStatus();
+        }
+    }
+
+    /**
+     * ゲームパッド設定切り替え
+     */
+    toggleGamepadSetting() {
+        const gamepadManager = window.game?.gamepadManager;
+        if (!gamepadManager) {
+            console.warn('⚠️ ゲームパッドマネージャーが見つかりません');
+            return;
+        }
+
+        gamepadManager.setEnabled(!gamepadManager.isEnabled);
+        this.updateGamepadSettingsUI();
+        
+        console.log('🎮 ゲームパッド設定変更:', gamepadManager.isEnabled ? '有効' : '無効');
+    }
+
+    /**
+     * ゲームパッドデッドゾーン更新
+     */
+    updateGamepadDeadzone(value) {
+        const gamepadManager = window.game?.gamepadManager;
+        if (!gamepadManager) return;
+
+        gamepadManager.setDeadzone(value);
+        document.getElementById('deadzoneValue').textContent = value.toFixed(2);
+        
+        console.log('🎮 デッドゾーン更新:', value);
+    }
+
+    /**
+     * ゲームパッド接続状態更新
+     */
+    updateGamepadConnectionStatus() {
+        const connectionStatus = document.getElementById('gamepadConnectionStatus');
+        if (!connectionStatus) return;
+
+        const gamepadManager = window.game?.gamepadManager;
+        if (!gamepadManager) {
+            connectionStatus.textContent = '未対応';
+            connectionStatus.className = 'status-indicator disconnected';
+            return;
+        }
+
+        const status = gamepadManager.getConnectionStatus();
+        
+        if (status.isConnected) {
+            connectionStatus.textContent = `接続中 (${status.connectedControllers}台)`;
+            connectionStatus.className = 'status-indicator connected';
+        } else {
+            connectionStatus.textContent = '未接続';
+            connectionStatus.className = 'status-indicator disconnected';
+        }
+    }
+
+    /**
+     * ゲームパッドテスト開始
+     */
+    startGamepadTest() {
+        const testButton = document.getElementById('gamepadTestButton');
+        const gamepadManager = window.game?.gamepadManager;
+        
+        if (!gamepadManager) {
+            console.warn('⚠️ ゲームパッドマネージャーが見つかりません');
+            return;
+        }
+
+        if (testButton.classList.contains('testing')) {
+            // テスト終了
+            this.stopGamepadTest();
+            return;
+        }
+
+        // テスト開始
+        testButton.textContent = 'テストちゅう...';
+        testButton.classList.add('testing');
+        
+        console.log('🎮 ゲームパッドテスト開始');
+        
+        // 10秒後に自動終了
+        this.gamepadTestTimer = setTimeout(() => {
+            this.stopGamepadTest();
+        }, 10000);
+        
+        // リアルタイム表示開始
+        this.gamepadTestInterval = setInterval(() => {
+            this.updateGamepadTestDisplay();
+        }, 100);
+    }
+
+    /**
+     * ゲームパッドテスト終了
+     */
+    stopGamepadTest() {
+        const testButton = document.getElementById('gamepadTestButton');
+        
+        testButton.textContent = 'テストかいし';
+        testButton.classList.remove('testing');
+        
+        if (this.gamepadTestTimer) {
+            clearTimeout(this.gamepadTestTimer);
+            this.gamepadTestTimer = null;
+        }
+        
+        if (this.gamepadTestInterval) {
+            clearInterval(this.gamepadTestInterval);
+            this.gamepadTestInterval = null;
+        }
+        
+        console.log('🎮 ゲームパッドテスト終了');
+    }
+
+    /**
+     * ゲームパッドテスト表示更新
+     */
+    updateGamepadTestDisplay() {
+        const gamepadManager = window.game?.gamepadManager;
+        if (!gamepadManager) return;
+
+        const inputState = gamepadManager.getLiveInputState();
+        if (inputState) {
+            console.log('🎮 入力状態:', {
+                leftStick: inputState.leftStick,
+                buttons: inputState.buttons.filter(b => b.pressed).map(b => `${b.index}:${b.value}`)
+            });
+        }
+        
+        this.updateGamepadConnectionStatus();
+    }
+
+    /**
+     * ゲームパッド接続変化時のコールバック
+     */
+    onGamepadConnectionChange(type, gamepad) {
+        console.log(`🎮 ゲームパッド${type}:`, gamepad.id);
+        
+        // 接続状態表示を更新
+        this.updateGamepadConnectionStatus();
+        
+        // 通知メッセージ表示（実装可能であれば）
+        const message = type === 'connected' 
+            ? `ゲームパッド接続: ${gamepad.id}` 
+            : `ゲームパッド切断: ${gamepad.id}`;
+        
+        // 簡易通知（コンソールログ）
+        console.log(`📢 ${message}`);
     }
 
     /**
