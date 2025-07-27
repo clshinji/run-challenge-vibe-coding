@@ -635,17 +635,88 @@ class GamepadManager {
         // 既存のフォーカス要素をクリア（古い要素参照を削除）
         this.clearAllFocus();
         
+        // 現在の画面を検出
+        const currentScreen = document.querySelector('.screen.active');
+        const screenId = currentScreen ? currentScreen.id : 'unknown';
+        console.log(`🎮 [DEBUG] 現在の画面: ${screenId}`);
+        
+        this.focusedElements = [];
+        
+        // プレイヤー一覧画面の場合は特別処理
+        if (screenId === 'playerListScreen') {
+            this.initializePlayerListFocus();
+        } else {
+            this.initializeGeneralFocus();
+        }
+        
+        // 最初の要素にフォーカスを設定
+        if (this.focusedElements.length > 0) {
+            this.currentFocusIndex = 0;
+            this.updateFocus();
+        } else {
+            // フォーカス要素がない場合はインデックスをリセット
+            this.currentFocusIndex = -1;
+        }
+        
+        console.log(`🎮 [DEBUG] フォーカス可能要素: ${this.focusedElements.length}個 [${this.instanceId}]`);
+        console.log(`🎮 [DEBUG] 要素ID一覧:`, this.focusedElements.map(el => el.id || el.className || el.tagName));
+    }
+    
+    /**
+     * プレイヤー一覧画面専用のフォーカス初期化
+     */
+    initializePlayerListFocus() {
+        console.log(`🎮 [DEBUG] プレイヤー一覧画面専用フォーカス初期化開始 [${this.instanceId}]`);
+        
+        // 1. プレイヤーカードを最優先で追加
+        const playerCards = document.querySelectorAll('.player-card');
+        console.log(`🎮 [DEBUG] プレイヤーカード: ${playerCards.length}個`);
+        
+        playerCards.forEach((card, index) => {
+            if (this.isElementValid(card) && this.isElementVisible(card)) {
+                console.log(`🎮 [DEBUG] プレイヤーカード追加 [${index}]:`, {
+                    textContent: card.textContent?.substring(0, 50),
+                    isConnected: card.isConnected
+                });
+                this.focusedElements.push(card);
+            }
+        });
+        
+        // 2. 主要なボタンのみを追加（危険なボタンは除外）
+        const safeButtons = [
+            '#playWithPlayerButton',  // このプレイヤーであそぶボタン
+            '#playerListBackButton'   // もどるボタン（最後に追加）
+        ];
+        
+        safeButtons.forEach(selector => {
+            const button = document.querySelector(selector);
+            if (button && this.isElementValid(button) && this.isElementVisible(button)) {
+                console.log(`🎮 [DEBUG] 安全ボタン追加:`, {
+                    id: button.id,
+                    textContent: button.textContent?.substring(0, 30)
+                });
+                this.focusedElements.push(button);
+            }
+        });
+        
+        console.log(`🎮 [DEBUG] プレイヤー一覧フォーカス初期化完了: ${this.focusedElements.length}個`);
+    }
+    
+    /**
+     * 一般画面のフォーカス初期化
+     */
+    initializeGeneralFocus() {
+        console.log(`🎮 [DEBUG] 一般画面フォーカス初期化開始 [${this.instanceId}]`);
+        
         // 基本的なフォーカス可能要素を検索
         const selectors = [
             '.game-button:not([disabled])',
             '.stage-button:not(.locked)',
             '.toggle-button:not([disabled])',
-            '.player-card',
             'input:not([disabled])',
             '.share-button:not([disabled])'
         ];
         
-        this.focusedElements = [];
         selectors.forEach(selector => {
             const elements = document.querySelectorAll(selector);
             console.log(`🎮 [DEBUG] セレクター "${selector}": ${elements.length}個の要素`);
@@ -678,18 +749,6 @@ class GamepadManager {
                 }
             });
         });
-        
-        // 最初の要素にフォーカスを設定
-        if (this.focusedElements.length > 0) {
-            this.currentFocusIndex = 0;
-            this.updateFocus();
-        } else {
-            // フォーカス要素がない場合はインデックスをリセット
-            this.currentFocusIndex = -1;
-        }
-        
-        console.log(`🎮 [DEBUG] フォーカス可能要素: ${this.focusedElements.length}個 [${this.instanceId}]`);
-        console.log(`🎮 [DEBUG] 要素ID一覧:`, this.focusedElements.map(el => el.id || el.className || el.tagName));
     }
     
     /**
@@ -798,7 +857,12 @@ class GamepadManager {
                 return;
             }
             
-            console.log(`🎮 [CRITICAL] 要素アクティベート実行 [${this.instanceId}]:`, {
+            // 現在の画面情報
+            const currentScreen = document.querySelector('.screen.active');
+            const screenId = currentScreen ? currentScreen.id : 'unknown';
+            
+            // 詳細なデバッグ情報
+            const elementInfo = {
                 id: element.id,
                 className: element.className,
                 tagName: element.tagName,
@@ -806,8 +870,27 @@ class GamepadManager {
                 offsetParent: element.offsetParent !== null,
                 style_display: window.getComputedStyle(element).display,
                 style_visibility: window.getComputedStyle(element).visibility,
-                isConnected: element.isConnected
-            });
+                isConnected: element.isConnected,
+                currentScreen: screenId,
+                isPlayerCard: element.classList.contains('player-card'),
+                focusIndex: this.currentFocusIndex,
+                totalFocusElements: this.focusedElements.length
+            };
+            
+            console.log(`🎮 [CRITICAL] 要素アクティベート実行 [${this.instanceId}]:`, elementInfo);
+            
+            // プレイヤーカードの場合は特別にログ出力
+            if (element.classList.contains('player-card')) {
+                const playerName = element.querySelector('.player-name')?.textContent || '不明';
+                console.log(`🎮 [PLAYER_CARD] プレイヤーカードクリック: "${playerName}"`);
+            }
+            
+            // 危険なボタンの警告
+            if (element.id === 'addNewPlayerButton') {
+                console.log(`🎮 [WARNING] 危険ボタン検出: addNewPlayerButton - 新規プレイヤー作成画面に遷移します`);
+            } else if (element.id === 'playerListBackButton') {
+                console.log(`🎮 [WARNING] 危険ボタン検出: playerListBackButton - タイトル画面に遷移します`);
+            }
             
             if (element.tagName === 'BUTTON') {
                 console.log(`🎮 [CRITICAL] ボタンクリック実行: ${element.id || element.className}`);
@@ -820,7 +903,7 @@ class GamepadManager {
                 element.click();
             }
         } else {
-            console.log(`🎮 [DEBUG] アクティベート対象なし - インデックス範囲外`);
+            console.log(`🎮 [DEBUG] アクティベート対象なし - インデックス範囲外 (Index: ${this.currentFocusIndex}, Length: ${this.focusedElements.length})`);
         }
     }
     

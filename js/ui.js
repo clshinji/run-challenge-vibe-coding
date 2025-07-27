@@ -3450,6 +3450,27 @@ class UIManager {
         // 画面を表示
         console.log('画面を表示中...');
         this.showScreen('playerListScreen');
+        
+        // プレイヤー一覧画面専用のゲームパッド初期化
+        setTimeout(() => {
+            if (this.menuGamepadManager) {
+                console.log('🎮 プレイヤー一覧画面のゲームパッド専用初期化開始');
+                this.menuGamepadManager.initializeFocusableElements();
+                
+                // 最初のプレイヤーカードに自動フォーカス
+                if (this.menuGamepadManager.focusedElements.length > 0) {
+                    const firstPlayerCard = this.menuGamepadManager.focusedElements.find(el => 
+                        el.classList.contains('player-card')
+                    );
+                    if (firstPlayerCard) {
+                        const cardIndex = this.menuGamepadManager.focusedElements.indexOf(firstPlayerCard);
+                        this.menuGamepadManager.currentFocusIndex = cardIndex;
+                        this.menuGamepadManager.updateFocus();
+                        console.log(`🎮 初期プレイヤーカードフォーカス設定: インデックス ${cardIndex}`);
+                    }
+                }
+            }
+        }, 150); // DOM表示完了を確実に待つ
 
         console.log('=== プレイヤー一覧画面を表示完了 ===');
     }
@@ -3771,9 +3792,24 @@ class UIManager {
         setTimeout(() => {
             if (this.menuGamepadManager && this.currentScreen === 'playerListScreen') {
                 console.log('🎮 プレイヤー選択後のゲームパッドナビゲーション再初期化');
+                console.log('🎮 DOM更新前のフォーカス要素数:', this.menuGamepadManager.focusedElements.length);
                 this.menuGamepadManager.initializeFocusableElements();
+                console.log('🎮 DOM更新後のフォーカス要素数:', this.menuGamepadManager.focusedElements.length);
+                
+                // プレイヤーカードに自動フォーカス（最初のプレイヤーカード）
+                if (this.menuGamepadManager.focusedElements.length > 0) {
+                    const firstPlayerCard = this.menuGamepadManager.focusedElements.find(el => 
+                        el.classList.contains('player-card')
+                    );
+                    if (firstPlayerCard) {
+                        const cardIndex = this.menuGamepadManager.focusedElements.indexOf(firstPlayerCard);
+                        this.menuGamepadManager.currentFocusIndex = cardIndex;
+                        this.menuGamepadManager.updateFocus();
+                        console.log(`🎮 プレイヤーカードにフォーカス設定: インデックス ${cardIndex}`);
+                    }
+                }
             }
-        }, 50); // DOM更新完了を待つ短い遅延
+        }, 100); // DOM更新完了を確実に待つ遅延
 
         console.log('プレイヤー選択完了:', playerName);
     }
