@@ -1486,9 +1486,21 @@ class UIManager {
             return;
         }
 
-        // テスト開始
+        // テスト開始 - データ収集初期化
+        this.gamepadTestData = {
+            startTime: Date.now(),
+            leftStick: { detected: false, movements: 0 },
+            rightStick: { detected: false, movements: 0 },
+            buttons: new Set(),
+            dPad: { up: false, down: false, left: false, right: false },
+            totalInputs: 0
+        };
+        
         testButton.textContent = 'テストちゅう...';
         testButton.classList.add('testing');
+        
+        // テスト開始通知を表示
+        this.showGamepadTestStartNotification();
         
         console.log('🎮 ゲームパッドテスト開始');
         
@@ -1522,6 +1534,11 @@ class UIManager {
             this.gamepadTestInterval = null;
         }
         
+        // テスト結果を表示
+        if (this.gamepadTestData) {
+            this.showGamepadTestResult();
+        }
+        
         console.log('🎮 ゲームパッドテスト終了');
     }
 
@@ -1529,18 +1546,210 @@ class UIManager {
      * ゲームパッドテスト表示更新
      */
     updateGamepadTestDisplay() {
-        const gamepadManager = window.game?.gamepadManager;
-        if (!gamepadManager) return;
+        const gamepadManager = this.menuGamepadManager || window.game?.gamepadManager;
+        if (!gamepadManager || !this.gamepadTestData) return;
 
         const inputState = gamepadManager.getLiveInputState();
-        if (inputState) {
-            console.log('🎮 入力状態:', {
-                leftStick: inputState.leftStick,
-                buttons: inputState.buttons.filter(b => b.pressed).map(b => `${b.index}:${b.value}`)
+        if (!inputState) return;
+        
+        // スティック入力の検出（閾値0.3以上で反応とみなす）
+        const leftStickMagnitude = Math.sqrt(
+            Math.pow(parseFloat(inputState.leftStick.x), 2) + 
+            Math.pow(parseFloat(inputState.leftStick.y), 2)
+        );
+        const rightStickMagnitude = Math.sqrt(
+            Math.pow(parseFloat(inputState.rightStick.x), 2) + 
+            Math.pow(parseFloat(inputState.rightStick.y), 2)
+        );
+        
+        if (leftStickMagnitude > 0.3) {
+            this.gamepadTestData.leftStick.detected = true;
+            this.gamepadTestData.leftStick.movements++;
+        }
+        
+        if (rightStickMagnitude > 0.3) {
+            this.gamepadTestData.rightStick.detected = true;
+            this.gamepadTestData.rightStick.movements++;
+        }
+        
+        // ボタン入力の検出
+        inputState.buttons.forEach(button => {
+            if (button.pressed) {
+                this.gamepadTestData.buttons.add(button.index);
+                this.gamepadTestData.totalInputs++;
+            }
+        });
+        
+        // 十字キーの検出
+        if (inputState.dPad.up) this.gamepadTestData.dPad.up = true;
+        if (inputState.dPad.down) this.gamepadTestData.dPad.down = true;
+        if (inputState.dPad.left) this.gamepadTestData.dPad.left = true;
+        if (inputState.dPad.right) this.gamepadTestData.dPad.right = true;
+        
+        // デバッグログ（縮小版）
+        if (this.gamepadTestData.totalInputs % 10 === 0 && this.gamepadTestData.totalInputs > 0) {
+            console.log('🎮 テスト進行:', {
+                leftStick: leftStickMagnitude > 0.3,
+                rightStick: rightStickMagnitude > 0.3,
+                buttonsPressed: inputState.buttons.filter(b => b.pressed).length,
+                totalDetected: this.gamepadTestData.buttons.size
             });
         }
         
         this.updateGamepadConnectionStatus();
+    }
+
+    /**
+     * ゲームパッドテスト開始通知表示
+     */
+    showGamepadTestStartNotification() {
+        const connectionStatus = this.menuGamepadManager?.getConnectionStatus() || { isConnected: false, connectedControllers: 0 };
+        
+        const startHTML = `
+            <div class="test-start-header">
+                <span class="test-start-icon">🎮</span>
+                <span class="test-start-title">テスト開始</span>
+            </div>
+            <div class="test-start-content">
+                <div class="test-start-item">
+                    <span class="start-icon">⏱️</span>
+                    <span class="start-text">テスト時間: 10秒間</span>
+                </div>
+                <div class="test-start-item">
+                    <span class="start-icon">🎯</span>
+                    <span class="start-text">テスト内容:</span>
+                </div>
+                <div class="test-instruction">
+                    <div>• スティックを動かしてください</div>
+                    <div>• ボタンを押してください</div>
+                    <div>• 十字キーを押してください</div>
+                </div>
+                ${connectionStatus.isConnected ? 
+                    '<div class="test-start-ready">✅ コントローラー接続済み</div>' : 
+                    '<div class="test-start-warning">⚠️ コントローラーが未接続です</div>'
+                }
+            </div>
+        `;
+        
+        // DOM更新
+        document.getElementById('testResultContent').innerHTML = startHTML;
+        document.getElementById('testResultSummary').innerHTML = '';
+        
+        // 開始通知表示（テスト結果表示まで継続）
+        const resultElement = document.getElementById('gamepadTestResult');
+        resultElement.classList.remove('hidden');
+        resultElement.classList.add('show', 'test-starting');
+        
+        console.log('🎮 テスト開始通知表示');
+    }
+
+    /**
+     * ゲームパッドテスト結果表示
+     */
+    showGamepadTestResult() {
+        if (!this.gamepadTestData) return;
+        
+        const data = this.gamepadTestData;
+        const testDuration = (Date.now() - data.startTime) / 1000;
+        
+        // 結果データの生成
+        const connectionStatus = this.menuGamepadManager?.getConnectionStatus() || { isConnected: false, connectedControllers: 0 };
+        const dPadDirections = Object.values(data.dPad).filter(v => v).length;
+        
+        // 総合評価の判定
+        let overallRating = '';
+        let ratingClass = '';
+        
+        if (connectionStatus.isConnected && data.buttons.size >= 3 && 
+            (data.leftStick.detected || data.rightStick.detected) && dPadDirections >= 2) {
+            overallRating = '良好';
+            ratingClass = 'excellent';
+        } else if (connectionStatus.isConnected && (data.buttons.size >= 1 || data.leftStick.detected || data.rightStick.detected)) {
+            overallRating = '一部反応';
+            ratingClass = 'partial';
+        } else {
+            overallRating = '問題あり';
+            ratingClass = 'poor';
+        }
+        
+        // 結果HTMLの生成
+        const contentHTML = `
+            <div class="test-result-item">
+                <span class="result-icon">${connectionStatus.isConnected ? '✅' : '❌'}</span>
+                <span class="result-label">接続:</span>
+                <span class="result-value">${connectionStatus.isConnected ? `正常 (${connectionStatus.connectedControllers}台)` : '未接続'}</span>
+            </div>
+            <div class="test-result-item">
+                <span class="result-icon">${data.leftStick.detected || data.rightStick.detected ? '✅' : '⚠️'}</span>
+                <span class="result-label">スティック:</span>
+                <span class="result-value">${this.getStickStatusText(data)}</span>
+            </div>
+            <div class="test-result-item">
+                <span class="result-icon">${data.buttons.size > 0 ? '✅' : '⚠️'}</span>
+                <span class="result-label">ボタン:</span>
+                <span class="result-value">${data.buttons.size}個反応</span>
+            </div>
+            <div class="test-result-item">
+                <span class="result-icon">${dPadDirections > 0 ? '✅' : '⚠️'}</span>
+                <span class="result-label">方向キー:</span>
+                <span class="result-value">${this.getDPadStatusText(data.dPad)}</span>
+            </div>
+        `;
+        
+        const summaryHTML = `
+            <div class="test-result-separator"></div>
+            <div class="test-result-overall ${ratingClass}">
+                <span class="overall-label">総合:</span>
+                <span class="overall-value">${overallRating}</span>
+            </div>
+        `;
+        
+        // DOM更新
+        document.getElementById('testResultContent').innerHTML = contentHTML;
+        document.getElementById('testResultSummary').innerHTML = summaryHTML;
+        
+        // 開始通知を終了して結果表示に切り替え
+        const resultElement = document.getElementById('gamepadTestResult');
+        resultElement.classList.remove('hidden', 'test-starting');
+        resultElement.classList.add('show');
+        
+        // 5秒後に自動非表示
+        setTimeout(() => {
+            resultElement.classList.remove('show');
+            setTimeout(() => {
+                resultElement.classList.add('hidden');
+            }, 300); // フェードアウト時間
+        }, 5000);
+        
+        console.log('🎮 テスト結果表示:', { overallRating, testDuration: testDuration.toFixed(1) + 's' });
+    }
+    
+    /**
+     * スティック状態テキスト生成
+     */
+    getStickStatusText(data) {
+        const left = data.leftStick.detected;
+        const right = data.rightStick.detected;
+        
+        if (left && right) return '左右とも反応';
+        if (left) return '左のみ反応';
+        if (right) return '右のみ反応';
+        return '反応なし';
+    }
+    
+    /**
+     * 十字キー状態テキスト生成
+     */
+    getDPadStatusText(dPad) {
+        const directions = [];
+        if (dPad.up) directions.push('上');
+        if (dPad.down) directions.push('下');
+        if (dPad.left) directions.push('左');
+        if (dPad.right) directions.push('右');
+        
+        if (directions.length === 0) return '反応なし';
+        if (directions.length >= 3) return `${directions.length}方向反応`;
+        return `${directions.join('・')}反応`;
     }
 
     /**

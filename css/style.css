@@ -3854,3 +3854,293 @@ input.gamepad-focused {
         font-size: 0.85rem;
     }
 }
+
+/* ゲームパッドテスト結果通知 */
+.gamepad-test-result {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 300px;
+    background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%);
+    border: 2px solid #4ECDC4;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    z-index: 1000;
+    transform: translateX(350px);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+    font-family: 'Arial', sans-serif;
+}
+
+/* テスト開始時の特別なスタイル */
+.gamepad-test-result.test-starting {
+    background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+    border: 2px solid #2196F3;
+}
+
+.gamepad-test-result.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.gamepad-test-result.hidden {
+    display: none;
+}
+
+.test-result-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #E9ECEF;
+}
+
+.test-result-icon {
+    font-size: 1.2rem;
+}
+
+.test-result-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #2980B9;
+}
+
+.test-result-content {
+    margin-bottom: 10px;
+}
+
+.test-result-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    padding: 5px 0;
+}
+
+.result-icon {
+    font-size: 0.9rem;
+    width: 20px;
+    text-align: center;
+}
+
+.result-label {
+    font-weight: bold;
+    color: #495057;
+    min-width: 80px;
+}
+
+.result-value {
+    color: #6C757D;
+    flex: 1;
+}
+
+.test-result-separator {
+    height: 1px;
+    background: #DEE2E6;
+    margin: 12px 0;
+}
+
+.test-result-overall {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.test-result-overall.excellent {
+    background: linear-gradient(135deg, #D4EDDA 0%, #C3E6CB 100%);
+    border: 1px solid #C3E6CB;
+    color: #155724;
+}
+
+.test-result-overall.partial {
+    background: linear-gradient(135deg, #FFF3CD 0%, #FFEAA7 100%);
+    border: 1px solid #FFEAA7;
+    color: #856404;
+}
+
+.test-result-overall.poor {
+    background: linear-gradient(135deg, #F8D7DA 0%, #F5C6CB 100%);
+    border: 1px solid #F5C6CB;
+    color: #721C24;
+}
+
+.overall-label {
+    font-size: 1rem;
+}
+
+.overall-value {
+    font-size: 1.1rem;
+}
+
+/* テスト開始通知専用スタイル */
+.test-start-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #BBDEFB;
+}
+
+.test-start-icon {
+    font-size: 1.2rem;
+}
+
+.test-start-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #1976D2;
+}
+
+.test-start-content {
+    margin-bottom: 0;
+}
+
+.test-start-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.start-icon {
+    font-size: 0.9rem;
+    width: 20px;
+    text-align: center;
+}
+
+.start-text {
+    font-weight: bold;
+    color: #424242;
+}
+
+.test-instruction {
+    margin: 10px 0 10px 28px;
+    color: #616161;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.test-instruction div {
+    margin: 3px 0;
+}
+
+.test-start-ready {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #E8F5E8 0%, #C8E6C9 100%);
+    border: 1px solid #81C784;
+    border-radius: 8px;
+    color: #2E7D32;
+    font-weight: bold;
+    text-align: center;
+}
+
+.test-start-warning {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+    border: 1px solid #FFB74D;
+    border-radius: 8px;
+    color: #F57C00;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .gamepad-test-result {
+        width: 280px;
+        top: 15px;
+        right: 15px;
+        padding: 15px;
+    }
+    
+    .test-result-title {
+        font-size: 1rem;
+    }
+    
+    .result-label {
+        min-width: 70px;
+        font-size: 0.9rem;
+    }
+    
+    .result-value {
+        font-size: 0.9rem;
+    }
+    
+    /* テスト開始通知のレスポンシブ */
+    .test-start-title {
+        font-size: 1rem;
+    }
+    
+    .start-text {
+        font-size: 0.9rem;
+    }
+    
+    .test-instruction {
+        font-size: 0.85rem;
+        margin-left: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .gamepad-test-result {
+        width: 260px;
+        top: 10px;
+        right: 10px;
+        padding: 12px;
+    }
+    
+    .test-result-header {
+        margin-bottom: 12px;
+    }
+    
+    .test-result-title {
+        font-size: 0.95rem;
+    }
+    
+    .test-result-item {
+        margin: 6px 0;
+    }
+    
+    .result-label {
+        min-width: 60px;
+        font-size: 0.85rem;
+    }
+    
+    .result-value {
+        font-size: 0.85rem;
+    }
+    
+    .overall-label,
+    .overall-value {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .gamepad-test-result {
+        width: 240px;
+        right: 5px;
+        padding: 10px;
+    }
+    
+    .test-result-title {
+        font-size: 0.9rem;
+    }
+    
+    .result-label {
+        min-width: 55px;
+        font-size: 0.8rem;
+    }
+    
+    .result-value {
+        font-size: 0.8rem;
+    }
+}
