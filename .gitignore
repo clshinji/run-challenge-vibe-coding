@@ -10,3 +10,7 @@
 
 # Node.js dependencies
 # node_modules/
+
+# CLI
+.claude/
+.amazonq/
