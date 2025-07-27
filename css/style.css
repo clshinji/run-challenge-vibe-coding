@@ -1298,11 +1298,20 @@ input[type="text"]:focus {
 .gamepad-section {
     border: 2px solid #4ECDC4;
     background: linear-gradient(135deg, #F0F8FF 0%, #E6F3FF 100%);
+    flex-direction: column;
+    align-items: stretch;
 }
 
 .gamepad-section label {
     color: #2980B9;
     font-size: 1.3rem;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* ゲームパッド設定内の項目を横並びグリッドに */
+.gamepad-section .setting-item {
+    margin: 8px 0;
 }
 
 .range-control {
@@ -3648,6 +3657,200 @@ input.gamepad-focused {
     .level-up-sparkles {
         font-size: 1.2rem;
     }
+}
 
+/* ゲームパッド設定のレスポンシブ対応 */
 
+/* 大きい画面・デスクトップ（1024px以上）: 2x2グリッドレイアウト */
+@media (min-width: 1025px) {
+    .gamepad-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 12px;
+        padding: 20px;
+    }
+    
+    .gamepad-section label {
+        grid-column: 1 / -1; /* ラベルは全幅 */
+        margin-bottom: 10px;
+    }
+    
+    .gamepad-section .setting-item {
+        margin: 0;
+        min-width: 250px;
+    }
+}
+
+/* タブレット（768px - 1024px）: 2x2グリッドレイアウト */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .gamepad-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 10px;
+        padding: 18px;
+    }
+    
+    .gamepad-section label {
+        grid-column: 1 / -1; /* ラベルは全幅 */
+        margin-bottom: 8px;
+        font-size: 1.2rem;
+    }
+    
+    .gamepad-section .setting-item {
+        margin: 0;
+        min-width: 200px;
+        padding: 12px;
+    }
+    
+    .range-control {
+        gap: 8px;
+    }
+    
+    .range-control input[type="range"] {
+        min-width: 80px;
+    }
+}
+
+/* 小さいタブレット・大きいスマートフォン（480px - 768px）: 縦並び */
+@media (max-width: 768px) and (min-width: 481px) {
+    .gamepad-section {
+        flex-direction: column;
+        padding: 15px;
+    }
+    
+    .gamepad-section label {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+    
+    .gamepad-section .setting-item {
+        margin: 6px 0;
+        min-width: auto;
+        padding: 12px;
+    }
+    
+    .range-control {
+        gap: 10px;
+    }
+    
+    .range-control input[type="range"] {
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    .toggle-button,
+    .action-button {
+        min-width: 80px;
+        padding: 10px 15px;
+    }
+    
+    .status-indicator {
+        padding: 6px 15px;
+        font-size: 0.9rem;
+    }
+}
+
+/* スマートフォン（480px以下）: 縦並び・最適化 */
+@media (max-width: 480px) {
+    .gamepad-section {
+        flex-direction: column;
+        padding: 12px;
+        margin: 10px 5px;
+    }
+    
+    .gamepad-section label {
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+    
+    .gamepad-section .setting-item {
+        margin: 5px 0;
+        min-width: auto;
+        padding: 10px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .gamepad-section .setting-item span {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .range-control {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+    
+    .range-control input[type="range"] {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .range-control span {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #2980B9;
+    }
+    
+    .toggle-button,
+    .action-button {
+        width: 100%;
+        max-width: 200px;
+        padding: 12px;
+        font-size: 1rem;
+        align-self: center;
+    }
+    
+    .status-indicator {
+        padding: 8px 15px;
+        font-size: 0.95rem;
+        text-align: center;
+        border-radius: 20px;
+        align-self: center;
+        max-width: 200px;
+    }
+}
+
+/* 非常に小さいスマートフォン（360px以下）: さらなる最適化 */
+@media (max-width: 360px) {
+    .gamepad-section {
+        padding: 10px;
+        margin: 8px 3px;
+    }
+    
+    .gamepad-section label {
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+    }
+    
+    .gamepad-section .setting-item {
+        padding: 8px;
+        margin: 4px 0;
+    }
+    
+    .gamepad-section .setting-item span {
+        font-size: 0.9rem;
+    }
+    
+    .range-control input[type="range"] {
+        max-width: 180px;
+    }
+    
+    .toggle-button,
+    .action-button {
+        max-width: 180px;
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .status-indicator {
+        max-width: 180px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
 }
