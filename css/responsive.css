@@ -417,6 +417,15 @@
         max-height: 85vh;
     }
 
+    /* デバッグ機能のレスポンシブ対応 */
+    .debug-title {
+        font-size: 0.9rem;
+    }
+
+    .debug-description {
+        font-size: 0.8rem;
+    }
+
     /* 操作説明セクションのスマートフォン対応 */
     .how-to-play-section {
         margin: 8px 5px;
@@ -473,6 +482,15 @@
 
     .level-summary {
         font-size: 0.85rem;
+    }
+
+    /* デバッグ機能の小画面対応 */
+    .debug-title {
+        font-size: 0.85rem;
+    }
+
+    .debug-description {
+        font-size: 0.75rem;
     }
     
     input[type="text"] {
