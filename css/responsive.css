@@ -179,11 +179,92 @@
         margin: 8px;
     }
     
+    /* タイトル画面のレスポンシブ対応 */
+    .title-grid {
+        gap: 15px;
+        padding: 15px;
+        height: 100vh;
+    }
+    
+    .title-header {
+        gap: 15px;
+        padding: 12px;
+    }
+    
     .character-preview {
-        width: 100px;
-        height: 100px;
-        margin: 1.5rem auto;
-        font-size: 2.5rem;
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+    }
+    
+    #titleScreen h1 {
+        font-size: 1.6rem;
+    }
+    
+    .game-button.primary {
+        font-size: 1.2rem;
+        padding: 12px 25px;
+    }
+    
+    .game-button.secondary {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+        min-width: 70px;
+    }
+
+    /* 操作説明セクションのタブレット対応 */
+    .how-to-play-section {
+        margin: 12px 8px;
+        padding: 16px;
+        max-width: none;
+    }
+
+    .how-to-play-section h3 {
+        font-size: 1.4rem;
+    }
+
+    .how-to-play-section h4 {
+        font-size: 1.1rem;
+    }
+
+    .control-tabs {
+        gap: 6px;
+    }
+
+    .tab-button {
+        padding: 7px 10px;
+        font-size: 0.85rem;
+        min-width: 90px;
+    }
+
+    .control-item {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .control-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.4rem;
+        min-width: 45px;
+    }
+
+    .control-text {
+        font-size: 0.9rem;
+    }
+
+    .control-text strong {
+        font-size: 1rem;
+    }
+
+    .goal-items {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .level-summary {
+        font-size: 0.9rem;
     }
     
     input[type="text"] {
@@ -291,12 +372,107 @@
         margin-top: 1.5rem;
     }
     
+    .title-grid {
+        gap: 12px;
+        padding: 12px;
+        height: 100vh;
+    }
+    
+    .title-header {
+        gap: 12px;
+        padding: 10px;
+        flex-direction: column;
+    }
+    
     .character-preview {
-        width: 80px;
-        height: 80px;
-        margin: 1rem auto;
-        font-size: 2rem;
-        border-width: 3px;
+        width: 60px;
+        height: 60px;
+        font-size: 1.8rem;
+        border-width: 2px;
+    }
+    
+    #titleScreen h1 {
+        font-size: 1.4rem;
+    }
+    
+    .game-button.primary {
+        font-size: 1.1rem;
+        padding: 12px 20px;
+    }
+    
+    .secondary-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .game-button.secondary {
+        font-size: 0.8rem;
+        padding: 8px 10px;
+        min-width: 60px;
+    }
+    
+    .modal-content {
+        margin: 10px;
+        padding: 20px;
+        max-height: 85vh;
+    }
+
+    /* 操作説明セクションのスマートフォン対応 */
+    .how-to-play-section {
+        margin: 8px 5px;
+        padding: 12px;
+    }
+
+    .how-to-play-section h3 {
+        font-size: 1.2rem;
+    }
+
+    .how-to-play-section h4 {
+        font-size: 1rem;
+    }
+
+    .control-tabs {
+        gap: 4px;
+        flex-direction: column;
+    }
+
+    .tab-button {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+        min-width: 80px;
+    }
+
+    .control-item {
+        padding: 8px;
+        gap: 8px;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .control-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        min-width: 40px;
+        margin: 0 auto;
+    }
+
+    .control-text {
+        font-size: 0.85rem;
+    }
+
+    .control-text strong {
+        font-size: 0.9rem;
+    }
+
+    .goal-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 6px 10px;
+    }
+
+    .level-summary {
+        font-size: 0.85rem;
     }
     
     input[type="text"] {
@@ -411,10 +587,48 @@
         min-width: 90px;
     }
     
+    .title-grid {
+        gap: 10px;
+        padding: 10px;
+        height: 100vh;
+    }
+    
+    .title-header {
+        gap: 10px;
+        padding: 8px;
+        flex-direction: column;
+    }
+    
     .character-preview {
-        width: 70px;
-        height: 70px;
-        font-size: 1.8rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        border-width: 2px;
+    }
+    
+    #titleScreen h1 {
+        font-size: 1.2rem;
+    }
+    
+    .player-name-compact {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .game-button.primary {
+        font-size: 1rem;
+        padding: 10px 15px;
+    }
+    
+    .secondary-actions {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .game-button.secondary {
+        font-size: 0.75rem;
+        padding: 6px 8px;
+        min-width: 50px;
     }
     
     input[type="text"] {
@@ -458,11 +672,57 @@
         margin-bottom: 0.5rem;
     }
     
+    .title-grid {
+        gap: 8px;
+        padding: 8px;
+        height: 100vh;
+    }
+    
+    .title-header {
+        gap: 8px;
+        padding: 6px;
+        flex-direction: column;
+    }
+    
     .character-preview {
-        width: 60px;
-        height: 60px;
-        margin: 0.5rem auto;
-        font-size: 1.5rem;
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+        border-width: 2px;
+    }
+    
+    #titleScreen h1 {
+        font-size: 1.1rem;
+    }
+    
+    .player-name-compact {
+        flex-direction: column;
+        gap: 3px;
+        font-size: 0.85rem;
+    }
+    
+    .hint-text {
+        font-size: 0.8rem;
+    }
+    
+    .level-text {
+        font-size: 0.9rem;
+    }
+    
+    .game-button.primary {
+        font-size: 0.95rem;
+        padding: 10px 15px;
+    }
+    
+    .secondary-actions {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .game-button.secondary {
+        font-size: 0.7rem;
+        padding: 5px 8px;
+        min-width: 45px;
     }
     
     .menu-buttons {

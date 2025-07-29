@@ -38,6 +38,8 @@ class UIManager {
         this.gameData = gameStorage.loadGameData();
         this.setupEventListeners();
         this.setupDebugFeatures();
+        this.setupControlTabs(); // タブ切り替え機能を追加
+        this.setupModalHandlers(); // モーダル機能を追加
         this.updateUI();
         this.showScreen('titleScreen');
 
@@ -430,6 +432,80 @@ class UIManager {
     /**
      * デバッグ機能の設定
      */
+    /**
+     * 操作説明タブの切り替え機能を設定
+     */
+    setupControlTabs() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const controlContents = document.querySelectorAll('.control-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-tab');
+                
+                // すべてのタブボタンとコンテンツからactiveクラスを削除
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                controlContents.forEach(content => content.classList.remove('active'));
+                
+                // クリックされたタブボタンをアクティブに
+                button.classList.add('active');
+                
+                // 対応するコンテンツをアクティブに
+                const targetContent = document.getElementById(`${targetTab}-controls-info`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+            });
+        });
+    }
+
+    /**
+     * モーダル操作の設定
+     */
+    setupModalHandlers() {
+        const showControlsBtn = document.getElementById('showControlsButton');
+        const closeControlsBtn = document.getElementById('closeControlsButton');
+        const controlsModal = document.getElementById('controlsModal');
+
+        // 操作説明表示ボタン
+        if (showControlsBtn) {
+            showControlsBtn.addEventListener('click', () => {
+                if (controlsModal) {
+                    controlsModal.style.display = 'flex';
+                    controlsModal.classList.add('active');
+                }
+            });
+        }
+
+        // 操作説明閉じるボタン
+        if (closeControlsBtn) {
+            closeControlsBtn.addEventListener('click', () => {
+                if (controlsModal) {
+                    controlsModal.style.display = 'none';
+                    controlsModal.classList.remove('active');
+                }
+            });
+        }
+
+        // モーダル背景クリックで閉じる
+        if (controlsModal) {
+            controlsModal.addEventListener('click', (e) => {
+                if (e.target === controlsModal) {
+                    controlsModal.style.display = 'none';
+                    controlsModal.classList.remove('active');
+                }
+            });
+        }
+
+        // ESCキーでモーダルを閉じる
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && controlsModal && controlsModal.style.display === 'flex') {
+                controlsModal.style.display = 'none';
+                controlsModal.classList.remove('active');
+            }
+        });
+    }
+
     setupDebugFeatures() {
         // ウィンドウリサイズ時のデバッグ情報更新
         window.addEventListener('resize', () => {

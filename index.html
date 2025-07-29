@@ -13,27 +13,137 @@
     <div id="gameContainer">
       <!-- タイトル画面 -->
       <div id="titleScreen" class="screen active">
-        <h1>キッズアドベンチャー</h1>
-        <div class="character-preview"></div>
-
-        <!-- プレイヤー名表示エリア -->
-        <div id="playerNameDisplay" class="player-name-display">
-          <div class="player-name-label">なまえ:</div>
-          <div id="currentPlayerName" class="current-player-name">
-            なまえがないよ
+        <div class="title-grid">
+          <!-- ヘッダー部分 -->
+          <div class="title-header">
+            <h1>キッズアドベンチャー</h1>
+            <div class="character-preview">🐱</div>
           </div>
-          <button id="editPlayerNameButton" class="game-button secondary">
-            なまえをかえる
-          </button>
-        </div>
 
-        <div class="menu-buttons">
-          <button id="startButton" class="game-button">ゲームスタート</button>
-          <button id="playerListButton" class="game-button">
-            プレイヤーいちらん
-          </button>
-          <button id="statsButton" class="game-button">せいせき</button>
-          <button id="settingsButton" class="game-button">せってい</button>
+          <!-- プレイヤー情報 -->
+          <div class="player-info">
+            <div class="player-name-compact">
+              <span class="name-label">プレイヤー:</span>
+              <span id="currentPlayerName" class="current-name">なまえがないよ</span>
+              <button id="editPlayerNameButton" class="edit-name-btn">✏️</button>
+            </div>
+          </div>
+
+          <!-- 簡易操作ヒント -->
+          <div class="quick-controls">
+            <div class="control-hint">
+              <span class="hint-icon">🎮</span>
+              <span class="hint-text">タッチ・キーボード・コントローラー対応</span>
+            </div>
+            <button id="showControlsButton" class="show-controls-btn">あそびかたを見る</button>
+          </div>
+
+          <!-- レベルアップ予告 -->
+          <div class="level-preview">
+            <span class="level-text">🌟 アイテムをあつめてレベルアップ！</span>
+          </div>
+
+          <!-- メインボタン -->
+          <div class="main-actions">
+            <button id="startButton" class="game-button primary">ゲームスタート</button>
+            <div class="secondary-actions">
+              <button id="playerListButton" class="game-button secondary">プレイヤー</button>
+              <button id="statsButton" class="game-button secondary">せいせき</button>
+              <button id="settingsButton" class="game-button secondary">せってい</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 操作説明モーダル -->
+      <div id="controlsModal" class="screen overlay" style="display: none;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>あそびかた</h2>
+            <button id="closeControlsButton" class="close-btn">×</button>
+          </div>
+          
+          <!-- タブナビゲーション -->
+          <div class="control-tabs">
+            <button class="tab-button active" data-tab="touch">📱 タッチ</button>
+            <button class="tab-button" data-tab="keyboard">⌨️ キーボード</button>
+            <button class="tab-button" data-tab="gamepad">🎮 コントローラー</button>
+          </div>
+
+          <!-- タッチ操作説明 -->
+          <div class="control-content active" id="touch-controls-info">
+            <div class="control-item">
+              <div class="control-icon">👈👉</div>
+              <div class="control-text">
+                <strong>うごく</strong><br>
+                ひだり・みぎボタンをタッチ
+              </div>
+            </div>
+            <div class="control-item">
+              <div class="control-icon">⬆️</div>
+              <div class="control-text">
+                <strong>ジャンプ</strong><br>
+                ジャンプボタンをタッチ
+              </div>
+            </div>
+          </div>
+
+          <!-- キーボード操作説明 -->
+          <div class="control-content" id="keyboard-controls-info">
+            <div class="control-item">
+              <div class="control-icon">←→</div>
+              <div class="control-text">
+                <strong>うごく</strong><br>
+                やじるしキー または A・Dキー
+              </div>
+            </div>
+            <div class="control-item">
+              <div class="control-icon">⬆️</div>
+              <div class="control-text">
+                <strong>ジャンプ</strong><br>
+                スペースキー または ↑キー
+              </div>
+            </div>
+            <div class="control-item">
+              <div class="control-icon">⬇️</div>
+              <div class="control-text">
+                <strong>しゃがむ</strong><br>
+                ↓キー または Sキー
+              </div>
+            </div>
+          </div>
+
+          <!-- コントローラー操作説明 -->
+          <div class="control-content" id="gamepad-controls-info">
+            <div class="control-item">
+              <div class="control-icon">🕹️</div>
+              <div class="control-text">
+                <strong>うごく</strong><br>
+                ひだりスティック または じゅうじキー
+              </div>
+            </div>
+            <div class="control-item">
+              <div class="control-icon">🅰️</div>
+              <div class="control-text">
+                <strong>ジャンプ</strong><br>
+                Aボタン
+              </div>
+            </div>
+            <div class="control-item">
+              <div class="control-icon">⏸️</div>
+              <div class="control-text">
+                <strong>ポーズ</strong><br>
+                スタートボタン
+              </div>
+            </div>
+          </div>
+
+          <!-- ゲーム目標 -->
+          <div class="goal-summary">
+            <h3>🎯 ゲームの目標</h3>
+            <p>⭐ アイテムをあつめて、🏁 ゴールをめざそう！</p>
+            <p>🌟 アイテムをたくさんあつめると、つよくなれるよ！</p>
+          </div>
         </div>
       </div>
 
